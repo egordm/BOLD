@@ -1,0 +1,76 @@
+version: '3'
+services:
+  stardog:
+    image: stardog/stardog:latest
+#    entrypoint: /bin/bash
+    userns_mode: host
+    ports:
+      - 5820:5820
+    volumes:
+      - data-stardog:/var/opt/stardog
+      - ./dev/stardog/stardog-license-key.bin:/var/opt/stardog/stardog-license-key.bin
+      - ./dev/stardog/import:/var/data/import
+    environment:
+      STARDOG_SERVER_JAVA_ARGS: "-Xmx8g -Xms8g -XX:MaxDirectMemorySize=12g"
+    networks:
+      - bold-net
+
+  stardog-studio:
+    image: stardog/stardog-studio:current
+    ports:
+      - 8888:8080
+    networks:
+      - bold-net
+    links:
+      - stardog
+    depends_on:
+      - stardog
+
+#  spark:
+#    build:
+#      context: ./dev/spark
+#      dockerfile: Dockerfile
+#    image: bold/spark
+#    environment:
+#      - SPARK_MODE=master
+#      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+#      - SPARK_RPC_ENCRYPTION_ENABLED=no
+#      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+#      - SPARK_SSL_ENABLED=no
+#    ports:
+#      - '8889:8080'
+#    volumes:
+#      - ./dev/spark/jobs:/jobs
+#    networks:
+#      - bold-net
+#    links:
+#      - stardog
+#
+#  spark-worker:
+#    build:
+#      context: ./dev/spark
+#      dockerfile: Dockerfile
+#    image: bold/spark
+#    environment:
+#      - SPARK_MODE=worker
+#      - SPARK_MASTER_URL=spark://spark:7077
+#      - SPARK_WORKER_MEMORY=8G
+#      - SPARK_WORKER_CORES=8
+#      - SPARK_RPC_AUTHENTICATION_ENABLED=no
+#      - SPARK_RPC_ENCRYPTION_ENABLED=no
+#      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
+#      - SPARK_SSL_ENABLED=no
+#    networks:
+#      - bold-net
+#    depends_on:
+#      - spark
+#      - stardog
+#    links:
+#      - spark
+#      - stardog
+
+volumes:
+  data-stardog:
+
+networks:
+  bold-net:

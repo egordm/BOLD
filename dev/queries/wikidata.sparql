@@ -1,0 +1,53 @@
+# QUERY: Count gender based on is person
+PREFIX wd: <http://www.wikidata.org/entity/>
+PREFIX wdt: <http://www.wikidata.org/prop/direct/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT ?gender (COUNT(?entity) as ?count) WHERE {
+  ?entity wdt:P31 wd:Q5;
+          wdt:P21 ?gender.
+}
+GROUP BY ?gender HAVING (COUNT(?entity) > 1)
+
+# QUERY: Select all english labels for all entities. Concatenates if multiple labels are present
+PREFIX wd: <http://www.wikidata.org/entity/>
+SELECT ?entity (GROUP_CONCAT(DISTINCT ?label; SEPARATOR=", ") as ?label) WHERE {
+    ?entity rdfs:label ?label
+    FILTER(LANG(?label) = "en")
+}
+GROUP BY ?entity
+
+# QUERY: Full text search for entities
+prefix fts: <tag:stardog:api:search:>
+SELECT * WHERE {
+  service fts:textMatch {
+      [] fts:query 'Roman' ;
+         fts:threshold 0.6 ;
+         fts:limit 10 ;
+         fts:offset 5 ;
+         fts:score ?score ;
+         fts:result ?res ;
+         fts:highlight ?highlight
+  }
+}
+
+# QUERY: Full text search for entities
+prefix fts: <tag:stardog:api:search:>
+SELECT * WHERE {
+  ?entity rdfs:label ?label .
+  (?label ?score) <tag:stardog:api:property:textMatch> ('Roman' 100) .
+  FILTER(?score > 0.6)
+}
+ORDER BY DESC(?score)
+LIMIT 10
+
+
+# QUERY: Delete all labels with a language tag not equal to "en"
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+DELETE {
+  ?entity rdfs:label ?label
+}
+WHERE {
+  ?entity rdfs:label ?label
+  FILTER(LANG(?label) != "en")
+}
