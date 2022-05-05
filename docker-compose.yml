@@ -33,7 +33,8 @@ services:
     volumes:
       - data-stardog:/var/opt/stardog
       - ./dev/stardog/stardog-license-key.bin:/var/opt/stardog/stardog-license-key.bin
-      - ./dev/stardog/import:/var/data/import
+      - ./storage/import:/var/data/import
+      - ./storage/downloads:/var/data/downloads
     environment:
       STARDOG_SERVER_JAVA_ARGS: "-Xmx8g -Xms8g -XX:MaxDirectMemorySize=12g"
     networks:
