@@ -14,3 +14,6 @@ stardog data export myDb export.ttl.gz
 \@((?!en).*)\s\.
 rg --pcre2 -v '@((?!en).*)\s\.' latest-truthy.nt > latest-truthy.nt.new
 
+
+celery -A backend call loading.tasks.lodc_kg_download --args='["Biop"]'
+
