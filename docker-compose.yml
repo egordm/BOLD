@@ -1,5 +1,29 @@
 version: '3'
 services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: rabbitmq
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - data-rabbitmq:/var/lib/rabbitmq/
+    networks:
+      - bold-net
+
+  postgres:
+    build: ./dev/postgres
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: helloworld
+      POSTGRES_MULTIPLE_DATABASES: test,develop,production
+    ports:
+      - 5432:5432
+    volumes:
+      - data-postgres:/var/lib/postgresql/data
+    networks:
+      - bold-net
+
   stardog:
     image: stardog/stardog:latest
 #    entrypoint: /bin/bash
@@ -71,6 +95,8 @@ services:
 
 volumes:
   data-stardog:
+  data-rabbitmq:
+  data-postgres:
 
 networks:
   bold-net:

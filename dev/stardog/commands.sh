@@ -9,3 +9,8 @@ dc exec spark bin/spark-submit --master "spark://6a65595502ea:7077" /opt/bitnami
 
 
 stardog data export myDb export.ttl.gz
+
+# Regex to remove all lines with translations for languages other than English
+\@((?!en).*)\s\.
+rg --pcre2 -v '@((?!en).*)\s\.' latest-truthy.nt > latest-truthy.nt.new
+

@@ -51,3 +51,18 @@ WHERE {
   ?entity rdfs:label ?label
   FILTER(LANG(?label) != "en")
 }
+
+# QUERY: count all occuring rdf types
+SELECT ?t (COUNT(?e) as ?c) WHERE {
+  ?e rdf:type ?t .
+}
+GROUP BY ?t
+
+
+# QUERY: select all entities with type Item
+PREFIX wb: <http://wikiba.se/ontology#>
+SELECT ?e ?p ?s WHERE {
+  ?e ?p ?s .
+  ?e rdf:type wb:Item .
+  ?s rdf:type wb:Item .
+}
