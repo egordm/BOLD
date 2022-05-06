@@ -91,7 +91,7 @@ def load_kg(file: Path, database: Optional[str] = None) -> str:
     print(IMPORT_DIR)
 
     if database is None:
-        database = random_string(10)
+        database = 'a' + random_string(10)
 
     if file.is_relative_to(IMPORT_DIR):
         remote_file = Path('/var/data/import') / file.relative_to(IMPORT_DIR)
