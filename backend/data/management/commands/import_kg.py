@@ -3,9 +3,8 @@ from pathlib import Path
 
 from django.core.management import BaseCommand
 
-from loading.services.lodc import LinkedOpenDataCloud
-from loading.tasks import load_kg
-from shared.paths import IMPORT_DIR
+from data.services.lodc_api import LinkedOpenDataCloudApi
+from data.tasks import import_kg
 
 
 class Command(BaseCommand):
@@ -14,7 +13,7 @@ class Command(BaseCommand):
 
     def handle(self, file, *args, **options):
 
-        datasets = LinkedOpenDataCloud.fetch_all_datasets()
+        datasets = LinkedOpenDataCloudApi.fetch_all_datasets()
         downloadable = [d for d in datasets if len(d.downloads()) > 0]
         print(f'{len(downloadable)} datasets are downloadable')
         defdownloadable = [d for d in datasets if any(do.is_kg for do in d.downloads())]
@@ -26,4 +25,4 @@ class Command(BaseCommand):
                 if do.is_kg:
                     downs[do.guess_format()].append(do)
 
-        load_kg(Path(file).absolute())
+        import_kg(Path(file).absolute())

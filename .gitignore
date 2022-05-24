@@ -140,6 +140,9 @@ cython_debug/
 
 dev/stardog/stardog-license-key.bin
 dev/stardog/import
+dev/bold-cli
 
 storage/import/*
 storage/downloads/*
+storage/export/*
+storage/data/*

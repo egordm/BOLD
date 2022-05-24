@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    'loading',
+    'data',
 ]
 
 MIDDLEWARE = [
@@ -152,3 +152,7 @@ LOGGING = {
         },
     },
 }
+
+STARDOG_ENDPOINT = 'http://localhost:5820'
+STARDOG_USER = 'admin'
+STARDOG_PASS = 'admin'

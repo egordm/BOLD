@@ -4,6 +4,10 @@ from dataclasses import dataclass
 from threading import Timer
 from typing import List, Union, Iterator
 
+from shared import get_logger
+
+logger = get_logger()
+
 
 @contextmanager
 def with_timeout(p: subprocess.Popen, timeout: int):
@@ -49,3 +53,8 @@ def execute_command(
             yield from run()
     else:
         yield from run()
+
+
+def consume_print(it: Iterator[str]):
+    for line in it:
+        logger.info(line)

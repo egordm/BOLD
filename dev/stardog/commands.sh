@@ -17,3 +17,6 @@ rg --pcre2 -v '@((?!en).*)\s\.' latest-truthy.nt > latest-truthy.nt.new
 
 celery -A backend call loading.tasks.lodc_kg_download --args='["Biop"]'
 
+
+
+dc exec stardog bash -c "/opt/stardog/bin/stardog query execute --format=TSV --limit=10000 --run-as admin -p admin yago /var/data/export/sub.sparql > /var/data/export/sub.csv"

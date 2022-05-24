@@ -101,7 +101,7 @@ class LODCDataset(Serializable):
 LODCDatasetSchema = class_schema(LODCDataset)
 
 
-class LinkedOpenDataCloud:
+class LinkedOpenDataCloudApi:
     @staticmethod
     def fetch_dataset(identifier: str) -> LODCDataset:
         response = requests.get(f'https://lod-cloud.net/json/{quote(identifier)}')
@@ -114,6 +114,3 @@ class LinkedOpenDataCloud:
         response.raise_for_status()
         datasets = response.json()
         return LODCDatasetSchema(many=True).load(list(datasets.values()))
-
-
-print(LinkedOpenDataCloud.fetch_dataset('A1'))

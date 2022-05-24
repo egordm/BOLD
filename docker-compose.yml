@@ -35,6 +35,7 @@ services:
       - ./dev/stardog/stardog-license-key.bin:/var/opt/stardog/stardog-license-key.bin
       - ./storage/import:/var/data/import
       - ./storage/downloads:/var/data/downloads
+      - ./storage/export:/var/data/export
     environment:
       STARDOG_SERVER_JAVA_ARGS: "-Xmx8g -Xms8g -XX:MaxDirectMemorySize=12g"
     networks:
@@ -98,6 +99,7 @@ volumes:
   data-stardog:
   data-rabbitmq:
   data-postgres:
+  data-elastic:
 
 networks:
   bold-net:
