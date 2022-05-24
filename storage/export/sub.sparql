@@ -1,0 +1,28 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT
+    ?iri 
+    (STR(?label_raw) AS ?label)  
+    ?count 
+    ?pos
+    ?type
+{
+    {
+        SELECT (?t as ?iri) (COUNT(?t) as ?count) (0 as ?pos)  
+        { ?t ?p ?v }
+        GROUP BY ?t HAVING (?count > 3)
+    } UNION {
+        SELECT (?t as ?iri) (COUNT(?t) as ?count) (1 as ?pos)  
+        { ?s ?t ?v }
+        GROUP BY ?t HAVING (?count > 3)
+    } UNION {
+        SELECT (?t as ?iri) (COUNT(?t) as ?count) (2 as ?pos)  
+        { ?s ?p ?t }
+        GROUP BY ?t HAVING (?count > 3)
+    }
+
+    OPTIONAL { 
+        ?iri rdfs:label ?label_raw.
+        FILTER (STRSTARTS(lang(?label_raw), 'en'))
+    }
+    OPTIONAL { ?iri rdfs:type ?type }
+}

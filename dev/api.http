@@ -1,1 +1,18 @@
 GET http://127.0.0.1:8000/api/data/yago/search_terms?limit=100&query=(Albert Einstein) AND count:[100 TO 100000]
+
+###
+POST http://127.0.0.1:8000/api/profile/yago/filtered_distribution
+Content-Type: application/json
+
+{
+    "props": [
+      "http://yago-knowledge.org/resource/infobox/en/ethnicity"
+    ],
+    "filters": [
+      [
+        ["http://yago-knowledge.org/resource/isCitizenOf"],
+        ["http://yago-knowledge.org/resource/United_States"]
+      ]
+    ],
+    "n_bins": 10
+}

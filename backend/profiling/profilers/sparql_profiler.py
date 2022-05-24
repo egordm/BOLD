@@ -3,7 +3,9 @@ from typing import List, Tuple
 from typing_extensions import Self
 
 from data.services.stardog_api import StardogApi
-from profiling.services.sparql import Term, SelectQuery, Var, Alias, COUNT, Triple, DESC
+from profiling.services.sparql import Term, SelectQuery, Var, Alias, COUNT, Triple, DESC, Values
+
+MultiTerm = List[Term]
 
 
 class AnalyticalProfiler:
@@ -18,16 +20,33 @@ class AnalyticalProfiler:
 
     def filtered_distribution(
         self,
-        prop: Term,
-        filter: List[Tuple[Term, Term]],
+        props: MultiTerm,
+        filters: List[Tuple[MultiTerm, MultiTerm]],
         n_bins: int = -1,
     ):
         # TODO: or statements should also be considered
+        binding_counter = 0
+        bindings = []
+
+        def add_binding(values: MultiTerm):
+            nonlocal binding_counter
+            var = Var(f'b{binding_counter}')
+            bindings.append(Values(var, values))
+            binding_counter += 1
+            return var
+
+        props = add_binding(props)
+        filters = [
+            (add_binding(fp), add_binding(fv))
+            for fp, fv in filters
+        ]
+
         query = SelectQuery(
             vars=[Var('v'), Alias(COUNT(Var('v')), Var('count'))],
             where=[
-                Triple(Var('s'), prop, Var('v')),
-                *[Triple(Var('s'), fp, fv) for (fp, fv) in filter]
+                *bindings,
+                Triple(Var('s'), props, Var('v')),
+                *[Triple(Var('s'), fp, fv) for (fp, fv) in filters]
             ],
             group=[Var('v')],
             order=[DESC(Var('count'))],
@@ -47,8 +66,9 @@ class AnalyticalProfiler:
             total_query = SelectQuery(
                 vars=[Alias(COUNT(Var('v')), Var('count'))],
                 where=[
-                    Triple(Var('s'), prop, Var('v')),
-                    *[Triple(Var('s'), fp, fv) for (fp, fv) in filter]
+                    *bindings,
+                    Triple(Var('s'), props, Var('v')),
+                    *[Triple(Var('s'), fp, fv) for (fp, fv) in filters]
                 ]
             )
             result = self.stardog.query(str(total_query))
