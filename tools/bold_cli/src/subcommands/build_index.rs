@@ -6,7 +6,7 @@ use serde_repr::*;
 
 use std::path::PathBuf;
 use tantivy::{doc, Index};
-use tantivy::schema::{INDEXED, Schema, STORED, TEXT};
+use tantivy::schema::{FAST, INDEXED, Schema, STORED, TEXT};
 
 #[derive(Debug, Args)]
 #[clap(args_conflicts_with_subcommands = true)]
@@ -57,14 +57,13 @@ pub fn run(args: BuildIndex) -> Result<()> {
 
     let mut schema_builder = Schema::builder();
     let iri = schema_builder.add_text_field("iri", TEXT | STORED);
-    let label = schema_builder.add_text_field("label", TEXT);
-    let count = schema_builder.add_u64_field("count", INDEXED | STORED);
-    let pos = schema_builder.add_u64_field("pos", INDEXED | STORED);
+    let label = schema_builder.add_text_field("label", TEXT | STORED);
+    let count = schema_builder.add_u64_field("count", INDEXED | STORED | FAST);
+    let pos = schema_builder.add_u64_field("pos", INDEXED | STORED | FAST);
     let ty = schema_builder.add_text_field("ty", TEXT | STORED);
-
     let schema = schema_builder.build();
-    let index = Index::create_in_dir(args.index_dir, schema.clone())?;
 
+    let index = Index::create_in_dir(args.index_dir, schema.clone())?;
     let mut index_writer = index.writer(50_000_000).unwrap();
 
     let mut rdr = csv::ReaderBuilder::new()

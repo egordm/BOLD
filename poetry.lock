@@ -376,6 +376,14 @@ python-versions = "*"
 requests = ">=2.0.1,<3.0.0"
 
 [[package]]
+name = "simple-parsing"
+version = "0.0.19.post1"
+description = "A small utility for simplifying and cleaning up argument parsing scripts."
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[[package]]
 name = "six"
 version = "1.16.0"
 description = "Python 2 and 3 compatibility utilities"
@@ -392,8 +400,8 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
-name = "tantivy"
-version = "0.13.2"
+name = "tantivy-mirror"
+version = "0.17.0"
 description = ""
 category = "main"
 optional = false
@@ -459,7 +467,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "2ac6786e45699bf72de9268ba1de8e94affab54bf65e8414a9c54576df8af765"
+content-hash = "7eef8bf66c7556913b168878df6c680403f8c75e324635d28d65b1115894446c"
 
 [metadata.files]
 amqp = [
@@ -582,6 +590,10 @@ requests-toolbelt = [
     {file = "requests-toolbelt-0.9.1.tar.gz", hash = "sha256:968089d4584ad4ad7c171454f0a5c6dac23971e9472521ea3b6d49d610aa6fc0"},
     {file = "requests_toolbelt-0.9.1-py2.py3-none-any.whl", hash = "sha256:380606e1d10dc85c3bd47bf5a6095f815ec007be7a8b69c878507068df059e6f"},
 ]
+simple-parsing = [
+    {file = "simple_parsing-0.0.19.post1-py3-none-any.whl", hash = "sha256:e6768988e492f225ea72897299223641a1893c0d7020346521fa3630ef46846b"},
+    {file = "simple_parsing-0.0.19.post1.tar.gz", hash = "sha256:6d0dea07dd4c5abc8c185d10b47d514252147618316f1cad0724cffe5258467a"},
+]
 six = [
     {file = "six-1.16.0-py2.py3-none-any.whl", hash = "sha256:8abb2f1d86890a2dfb989f9a77cfcfd3e47c2a354b01111771326f8aa26e0254"},
     {file = "six-1.16.0.tar.gz", hash = "sha256:1e61c37477a1626458e36f7b1d82aa5c9b094fa4802892072e49de9c60c4c926"},
@@ -590,16 +602,21 @@ sqlparse = [
     {file = "sqlparse-0.4.2-py3-none-any.whl", hash = "sha256:48719e356bb8b42991bdbb1e8b83223757b93789c00910a616a071910ca4a64d"},
     {file = "sqlparse-0.4.2.tar.gz", hash = "sha256:0c00730c74263a94e5a9919ade150dfc3b19c574389985446148402998287dae"},
 ]
-tantivy = [
-    {file = "tantivy-0.13.2-cp36-cp36m-manylinux2010_x86_64.whl", hash = "sha256:9a97d2b00850fd2edcfa162f4206841ddab8a88a21fb0d59cfae0c343fff49a0"},
-    {file = "tantivy-0.13.2-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:f762aecc7f0454ec4a06012ae02d0ae77bfdade4ca4165bdd791220c3107d8a7"},
-    {file = "tantivy-0.13.2-cp37-cp37m-manylinux2010_x86_64.whl", hash = "sha256:1a6307e33eba9640301094d3c0a6d8d493f99cd8986bc641932c4e4b0fc8a71a"},
-    {file = "tantivy-0.13.2-cp37-none-win_amd64.whl", hash = "sha256:a055cef32c0e5cf5e01b02af5b98c5b62c06b44ee745aac982d3d4d57804a389"},
-    {file = "tantivy-0.13.2-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:ca10d78aa3b5326fe016e48049271c2e843bedac281fa5046f28a320f7696b8a"},
-    {file = "tantivy-0.13.2-cp38-cp38-manylinux2010_x86_64.whl", hash = "sha256:0a9fd6395871e1280e237801b1020e9d82abe9632ce8b38068ad940087278104"},
-    {file = "tantivy-0.13.2-cp38-none-win_amd64.whl", hash = "sha256:09ebbbe81e516c5758a6a7dbf16f2111d63a2afeb4c3064dab4797563fc012c0"},
-    {file = "tantivy-0.13.2-cp39-cp39-manylinux2010_x86_64.whl", hash = "sha256:b4caffd13c299595751bfdf0c2170537596ce6124ae1d239d030b768eddb545e"},
-    {file = "tantivy-0.13.2.tar.gz", hash = "sha256:5cd63f5664e2df431a43a4c439d6af7d3fd7c8a760dd7303486333d94f6a20c8"},
+tantivy-mirror = [
+    {file = "tantivy_mirror-0.17.0-cp310-cp310-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:c0c5b3f0533717c1253586342e5d490ae75fea7aa173324b33fb753f32ba9925"},
+    {file = "tantivy_mirror-0.17.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:a6b9d65d444c9a394ab0b92286e330108b992ca01b5884f343790fda98ab292c"},
+    {file = "tantivy_mirror-0.17.0-cp310-none-win_amd64.whl", hash = "sha256:72c39ce415ebbeae4dd2f16e9acfbe0665ede28bfd1f24e8dc807308d62a8196"},
+    {file = "tantivy_mirror-0.17.0-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:55a973603fad7889b4e7932a0892f65e6448396b7c66b27341c3a1a33687bef9"},
+    {file = "tantivy_mirror-0.17.0-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:408a0a6f0b67b69b253bc167c565cd829b39fade72fa15f7686d6889a7770628"},
+    {file = "tantivy_mirror-0.17.0-cp37-none-win_amd64.whl", hash = "sha256:d6385b470cc1e520bb4b28d334a0c39dc45b0a25364920268a526af2a3b4dd77"},
+    {file = "tantivy_mirror-0.17.0-cp38-cp38-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:52e24cda6a1d94a5aa7c82b142a2e23256f27fefd3b8904ced1dfceb3f10124b"},
+    {file = "tantivy_mirror-0.17.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:57c7c6233202612615c55e6b55ba91c315e15968cab38ae036fac97a53e49662"},
+    {file = "tantivy_mirror-0.17.0-cp38-none-win_amd64.whl", hash = "sha256:0be49e4f8dc4a9eacc536dd9b6eb3dbc156a24bdec83be9144d3b3dc943dcbc5"},
+    {file = "tantivy_mirror-0.17.0-cp39-cp39-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:13e717dd7cd6a95b95ee8f3094e5b6ce29343feb3840eaa27e1e05419fdd960f"},
+    {file = "tantivy_mirror-0.17.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:fd486f271c4fa30d864b99c0021593b2d926e8c437a4b573c7f231061c416493"},
+    {file = "tantivy_mirror-0.17.0-cp39-none-win_amd64.whl", hash = "sha256:5da737f878301f1f00e483b61181646d489625395ef13e5bfabc32028bfa0f32"},
+    {file = "tantivy_mirror-0.17.0-pp37-pypy37_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:9dc33f8d24bc212fe8728bda5ba645e282de5a81656ce7e69993052b7af9a87c"},
+    {file = "tantivy_mirror-0.17.0.tar.gz", hash = "sha256:aa15d9e5ac35a74c28f14da0ea1d2a132443d71bce2f68b938629687bb1ea0df"},
 ]
 typing-extensions = [
     {file = "typing_extensions-4.2.0-py3-none-any.whl", hash = "sha256:6657594ee297170d19f67d55c05852a874e7eb634f4f753dbd667855e07c1708"},

@@ -1,0 +1,1 @@
+GET http://127.0.0.1:8000/api/data/yago/search_terms?limit=100&query=(Albert Einstein) AND count:[100 TO 100000]

@@ -4,7 +4,7 @@ from typing_extensions import Self
 from backend import settings
 
 
-class StardogSPARQL:
+class StardogApi:
     conn: stardog.Connection
 
     def __init__(self, connection: stardog.Connection) -> None:
@@ -13,7 +13,7 @@ class StardogSPARQL:
 
     @staticmethod
     def from_database(database: str) -> Self:
-        return StardogSPARQL(stardog.Connection(
+        return StardogApi(stardog.Connection(
             database,
             endpoint=settings.STARDOG_ENDPOINT,
             username=settings.STARDOG_USER,

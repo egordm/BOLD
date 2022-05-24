@@ -30,7 +30,7 @@ SELECT
         GROUP BY ?t HAVING (?count > {})
     } UNION {
         SELECT (?t as ?iri) (COUNT(?t) as ?count) (2 as ?pos)  
-        { ?s ?p ?t }
+        { ?s ?p ?t FILTER(?p != rdfs:label) }
         GROUP BY ?t HAVING (?count > {})
     }
 
@@ -41,6 +41,7 @@ SELECT
     OPTIONAL { ?iri rdfs:type ?type }
 }
 '''
+# TODO: remove labels from main results
 
 
 @shared_task()

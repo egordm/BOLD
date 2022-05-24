@@ -3,7 +3,9 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
 use crate::subcommands::build_index::BuildIndex;
+use crate::subcommands::search::Search;
 
+mod utils;
 mod subcommands;
 
 #[derive(Debug, Parser)]
@@ -18,6 +20,8 @@ struct Cli {
 enum Commands {
     #[clap(arg_required_else_help = true)]
     BuildIndex(BuildIndex),
+    #[clap(arg_required_else_help = true)]
+    Search(Search),
 }
 
 
@@ -27,6 +31,9 @@ fn main() {
     match args.command {
         Commands::BuildIndex(sub) => {
             subcommands::build_index::run(sub).unwrap()
+        }
+        Commands::Search(sub) => {
+            subcommands::search::run(sub).unwrap()
         }
     }
 }
