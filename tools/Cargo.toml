@@ -1,0 +1,4 @@
+[workspace]
+members = [
+    "bold_cli",
+]
