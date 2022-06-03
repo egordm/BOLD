@@ -11,7 +11,7 @@ import {NavItem} from './nav-item';
 const items = [{
     href: '/', icon: (<ChartBarIcon fontSize="small"/>), title: 'Dashboard'
 }, {
-    href: '/reports', icon: (<ChartBarIcon fontSize="small"/>), title: 'Reports'
+    href: '/notebook', icon: (<ChartBarIcon fontSize="small"/>), title: 'Reports'
 }, {
     href: '/datasets', icon: (<UsersIcon fontSize="small"/>), title: 'Datasets'
 },];

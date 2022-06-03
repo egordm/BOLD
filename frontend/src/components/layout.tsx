@@ -4,23 +4,34 @@ import { styled } from '@mui/material/styles';
 import { DashboardNavbar } from './dashboard-navbar';
 import { DashboardSidebar } from './dashboard-sidebar';
 
-const DashboardLayoutRoot = styled('div')(({ theme }) => ({
+const LayoutRoot = styled('div')(({ theme }) => ({
   display: 'flex',
   flex: '1 1 auto',
   maxWidth: '100%',
-  paddingTop: 64,
   [theme.breakpoints.up('lg')]: {
     paddingLeft: 280
   }
 }));
 
-export const DashboardLayout = (props) => {
-  const { children } = props;
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
+interface Props {
+  children: React.ReactNode;
+  showSidebar?: boolean;
+  showNavbar?: boolean;
+}
+
+export const Layout = (props: Props) => {
+  const {
+    children,
+    showSidebar = true,
+    showNavbar = true
+  } = props;
+  const [isSidebarOpen, setSidebarOpen] = useState(showSidebar);
 
   return (
     <>
-      <DashboardLayoutRoot>
+      <LayoutRoot sx={{
+        paddingTop: showNavbar ? '64px' : 0,
+      }}>
         <Box
           sx={{
             display: 'flex',
@@ -31,8 +42,8 @@ export const DashboardLayout = (props) => {
         >
           {children}
         </Box>
-      </DashboardLayoutRoot>
-      <DashboardNavbar onSidebarOpen={() => setSidebarOpen(true)} />
+      </LayoutRoot>
+      {showNavbar && (<DashboardNavbar onSidebarOpen={() => setSidebarOpen(true)} />)}
       <DashboardSidebar
         onClose={() => setSidebarOpen(false)}
         open={isSidebarOpen}

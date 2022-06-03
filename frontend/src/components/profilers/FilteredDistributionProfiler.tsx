@@ -3,6 +3,7 @@ import axios from "axios";
 import _ from "lodash";
 import dynamic from "next/dynamic";
 import React from "react";
+import { TermInput } from "../input/TermInput";
 
 const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
 
@@ -57,6 +58,16 @@ export const FilteredDistributionProfiler = (props) => {
         title="Filtered Distribution Profiler"
       />
       <Divider/>
+      <TermInput/>
+
+      <Button size="small" variant="contained" sx={{
+        mr: 2,
+        minWidth: 34, borderRadius: '50%',
+        padding: "6px 0px"
+      }} color={'secondary'}>
+        P
+      </Button>
+
       <Autocomplete
         multiple
         disablePortal

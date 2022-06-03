@@ -1,4 +1,12 @@
+import { EditorView } from "@codemirror/view";
 import { createTheme } from '@mui/material';
+
+export const editorTheme = EditorView.baseTheme({
+  ".cm-s-base16-light.CodeMirror, .cm-s-base16-light .CodeMirror-gutters": {
+    backgroundColor: "#034"
+  },
+})
+
 
 export const theme = createTheme({
   breakpoints: {
@@ -153,7 +161,7 @@ export const theme = createTheme({
       disabled: 'rgba(55, 65, 81, 0.26)'
     },
     background: {
-      default: '#F9FAFC',
+      default: '#E2E2E2',
       paper: '#FFFFFF'
     },
     divider: '#E6E8F0',

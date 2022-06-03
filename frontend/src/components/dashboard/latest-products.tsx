@@ -14,6 +14,8 @@ import {
 } from '@mui/material';
 import ArrowRightIcon from '@mui/icons-material/ArrowRight';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
+import GoogleMaps from "../input/GoogleMaps";
+import { TermInput } from "../input/TermInput";
 
 const products = [
   {
@@ -101,5 +103,6 @@ export const LatestProducts = (props) => (
         View all
       </Button>
     </Box>
+    <GoogleMaps/>
   </Card>
 );

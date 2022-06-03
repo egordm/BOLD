@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { Box, Container, Grid } from '@mui/material';
 import { LatestProducts } from '../components/dashboard/latest-products';
-import { DashboardLayout } from '../components/dashboard-layout';
+import { Layout } from '../components/layout';
 import { FilteredDistributionProfiler } from "../components/profilers/FilteredDistributionProfiler";
 
 const Dashboard = () => (
@@ -48,9 +48,9 @@ const Dashboard = () => (
 );
 
 Dashboard.getLayout = (page) => (
-  <DashboardLayout>
+  <Layout>
     {page}
-  </DashboardLayout>
+  </Layout>
 );
 
 export default Dashboard;
