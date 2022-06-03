@@ -1,13 +1,15 @@
 version: '3'
 services:
-  rabbitmq:
-    image: rabbitmq:3-management-alpine
-    container_name: rabbitmq
+  redis:
+    image: bitnami/redis:latest
+    container_name: redis
+    command: ["redis-server", "--protected-mode", "no"]
     ports:
-      - 5672:5672
-      - 15672:15672
+      - 6379:6379
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
     volumes:
-      - data-rabbitmq:/var/lib/rabbitmq/
+      - data-redis:/bitnami/redis/data
     networks:
       - bold-net
 
@@ -98,6 +100,7 @@ services:
 volumes:
   data-stardog:
   data-rabbitmq:
+  data-redis:
   data-postgres:
   data-elastic:
 
