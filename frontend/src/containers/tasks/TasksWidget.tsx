@@ -20,6 +20,7 @@ import { useState } from "react";
 import { useTasksContext } from "../../providers/TasksProvider";
 import { Task } from "../../types/tasks";
 import FilterNoneIcon from '@mui/icons-material/FilterNone';
+import { formatUUIDShort } from "../../utils/formatting";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -60,16 +61,21 @@ export const TasksWidget = (props: {}) => {
           {taskList.map(task => (
             <ListItem disablePadding key={task.task_id}>
               <ListItemButton>
-                <ListItemIcon>
+                <ListItemIcon sx={{
+                  minWidth: '46px'
+                }}>
                   {
                     isTaskRunning(task)
-                      ? <CircularProgress size={24}/>
+                      ? <CircularProgress size={24} color="primary"/>
                       : task.state === 'SUCCESS'
-                        ? <CheckCircleOutlineIcon/>
-                        : <ErrorOutlineIcon/>
+                        ? <CheckCircleOutlineIcon color="success"/>
+                        : <ErrorOutlineIcon color="error" />
                   }
                 </ListItemIcon>
-                <ListItemText primary={`Task ${task.task_id.substring(0, 6)}`}/>
+                <ListItemText sx={{
+                  textOverflow: 'ellipsis',
+                  overflow: 'hidden',
+                }} primary={`${formatUUIDShort(task.task_id)}: ${task.name}`}/>
               </ListItemButton>
             </ListItem>
           ))}

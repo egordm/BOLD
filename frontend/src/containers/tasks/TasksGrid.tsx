@@ -12,6 +12,7 @@ import { DataGridToolbar } from "../../components/datagrid/DataGridToolbar";
 import { Task } from "../../types/tasks";
 import { apiClient, PaginatedResult } from "../../utils/api";
 import AddIcon from '@mui/icons-material/Add';
+import { formatDateTime, formatUUIDShort } from "../../utils/formatting";
 
 
 export const TasksGrid = (props: {}) => {
@@ -76,6 +77,9 @@ export const TasksGrid = (props: {}) => {
                 Task ID
               </TableCell>
               <TableCell>
+                Name
+              </TableCell>
+              <TableCell>
                 Object ID
               </TableCell>
               <TableCell>
@@ -89,16 +93,19 @@ export const TasksGrid = (props: {}) => {
           renderRow={(item) => (
             <TableRow hover key={item.task_id}>
               <TableCell>
-                {item.task_id.substring(0, 6)}
+                {formatUUIDShort(item.task_id)}
               </TableCell>
               <TableCell>
-                {item.object_id.substring(0, 6)}
+                {item.name}
+              </TableCell>
+              <TableCell>
+                {formatUUIDShort(item.object_id)}
               </TableCell>
               <TableCell>
                 {item.state}
               </TableCell>
               <TableCell>
-                {item.created.toLocaleString()}
+                {formatDateTime(item.created_at)}
               </TableCell>
             </TableRow>
           )}

@@ -5,7 +5,7 @@ from rest_framework import filters
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
 
-from tasks.models import ModelTaskMeta
+from tasks.models import Task
 from tasks.serializers import TaskSerializer
 
 
@@ -35,15 +35,15 @@ class TaskFilter(django_filters.FilterSet):
     state__in = ListFilter(field_name="state")
 
     class Meta:
-        model = ModelTaskMeta
-        fields = ['state', 'created']
+        model = Task
+        fields = ['state', 'created_at']
 
 
 class TaskViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-    queryset = ModelTaskMeta.objects.all()
+    queryset = Task.objects.all()
     serializer_class = TaskSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]

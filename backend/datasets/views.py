@@ -11,7 +11,8 @@ from rest_framework.request import Request
 from simple_parsing import Serializable
 
 from datasets.models import Dataset
-from datasets.serializers import DatasetSerializer, DatasetCreateUrlSerializer, DatasetCreateLODCSerializer
+from datasets.serializers import DatasetSerializer, DatasetCreateUrlSerializer, DatasetCreateLODCSerializer, \
+    DatasetCreateExistingSerializer
 from datasets.services.tantivy import Tantivy, tantify_parse_doc
 from datasets.tasks import import_kg_url, import_kg_lodc
 
@@ -27,6 +28,26 @@ class DatasetViewSet(viewsets.ModelViewSet):
     search_fields = ['name', 'source', 'description']
 
 
+class DatasetCreateExistingView(viewsets.GenericViewSet, mixins.CreateModelMixin):
+    queryset = Dataset.objects.all()
+    serializer_class = DatasetCreateExistingSerializer
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+    def perform_create(self, serializer: DatasetCreateUrlSerializer):
+        serializer.save(
+            database=serializer.validated_data['database'],
+            source=f'existing:{serializer.validated_data["database"]}',
+        )
+        instance: Dataset = serializer.instance
+        # instance.apply_async(
+        #     import_kg_url,
+        #     (instance.source, None, instance.id),
+        #     name=f'Import existing dataset {instance.source}'
+        # )
+
+
 class DatasetCreateUrlView(viewsets.GenericViewSet, mixins.CreateModelMixin):
     queryset = Dataset.objects.all()
     serializer_class = DatasetCreateUrlSerializer
@@ -35,9 +56,17 @@ class DatasetCreateUrlView(viewsets.GenericViewSet, mixins.CreateModelMixin):
         return self.create(request, *args, **kwargs)
 
     def perform_create(self, serializer: DatasetCreateUrlSerializer):
-        serializer.save(database=None)
+        url = serializer.validated_data['source']
+        serializer.save(
+            database=None,
+            source=f'url:{url}',
+        )
         instance: Dataset = serializer.instance
-        instance.apply_async(import_kg_url, (instance.source, None, instance.id))
+        instance.apply_async(
+            import_kg_url,
+            (url, None, instance.id),
+            name=f'Import URL dataset {url}'
+        )
 
 
 class DatasetCreateLODCView(viewsets.GenericViewSet, mixins.CreateModelMixin):
@@ -48,9 +77,17 @@ class DatasetCreateLODCView(viewsets.GenericViewSet, mixins.CreateModelMixin):
         return self.create(request, *args, **kwargs)
 
     def perform_create(self, serializer: DatasetCreateLODCSerializer):
-        serializer.save(database=None)
+        lodc_id = serializer.validated_data['source']
+        serializer.save(
+            database=None,
+            source=f'lodc:{lodc_id}',
+        )
         instance: Dataset = serializer.instance
-        instance.apply_async(import_kg_lodc, (instance.source, None, instance.id))
+        instance.apply_async(
+            import_kg_lodc,
+            (lodc_id, None, instance.id),
+            name=f'Import LODC dataset {lodc_id}'
+        )
 
 
 @dataclass

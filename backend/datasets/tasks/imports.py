@@ -15,7 +15,7 @@ from shared import get_logger
 from shared.paths import IMPORT_DIR, DOWNLOAD_DIR
 from shared.random import random_string
 from shared.shell import consume_print
-from tasks.models import ModelTaskMeta
+from tasks.models import Task
 
 logger = get_logger()
 

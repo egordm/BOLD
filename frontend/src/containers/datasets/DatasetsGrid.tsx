@@ -15,6 +15,7 @@ import { DataGrid } from "../../components/datagrid/DataGrid";
 import { DataGridToolbar } from "../../components/datagrid/DataGridToolbar";
 import { Dataset } from "../../types/datasets";
 import { apiClient, PaginatedResult } from "../../utils/api";
+import { formatDateTime } from "../../utils/formatting";
 import { DatasetCreateForm } from "./DatasetCreateForm";
 import AddIcon from '@mui/icons-material/Add';
 
@@ -118,7 +119,7 @@ export const DatasetsGrid = (props: {}) => {
                 {dataset.database}
               </TableCell>
               <TableCell>
-                {dataset.created_at.toLocaleString()}
+                {formatDateTime(dataset.created_at)}
               </TableCell>
               <TableCell>
                 <IconButton aria-label="delete">

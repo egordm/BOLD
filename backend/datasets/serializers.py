@@ -9,6 +9,12 @@ class DatasetSerializer(serializers.ModelSerializer):
         exclude = []
 
 
+class DatasetCreateExistingSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dataset
+        fields = ['name', 'description', 'database']
+
+
 class DatasetCreateUrlSerializer(serializers.ModelSerializer):
     class Meta:
         model = Dataset

@@ -6,7 +6,7 @@ from django.forms.models import model_to_dict
 
 from shared import get_logger
 from shared.websocket import Packet
-from tasks.models import ModelTaskMeta
+from tasks.models import Task
 
 logger = get_logger()
 
@@ -33,5 +33,5 @@ class TasksConsumer(WebsocketConsumer):
         self.send(text_data=Packet(type, data).dumps())
 
     def task_updated(self, event):
-        task: ModelTaskMeta = ModelTaskMeta.objects.get(task_id=event['message'])
+        task: Task = Task.objects.get(task_id=event['message'])
         self.send_packet('TASK_UPDATED', model_to_dict(task))

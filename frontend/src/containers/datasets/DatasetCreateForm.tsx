@@ -45,13 +45,15 @@ export const DatasetCreateForm = (props: {
       try {
         let result: AxiosResponse<Dataset> = null;
         if (mode === 'existing') {
-          console.log(values);
+          result = await apiClient.post('/datasets/create_existing/', {
+            ...values
+          })
         } else if (mode === 'lodc') {
           result = await apiClient.post('/datasets/create_lodc/', {
             ...values
           })
         } else if (mode === 'url') {
-          result = await apiClient.post('/datasets/create_existing/', {
+          result = await apiClient.post('/datasets/create_url/', {
             ...values
           })
         }
@@ -145,13 +147,14 @@ export const DatasetCreateForm = (props: {
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <TextField
+                    name="database"
                     label="Database"
                     variant="outlined"
                     fullWidth
-                    value={data.database}
-                    onChange={(e) => {
-                      setData({ ...data, database: e.target.value });
-                    }}
+                    value={formik.values.database}
+                    onChange={formik.handleChange}
+                    error={formik.touched.database && Boolean(formik.errors.database)}
+                    helperText={formik.touched.database && formik.errors.database}
                   />
                 </Grid>
               </Grid>

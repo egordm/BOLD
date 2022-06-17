@@ -7,8 +7,10 @@ from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelatio
 from celery.result import AsyncResult
 from celery.utils import uuid
 
+from shared.models import TimeStampMixin
 
-class ModelTaskMetaState(object):
+
+class TaskState(object):
     PENDING = 'PENDING'
     STARTED = 'STARTED'
     RETRY = 'RETRY'
@@ -20,63 +22,62 @@ class ModelTaskMetaState(object):
         return getattr(cls, state)
 
 
-class ModelTaskMetaFilterMixin(object):
+class TaskFilterMixin(object):
     objects: models.Manager()
 
     def pending(self):
-        return self.objects.filter(state=ModelTaskMetaState.PENDING)
+        return self.objects.filter(state=TaskState.PENDING)
 
     def started(self):
-        return self.objects.filter(state=ModelTaskMetaState.STARTED)
+        return self.objects.filter(state=TaskState.STARTED)
 
     def retrying(self):
-        return self.objects.filter(state=ModelTaskMetaState.RETRY)
+        return self.objects.filter(state=TaskState.RETRY)
 
     def failed(self):
-        return self.objects.filter(state=ModelTaskMetaState.FAILURE)
+        return self.objects.filter(state=TaskState.FAILURE)
 
     def successful(self):
-        return self.objects.filter(state=ModelTaskMetaState.SUCCESS)
+        return self.objects.filter(state=TaskState.SUCCESS)
 
     def running(self):
-        return self.objects.filter(Q(state=ModelTaskMetaState.PENDING) |
-                                   Q(state=ModelTaskMetaState.STARTED) |
-                                   Q(state=ModelTaskMetaState.RETRY))
+        return self.objects.filter(Q(state=TaskState.PENDING) |
+                                   Q(state=TaskState.STARTED) |
+                                   Q(state=TaskState.RETRY))
 
     def ready(self):
-        return self.objects.filter(Q(state=ModelTaskMetaState.FAILURE) |
-                                   Q(state=ModelTaskMetaState.SUCCESS))
+        return self.objects.filter(Q(state=TaskState.FAILURE) |
+                                   Q(state=TaskState.SUCCESS))
 
 
-class ModelTaskMetaQuerySet(ModelTaskMetaFilterMixin, QuerySet):
+class TaskQuerySet(TaskFilterMixin, QuerySet):
     pass
 
 
-class ModelTaskMetaManager(ModelTaskMetaFilterMixin, models.Manager):
+class TaskManager(TaskFilterMixin, models.Manager):
     use_for_related_fields = True
 
     def get_queryset(self):
-        return ModelTaskMetaQuerySet(self.model, using=self._db)
+        return TaskQuerySet(self.model, using=self._db)
 
 
-class ModelTaskMeta(models.Model):
+class Task(TimeStampMixin):
     STATES = (
-        (ModelTaskMetaState.PENDING, 'PENDING'),
-        (ModelTaskMetaState.STARTED, 'STARTED'),
-        (ModelTaskMetaState.RETRY, 'RETRY'),
-        (ModelTaskMetaState.FAILURE, 'FAILURE'),
-        (ModelTaskMetaState.SUCCESS, 'SUCCESS'),
+        (TaskState.PENDING, 'PENDING'),
+        (TaskState.STARTED, 'STARTED'),
+        (TaskState.RETRY, 'RETRY'),
+        (TaskState.FAILURE, 'FAILURE'),
+        (TaskState.SUCCESS, 'SUCCESS'),
     )
 
     task_id = models.UUIDField(primary_key=True)
+    state = models.CharField(choices=STATES, default=TaskState.PENDING, max_length=255)
     object_id = models.UUIDField()
     content_object = GenericForeignKey()
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
-    state = models.CharField(choices=STATES, default=ModelTaskMetaState.PENDING, max_length=255)
-    created = models.DateTimeField(auto_now_add=True, editable=False)
-    updated = models.DateTimeField(auto_now=True)
+    name = models.CharField(max_length=255)
 
-    objects = ModelTaskMetaManager()
+    objects = TaskManager()
 
     def __str__(self):
         return '%s: %s' % (self.task_id, dict(self.STATES)[self.state])
@@ -92,83 +93,83 @@ class ModelTaskMeta(models.Model):
 
 class ModelAsyncResult(AsyncResult):
     def forget(self):
-        ModelTaskMeta.objects.filter(task_id=self.id).delete()
+        Task.objects.filter(task_id=self.id).delete()
         return super(ModelAsyncResult, self).forget()
 
 
-class TaskFilterMixin(object):
+class TaskMetaFilterMixin(object):
     objects: models.Manager()
 
     def with_tasks(self):
         return self.objects.filter(tasks__state__isnull=False)
 
     def with_pending_tasks(self):
-        return self.objects.filter(tasks__state=ModelTaskMetaState.PENDING)
+        return self.objects.filter(tasks__state=TaskState.PENDING)
 
     def with_started_tasks(self):
-        return self.objects.filter(tasks__state=ModelTaskMetaState.STARTED)
+        return self.objects.filter(tasks__state=TaskState.STARTED)
 
     def with_retrying_tasks(self):
-        return self.objects.filter(tasks__state=ModelTaskMetaState.RETRY)
+        return self.objects.filter(tasks__state=TaskState.RETRY)
 
     def with_failed_tasks(self):
-        return self.objects.filter(tasks__state=ModelTaskMetaState.FAILURE)
+        return self.objects.filter(tasks__state=TaskState.FAILURE)
 
     def with_successful_tasks(self):
-        return self.objects.filter(tasks__state=ModelTaskMetaState.SUCCESS)
+        return self.objects.filter(tasks__state=TaskState.SUCCESS)
 
     def with_running_tasks(self):
-        return self.objects.filter(Q(tasks__state=ModelTaskMetaState.PENDING) |
-                                   Q(tasks__state=ModelTaskMetaState.STARTED) |
-                                   Q(tasks__state=ModelTaskMetaState.RETRY))
+        return self.objects.filter(Q(tasks__state=TaskState.PENDING) |
+                                   Q(tasks__state=TaskState.STARTED) |
+                                   Q(tasks__state=TaskState.RETRY))
 
     def with_ready_tasks(self):
-        return self.objects.filter(Q(tasks__state=ModelTaskMetaState.FAILURE) |
-                                   Q(tasks__state=ModelTaskMetaState.SUCCESS))
+        return self.objects.filter(Q(tasks__state=TaskState.FAILURE) |
+                                   Q(tasks__state=TaskState.SUCCESS))
 
     def without_tasks(self):
         return self.objects.exclude(tasks__state__isnull=False)
 
     def without_pending_tasks(self):
-        return self.objects.exclude(tasks__state=ModelTaskMetaState.PENDING)
+        return self.objects.exclude(tasks__state=TaskState.PENDING)
 
     def without_started_tasks(self):
-        return self.objects.exclude(tasks__state=ModelTaskMetaState.STARTED)
+        return self.objects.exclude(tasks__state=TaskState.STARTED)
 
     def without_retrying_tasks(self):
-        return self.objects.exclude(tasks__state=ModelTaskMetaState.RETRY)
+        return self.objects.exclude(tasks__state=TaskState.RETRY)
 
     def without_failed_tasks(self):
-        return self.objects.exclude(tasks__state=ModelTaskMetaState.FAILURE)
+        return self.objects.exclude(tasks__state=TaskState.FAILURE)
 
     def without_successful_tasks(self):
-        return self.objects.exclude(tasks__state=ModelTaskMetaState.SUCCESS)
+        return self.objects.exclude(tasks__state=TaskState.SUCCESS)
 
     def without_running_tasks(self):
-        return self.objects.exclude(Q(tasks__state=ModelTaskMetaState.PENDING) |
-                                    Q(tasks__state=ModelTaskMetaState.STARTED) |
-                                    Q(tasks__state=ModelTaskMetaState.RETRY))
+        return self.objects.exclude(Q(tasks__state=TaskState.PENDING) |
+                                    Q(tasks__state=TaskState.STARTED) |
+                                    Q(tasks__state=TaskState.RETRY))
 
     def without_ready_tasks(self):
-        return self.objects.exclude(Q(tasks__state=ModelTaskMetaState.FAILURE) |
-                                    Q(tasks__state=ModelTaskMetaState.SUCCESS))
+        return self.objects.exclude(Q(tasks__state=TaskState.FAILURE) |
+                                    Q(tasks__state=TaskState.SUCCESS))
 
 
-class TaskQuerySet(TaskFilterMixin, QuerySet):
+class TaskMetaQuerySet(TaskMetaFilterMixin, QuerySet):
     pass
 
 
-class TaskManager(TaskFilterMixin, models.Manager):
+class TaskMetaManager(TaskMetaFilterMixin, models.Manager):
     use_for_related_fields = True
 
     def get_queryset(self):
-        return TaskQuerySet(self.model, using=self._db)
+        return TaskMetaQuerySet(self.model, using=self._db)
 
 
 class TaskMixin(models.Model):
-    tasks = GenericRelation(ModelTaskMeta)
+    tasks = GenericRelation(Task)
 
-    objects = TaskManager()
+    objects = TaskMetaManager()
 
     class Meta:
         abstract = True
@@ -181,19 +182,24 @@ class TaskMixin(models.Model):
     def has_ready_task(self):
         return self.tasks.ready().exists()
 
-    def apply_async(self, task, *args, **kwargs):
+    def apply_async(self, task_fn, *args, name=None, **kwargs):
         if 'task_id' in kwargs:
             task_id = kwargs['task_id']
         else:
             task_id = kwargs['task_id'] = uuid()
+
+        if name is None:
+            name = task_fn.__name__
+
         forget_if_ready(AsyncResult(task_id))
         try:
-            taskmeta = ModelTaskMeta.objects.get(task_id=task_id)
-            taskmeta.content_object = self
-        except ModelTaskMeta.DoesNotExist:
-            taskmeta = ModelTaskMeta(task_id=task_id, content_object=self)
-        taskmeta.save()
-        return task.apply_async(*args, **kwargs)
+            task = Task.objects.get(task_id=task_id)
+            task.content_object = self
+            task.name = name
+        except Task.DoesNotExist:
+            task = Task(task_id=task_id, content_object=self, name=name)
+        task.save()
+        return task_fn.apply_async(*args, **kwargs)
 
     def get_task_results(self):
         return map(lambda x: x.result, self.tasks.all())
