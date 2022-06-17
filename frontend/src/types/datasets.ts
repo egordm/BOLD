@@ -7,4 +7,6 @@ export interface Dataset {
   sparql_endpoint: string;
   creator: string;
   statistics: any;
+  created_at: Date;
+  updated_at: Date;
 }

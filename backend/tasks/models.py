@@ -85,6 +85,10 @@ class ModelTaskMeta(models.Model):
     def result(self):
         return ModelAsyncResult(self.task_id)
 
+    @property
+    def short_id(self):
+        return str(self.task_id)[:6]
+
 
 class ModelAsyncResult(AsyncResult):
     def forget(self):

@@ -26,11 +26,14 @@ export const DatasetsGrid = (props: {}) => {
   const [ page, setPage ] = React.useState(0);
   const [ limit, setLimit ] = React.useState(20);
   const [ query, setQuery ] = React.useState("");
+  const [ ordering, setOrdering ] = React.useState("-created_at");
 
-  const fetchDatasets = async (page = 0, limit = 20, query = '') => {
+
+  const fetchItems = async (page = 0, limit = 20, query = '', ordering = '-created_at') => {
     const params = {
       offset: page * limit,
       limit: limit,
+      ordering: ordering,
     }
 
     if (query) {
@@ -51,8 +54,8 @@ export const DatasetsGrid = (props: {}) => {
     isFetching,
     refetch,
   } = useQuery(
-    [ 'datasets', page, limit, query ],
-    () => fetchDatasets(page, limit, query),
+    [ 'datasets', page, limit, query, ordering ],
+    () => fetchItems(page, limit, query, ordering),
     { keepPreviousData: true }
   )
 
@@ -93,6 +96,9 @@ export const DatasetsGrid = (props: {}) => {
               Database
             </TableCell>,
             <TableCell>
+              Created At
+            </TableCell>,
+            <TableCell>
               Actions
             </TableCell>,
           ]}
@@ -109,6 +115,9 @@ export const DatasetsGrid = (props: {}) => {
               </TableCell>
               <TableCell>
                 {dataset.database}
+              </TableCell>
+              <TableCell>
+                {dataset.created_at.toLocaleString()}
               </TableCell>
               <TableCell>
                 <IconButton aria-label="delete">

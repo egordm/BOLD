@@ -15,6 +15,7 @@ export const DataGridToolbar = (props: {
     title,
     searchTitle = 'Search',
     addTitle = 'Add',
+    onAdd,
     ...rest
   } = props;
 
@@ -45,13 +46,15 @@ export const DataGridToolbar = (props: {
                 sx={{ mr: 1 }}>
                 Export
               </Button>
-              <Button
-                color="primary"
-                variant="contained"
-                onClick={props.onAdd}
-              >
-                {addTitle}
-              </Button>
+              {onAdd && (
+                <Button
+                  color="primary"
+                  variant="contained"
+                  onClick={onAdd}
+                >
+                  {addTitle}
+                </Button>
+              )}
             </Box>
           </Box>
           <Box sx={{ maxWidth: 500, mt: 3 }}>

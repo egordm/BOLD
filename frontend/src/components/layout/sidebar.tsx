@@ -6,6 +6,7 @@ import { Box, Divider, Drawer, Typography, useMediaQuery } from '@mui/material';
 import { Selector as SelectorIcon } from '../../icons/selector';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import ArticleIcon from '@mui/icons-material/Article';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import { NavItem } from './nav-item';
 
 const items = [
@@ -14,6 +15,9 @@ const items = [
   },
   {
     href: '/reports', icon: (<ArticleIcon fontSize="small"/>), title: 'Reports'
+  },
+  {
+    href: '/tasks', icon: (<FormatListBulletedIcon fontSize="small"/>), title: 'Tasks'
   },
   // {
   //   href: '/datasets', icon: (<UsersIcon fontSize="small"/>), title: 'Datasets'
