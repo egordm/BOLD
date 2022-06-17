@@ -56,7 +56,7 @@ export const TasksWidget = (props: {}) => {
       right: '16px',
     }}>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <List>
+        <List sx={{maxHeight: 400, overflowY: 'auto'}}>
           {taskList.map(task => (
             <ListItem disablePadding key={task.task_id}>
               <ListItemButton>
