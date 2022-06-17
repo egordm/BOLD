@@ -1,12 +1,8 @@
-import { StreamLanguage } from "@codemirror/language";
 import Head from 'next/head';
-import { Box, Card, CardContent, CardHeader, Container, Divider, Grid } from '@mui/material';
-import { LatestProducts } from '../components/dashboard/latest-products';
-import { Layout } from '../components/layout';
-import { FilteredDistributionProfiler } from "../components/profilers/FilteredDistributionProfiler";
-import CodeMirror from '@uiw/react-codemirror';
-import { sparql } from '@codemirror/legacy-modes/mode/sparql';
-import { editorTheme } from "../theme";
+import { Box, Container } from '@mui/material';
+import { Layout } from '../components/layout/layout';
+import { Notebook } from "../components/notebook/Notebook";
+import { NotebookProvider } from "../components/notebook/NotebookProvider";
 
 
 const NotebookPage = () => (
@@ -24,32 +20,9 @@ const NotebookPage = () => (
       }}
     >
       <Container maxWidth={'lg'}>
-        <Card>
-          <CardHeader
-            title="Test Notebook"
-          />
-          <Divider/>
-          <CardContent>
-              <Grid container>
-                <Grid item xs={12}>
-                  <CodeMirror
-                    value="console.log('hello world!');"
-                    height="200px"
-                    extensions={[ StreamLanguage.define(sparql) ]}
-                    theme={editorTheme}
-                    onChange={(value, viewUpdate) => {
-                      console.log('value:', value);
-                    }}
-                  />
-                </Grid>
-              </Grid>
-              <Grid container xs={12}>
-                <Grid item>
-                  <FilteredDistributionProfiler sx={{ height: '100%' }}/>
-                </Grid>
-              </Grid>
-          </CardContent>
-        </Card>
+        <NotebookProvider notebookId={'878b2ca8-2b97-4a20-abd6-06903415a673'}>
+          <Notebook/>
+        </NotebookProvider>
       </Container>
     </Box>
   </>
