@@ -60,14 +60,6 @@ export const FilteredDistributionProfiler = (props) => {
       <Divider/>
       <TermInput/>
 
-      <Button size="small" variant="contained" sx={{
-        mr: 2,
-        minWidth: 34, borderRadius: '50%',
-        padding: "6px 0px"
-      }} color={'secondary'}>
-        P
-      </Button>
-
       <Autocomplete
         multiple
         disablePortal
@@ -78,10 +70,10 @@ export const FilteredDistributionProfiler = (props) => {
         onChange={(event, newVal) => {
           setValProps(newVal as LabelType[]);
         }}
-        sx={{ width: 300 }}
         renderInput={(params) => (
           <TextField
             {...params}
+            fullWidth
             variant="standard"
             label="Group Prop"
           />
@@ -100,10 +92,10 @@ export const FilteredDistributionProfiler = (props) => {
             g1: newVal as LabelType[]
           });
         }}
-        sx={{ width: 300 }}
         renderInput={(params) => (
           <TextField
             {...params}
+            fullWidth
             variant="standard"
             label="Filter Terms 1"
           />
@@ -122,10 +114,10 @@ export const FilteredDistributionProfiler = (props) => {
             g1: newVal as LabelType[]
           });
         }}
-        sx={{ width: 300 }}
         renderInput={(params) => (
           <TextField
             {...params}
+            fullWidth
             variant="standard"
             label="Filter Values 1"
           />
