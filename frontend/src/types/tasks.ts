@@ -9,3 +9,9 @@ export interface Task {
   updated: Date;
   content_type: number;
 }
+
+
+export interface Packet<U, T> {
+  type: U;
+  data: T;
+}

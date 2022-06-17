@@ -19,14 +19,16 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'backend.settings')
 django_asgi_app = get_asgi_application()
 
 import reports.routing
+import tasks.routing
 
 application = ProtocolTypeRouter({
     "http": django_asgi_app,
     "websocket": AllowedHostsOriginValidator(
         AuthMiddlewareStack(
-            URLRouter(
-                reports.routing.websocket_urlpatterns
-            )
+            URLRouter([
+                *reports.routing.websocket_urlpatterns,
+                *tasks.routing.websocket_urlpatterns,
+            ])
         )
     ),
 })

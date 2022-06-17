@@ -58,8 +58,8 @@ export const TasksGrid = (props: {}) => {
   return (
     <>
       <DataGridToolbar
-        title="Datasets"
-        searchTitle="Search Datasets"
+        title="Tasks"
+        searchTitle="Search Tasks"
         onSearch={(query) => setQuery(query)}
       />
 

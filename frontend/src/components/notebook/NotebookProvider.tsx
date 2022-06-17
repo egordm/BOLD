@@ -127,7 +127,7 @@ export const useNotebookEvent = <T, >(type: PacketType, callback: (content: T) =
     const packetListener = (event: MessageEvent) => {
       const data: Packet<T> = JSON.parse(event.data);
       if (data.type === type) {
-        callback(data.content);
+        callback(data.data);
       }
     };
     socket.addEventListener('message', packetListener);

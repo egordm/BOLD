@@ -6,6 +6,8 @@ import { CssBaseline } from '@mui/material';
 import { ThemeProvider } from '@mui/material/styles';
 import { SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "react-query";
+import { TasksWidget } from "../containers/tasks/TasksWidget";
+import { TasksProvider } from "../providers/TasksProvider";
 import { createEmotionCache } from '../utils/create-emotion-cache';
 import { theme } from '../theme';
 
@@ -30,10 +32,13 @@ const App = (props) => {
       <QueryClientProvider client={queryClient}>
         <LocalizationProvider dateAdapter={AdapterDateFns}>
           <ThemeProvider theme={theme}>
-            <SnackbarProvider maxSnack={3}>
-              <CssBaseline/>
-              {getLayout(<Component {...pageProps} />)}
-            </SnackbarProvider>
+            <TasksProvider>
+              <SnackbarProvider maxSnack={3}>
+                <CssBaseline/>
+                {getLayout(<Component {...pageProps} />)}
+                <TasksWidget/>
+              </SnackbarProvider>
+            </TasksProvider>
           </ThemeProvider>
         </LocalizationProvider>
       </QueryClientProvider>
