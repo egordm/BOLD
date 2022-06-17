@@ -1,12 +1,11 @@
+from asgiref.sync import async_to_sync
 from celery import signals
-
+from channels.layers import get_channel_layer
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 
-from shared.websocket import Packet
 from tasks.models import ModelTaskMeta, ModelTaskMetaState
+from tasks.utils import send_to_group_sync
 
 
 @signals.after_task_publish.connect
@@ -50,11 +49,18 @@ def handle_task_revoked(sender=None, request=None, **kwargs):
 
 @receiver(post_save, sender=ModelTaskMeta)
 def handle_task_update(sender, instance, created, **kwargs):
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
+    send_to_group_sync(
         str('TASKS_GLOBAL'),
         {
             'type': 'task_updated',
             'message': str(instance.task_id)
         }
     )
+    # channel_layer = get_channel_layer()
+    # async_to_sync(channel_layer.group_send)(
+    #     str('TASKS_GLOBAL'),
+    #     {
+    #         'type': 'task_updated',
+    #         'message': str(instance.task_id)
+    #     }
+    # )
