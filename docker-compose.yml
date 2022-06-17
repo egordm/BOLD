@@ -1,17 +1,18 @@
 version: '3'
 services:
-  redis:
-    image: bitnami/redis:latest
-    container_name: redis
-    command: ["redis-server", "--protected-mode", "no"]
-    ports:
-      - 6379:6379
-    environment:
-      ALLOW_EMPTY_PASSWORD: "yes"
-    volumes:
-      - data-redis:/bitnami/redis/data
-    networks:
-      - bold-net
+#  redis:
+#    image: redis:latest
+#    container_name: redis
+#    command: ["redis-server", "--protected-mode", "no"]
+#    userns_mode: host
+#    ports:
+#      - 6379:6379
+#    environment:
+#      ALLOW_EMPTY_PASSWORD: "yes"
+#    volumes:
+#      - data-redis:/data
+#    networks:
+#      - bold-net
 
   postgres:
     build: ./dev/postgres
@@ -53,49 +54,6 @@ services:
       - stardog
     depends_on:
       - stardog
-
-#  spark:
-#    build:
-#      context: ./dev/spark
-#      dockerfile: Dockerfile
-#    image: bold/spark
-#    environment:
-#      - SPARK_MODE=master
-#      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-#      - SPARK_RPC_ENCRYPTION_ENABLED=no
-#      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-#      - SPARK_SSL_ENABLED=no
-#    ports:
-#      - '8889:8080'
-#    volumes:
-#      - ./dev/spark/jobs:/jobs
-#    networks:
-#      - bold-net
-#    links:
-#      - stardog
-#
-#  spark-worker:
-#    build:
-#      context: ./dev/spark
-#      dockerfile: Dockerfile
-#    image: bold/spark
-#    environment:
-#      - SPARK_MODE=worker
-#      - SPARK_MASTER_URL=spark://spark:7077
-#      - SPARK_WORKER_MEMORY=8G
-#      - SPARK_WORKER_CORES=8
-#      - SPARK_RPC_AUTHENTICATION_ENABLED=no
-#      - SPARK_RPC_ENCRYPTION_ENABLED=no
-#      - SPARK_LOCAL_STORAGE_ENCRYPTION_ENABLED=no
-#      - SPARK_SSL_ENABLED=no
-#    networks:
-#      - bold-net
-#    depends_on:
-#      - spark
-#      - stardog
-#    links:
-#      - spark
-#      - stardog
 
 volumes:
   data-stardog:

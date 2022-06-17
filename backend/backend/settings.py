@@ -36,24 +36,31 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'channels',
+    'channels_postgres',
     'corsheaders',
     'rest_framework',
-    'data',
+    'django_filters',
+    'drf_yasg',
+    'datasets',
+    'reports',
+    'users',
+    'tasks',
     'profiling',
-    'notebook',
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
 ]
 
+WSGI_APPLICATION = 'backend.wsgi.application'
+ASGI_APPLICATION = "backend.asgi.application"
 ROOT_URLCONF = 'backend.urls'
 
 TEMPLATES = [
@@ -72,17 +79,6 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'backend.wsgi.application'
-ASGI_APPLICATION = "backend.asgi.application"
-CHANNEL_LAYERS = {
-    'default': {
-        'BACKEND': 'channels_redis.core.RedisChannelLayer',
-        'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-        },
-    },
-}
-
 
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
@@ -95,8 +91,30 @@ DATABASES = {
         'PASSWORD': 'helloworld',
         'HOST': 'localhost',
         'PORT': 5432,
-    }
+    },
+    'channels_postgres': {
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
+        'NAME': 'develop',
+        'USER': 'root',
+        'PASSWORD': 'helloworld',
+        'HOST': 'localhost',
+        'PORT': 5432,
+    },
 }
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_postgres.core.PostgresChannelLayer',
+        'CONFIG': DATABASES['channels_postgres'],
+    },
+}
+
+# Celery settings
+CELERY_BROKER_URL = 'sqla+postgresql://root:helloworld@localhost/develop'
+CELERY_SEND_EVENTS = True
+CELERY_RESULT_BACKEND = 'rpc://localhost'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_SEND_SENT_EVENT = True
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -137,12 +155,13 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-CORS_ORIGIN_WHITELIST = [
-    'http://localhost:3000'
-]
+CORS_ALLOW_ALL_ORIGINS = True
 
-# Celery settings
-CELERY_BROKER_URL = 'redis://localhost:6379/3'
+REST_FRAMEWORK = {
+    'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.LimitOffsetPagination',
+    'PAGE_SIZE': 20,
+}
 
 # Logging
 LOGGING = {

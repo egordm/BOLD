@@ -15,10 +15,12 @@ typing-extensions = "^4.2.0"
 psycopg2 = "^2.9.3"
 marshmallow-dataclass = "^8.5.8"
 tantivy-mirror = "^0.17.0"
-simple-parsing = "^0.0.19"
+simple-parsing = "^0.0.20"
 channels = "^3.0.4"
-channels-redis = "^3.4.0"
-redis = "^4.3.3"
+channels-postgres = "^0.0.4"
+SQLAlchemy = "^1.4.37"
+drf-yasg = "^1.20.0"
+django-filter = "^21.1"
 
 [tool.poetry.dev-dependencies]
 
