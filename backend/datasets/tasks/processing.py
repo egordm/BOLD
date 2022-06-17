@@ -3,8 +3,8 @@ from pathlib import Path
 
 from celery import shared_task
 
-from data.services.bold_cli import BoldCli
-from data.services.stardog_cli import StarDogCli
+from datasets.services.bold_cli import BoldCli
+from datasets.services.stardog_cli import StarDogCli
 from shared import get_logger
 from shared.paths import EXPORT_DIR, DATA_DIR
 from shared.shell import consume_print

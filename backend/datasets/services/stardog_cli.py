@@ -1,9 +1,7 @@
 from pathlib import Path
 from typing import List, Iterator
 
-from django.conf import settings
-
-from data.services.docker_compose import DockerCompose
+from datasets.services.docker_compose import DockerCompose
 
 CREATE_DB_OPTIONS = [
     # 'search.enabled=true',
