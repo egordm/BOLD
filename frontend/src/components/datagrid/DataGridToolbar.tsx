@@ -14,6 +14,7 @@ export const DataGridToolbar = (props: {
   const {
     title,
     searchTitle = 'Search',
+    onSearch,
     addTitle = 'Add',
     onAdd,
     ...rest
@@ -61,7 +62,7 @@ export const DataGridToolbar = (props: {
             <TextField
               fullWidth
               onChange={(e) => {
-                props?.onSearch(e.target.value);
+                onSearch && onSearch(e.target.value);
               }}
               InputProps={{
                 startAdornment: (

@@ -16,3 +16,7 @@ Content-Type: application/json
     ],
     "n_bins": 10
 }
+
+
+###
+GET http://localhost:8000/tasks/?offset=0&limit=5&ordering=-created&state__in=SUCCESS,FAILURE

@@ -1,8 +1,9 @@
 import {
   Card,
   CardActions,
-  CardContent,
+  CardContent, CircularProgress,
   Collapse,
+  Divider,
   IconButton,
   IconButtonProps,
   List, ListItem, ListItemButton,
@@ -14,8 +15,11 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { styled } from "@mui/material/styles";
+import _ from "lodash";
 import { useState } from "react";
 import { useTasksContext } from "../../providers/TasksProvider";
+import { Task } from "../../types/tasks";
+import FilterNoneIcon from '@mui/icons-material/FilterNone';
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -32,12 +36,17 @@ const ExpandMore = styled((props: ExpandMoreProps) => {
   }),
 }));
 
+const IN_PROGRESS_STATES = new Set([ 'PENDING', 'STARTED' ]);
+
+const isTaskRunning = (task: Task) => IN_PROGRESS_STATES.has(task.state);
+
 
 export const TasksWidget = (props: {}) => {
   const [ expanded, setExpanded ] = useState(false);
-  const {tasks} = useTasksContext();
+  const { tasks } = useTasksContext();
 
-  const taskList = Object.values(tasks).map((task) => task);
+  const taskList = _.sortBy(Object.values(tasks), 'created');
+  const tasksInProgress = taskList.filter(isTaskRunning);
 
   return (
     <Card sx={{
@@ -47,26 +56,33 @@ export const TasksWidget = (props: {}) => {
       right: '16px',
     }}>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <CardContent>
-          <Typography paragraph>Method:</Typography>
-          <List>
-            {taskList.map(task => (
-              <ListItem disablePadding>
-                <ListItemButton>
-                  <ListItemIcon>
-                    {task.state === 'SUCCESS' ? <CheckCircleOutlineIcon /> : <ErrorOutlineIcon />}
-                  </ListItemIcon>
-                  <ListItemText primary={`Task ${task.task_id.substring(0, 6)}`} />
-                </ListItemButton>
-              </ListItem>
-            ))}
-          </List>
-        </CardContent>
+        <List>
+          {taskList.map(task => (
+            <ListItem disablePadding key={task.task_id}>
+              <ListItemButton>
+                <ListItemIcon>
+                  {
+                    isTaskRunning(task)
+                      ? <CircularProgress size={24}/>
+                      : task.state === 'SUCCESS'
+                        ? <CheckCircleOutlineIcon/>
+                        : <ErrorOutlineIcon/>
+                  }
+                </ListItemIcon>
+                <ListItemText primary={`Task ${task.task_id.substring(0, 6)}`}/>
+              </ListItemButton>
+            </ListItem>
+          ))}
+        </List>
+        <Divider/>
       </Collapse>
       <CardActions disableSpacing>
         <IconButton aria-label="add to favorites">
-          <FavoriteIcon/>
+          {tasksInProgress.length > 0 ? <CircularProgress size={24}/> : <FilterNoneIcon/>}
         </IconButton>
+        <Typography paragraph sx={{ mb: 0, ml: 2 }}>
+          {tasksInProgress.length > 0 ? `${tasksInProgress.length} tasks in progress` : 'No tasks in progress'}
+        </Typography>
         <ExpandMore
           expand={expanded}
           onClick={() => setExpanded(!expanded)}

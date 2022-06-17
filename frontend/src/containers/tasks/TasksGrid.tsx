@@ -70,20 +70,22 @@ export const TasksGrid = (props: {}) => {
           count={count}
           page={page}
           limit={limit}
-          renderColumns={() => [
-            <TableCell>
-              Task ID
-            </TableCell>,
-            <TableCell>
-              Object ID
-            </TableCell>,
-            <TableCell>
-              State
-            </TableCell>,
-            <TableCell>
-              Created At
-            </TableCell>,
-          ]}
+          renderColumns={() => (
+            <TableRow>
+              <TableCell>
+                Task ID
+              </TableCell>
+              <TableCell>
+                Object ID
+              </TableCell>
+              <TableCell>
+                State
+              </TableCell>
+              <TableCell>
+                Created At
+              </TableCell>
+            </TableRow>
+          )}
           renderRow={(item) => (
             <TableRow hover key={item.task_id}>
               <TableCell>

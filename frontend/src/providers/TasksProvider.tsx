@@ -1,7 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useQuery } from "react-query";
-import { NotebookContext } from "../components/notebook/NotebookProvider";
-import { Dataset } from "../types/datasets";
 import { Packet, Task } from "../types/tasks";
 import { apiClient, PaginatedResult } from "../utils/api";
 
@@ -32,6 +30,7 @@ export const TasksProvider = (props: {
           offset: 0,
           limit: 5,
           ordering: '-created',
+          state__in: "PENDING,STARTED",
         }
       });
 
@@ -42,8 +41,6 @@ export const TasksProvider = (props: {
       setTasks(fetchedTasks);
     }
   )
-
-
 
   const connect = useCallback(() => {
     const socket = new WebSocket(`ws://localhost:8000/ws/tasks/`);
@@ -68,6 +65,13 @@ export const TasksProvider = (props: {
     socket.addEventListener('message', (event) => {
       const packet: Packet<string, any> = JSON.parse(event.data);
       console.debug('Received packet', packet);
+
+      if (packet.type === "TASK_UPDATED") {
+        setTasks({
+          ...tasks,
+          [packet.data.task_id]: packet.data,
+        })
+      }
     });
 
     return () => {

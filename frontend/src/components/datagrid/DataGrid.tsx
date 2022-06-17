@@ -17,7 +17,7 @@ export const DataGrid = <T, >(props: {
   count: number,
   page: number,
   limit: number,
-  renderColumns: () => JSX.Element[];
+  renderColumns: () => JSX.Element;
   renderRow: (row: T) => JSX.Element,
   onPageChange: (page: number) => void,
   onLimitChange: (limit: number) => void,
@@ -47,22 +47,7 @@ export const DataGrid = <T, >(props: {
         <Box sx={{ minWidth: 1050 }}>
           <Table>
             <TableHead>
-              <TableRow>
-                {selectable && (
-                  <TableCell padding="checkbox">
-                    <Checkbox
-                      checked={selected?.length === data.length}
-                      color="primary"
-                      indeterminate={
-                        selected?.length > 0 && selected?.length < data.length
-                      }
-                      onChange={() => onSelectAll && onSelectAll()}
-                    />
-
-                  </TableCell>
-                )}
-                {renderColumns()}
-              </TableRow>
+              {renderColumns()}
             </TableHead>
             <TableBody>
               {data.map(renderRow)}
@@ -77,7 +62,7 @@ export const DataGrid = <T, >(props: {
         onRowsPerPageChange={(event) => onLimitChange(parseInt(event.target.value, 10))}
         page={page}
         rowsPerPage={limit}
-        rowsPerPageOptions={[ 5, 10, 25 ]}
+        rowsPerPageOptions={[ 10, 20, 30 ]}
       />
     </Card>
   );

@@ -64,7 +64,6 @@ export const DatasetsGrid = (props: {}) => {
     refetch();
   }
 
-
   return (
     <>
       <DataGridToolbar
@@ -76,32 +75,34 @@ export const DatasetsGrid = (props: {}) => {
       />
 
       <Box sx={{ mt: 3 }}>
-        {(isLoading || isFetching) && <LinearProgress  />}
+        {(isLoading || isFetching) && <LinearProgress/>}
         <DataGrid
           data={data || []}
           count={count}
           page={page}
           limit={limit}
-          renderColumns={() => [
-            <TableCell>
-              Name
-            </TableCell>,
-            <TableCell>
-              Description
-            </TableCell>,
-            <TableCell>
-              Source
-            </TableCell>,
-            <TableCell>
-              Database
-            </TableCell>,
-            <TableCell>
-              Created At
-            </TableCell>,
-            <TableCell>
-              Actions
-            </TableCell>,
-          ]}
+          renderColumns={() => (
+            <TableRow>
+              <TableCell>
+                Name
+              </TableCell>
+              <TableCell>
+                Description
+              </TableCell>
+              <TableCell>
+                Source
+              </TableCell>
+              <TableCell>
+                Database
+              </TableCell>
+              <TableCell>
+                Created At
+              </TableCell>
+              <TableCell>
+                Actions
+              </TableCell>
+            </TableRow>
+          )}
           renderRow={(dataset) => (
             <TableRow hover key={dataset.id}>
               <TableCell>
