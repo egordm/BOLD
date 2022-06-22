@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import { Box, Container } from '@mui/material';
 import { Layout } from '../components/layout/layout';
+import { ReportsGrid } from "../containers/reports/ReportsGrid";
 
 
 const ReportsPage = () => (
@@ -18,7 +19,7 @@ const ReportsPage = () => (
       }}
     >
       <Container maxWidth={'lg'}>
-
+        <ReportsGrid/>
       </Container>
     </Box>
   </>

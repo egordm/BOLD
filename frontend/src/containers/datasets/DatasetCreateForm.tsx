@@ -22,7 +22,7 @@ export const DatasetCreateForm = (props: {
 }) => {
   const [ mode, setMode ] = useState('existing');
   const [ loading, setLoading ] = useState(false);
-  const [msg, sendNotification] = useNotification();
+  const [ msg, sendNotification ] = useNotification();
   const {
     onClose,
   } = props;
@@ -79,14 +79,6 @@ export const DatasetCreateForm = (props: {
 
       setLoading(false);
     },
-  });
-
-  const [ data, setData ] = useState<Partial<Dataset>>({
-    name: "",
-    description: "",
-    database: undefined,
-    source: undefined,
-    sparql_endpoint: undefined,
   });
 
 
@@ -223,7 +215,7 @@ export const DatasetCreateForm = (props: {
         sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
         open={loading}
       >
-        <CircularProgress color="inherit" />
+        <CircularProgress color="inherit"/>
       </Backdrop>
     </form>
   )

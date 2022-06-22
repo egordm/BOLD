@@ -1,3 +1,4 @@
+import EditIcon from '@mui/icons-material/Edit';
 import {
   Box,
   Card,
@@ -9,48 +10,40 @@ import {
   TableCell,
   TableRow
 } from "@mui/material";
+import dayjs from "dayjs";
+import { useRouter } from "next/router";
 import React from "react";
-import { useQuery } from "react-query";
 import { DataGrid } from "../../components/datagrid/DataGrid";
 import { DataGridToolbar } from "../../components/datagrid/DataGridToolbar";
 import { Dataset } from "../../types/datasets";
-import { apiFetchList } from "../../utils/api";
+import { Report } from "../../types/reports";
+import { useFetchList } from "../../utils/api";
 import { formatDateTime } from "../../utils/formatting";
-import { DatasetCreateForm } from "./DatasetCreateForm";
-import AddIcon from '@mui/icons-material/Add';
+import { ReportCreateForm } from "./ReportCreateFrom";
 
 
-export const DatasetsGrid = (props: {}) => {
+export const ReportsGrid = (props: {}) => {
+  const router = useRouter();
   const [ addFormOpen, setAddFormOpen ] = React.useState(false);
 
-  const [ count, setCount ] = React.useState(1);
-  const [ page, setPage ] = React.useState(0);
-  const [ limit, setLimit ] = React.useState(20);
-  const [ query, setQuery ] = React.useState("");
-  const [ ordering, setOrdering ] = React.useState("-created_at");
-
-  const fetchItems = apiFetchList<Dataset>('/datasets/', setCount)
-
   const {
-    isLoading, isError, error,
-    data, isFetching, refetch,
-  } = useQuery(
-    [ 'datasets', page, limit, query, ordering ],
-    () => fetchItems(page, limit, query, ordering),
-    { keepPreviousData: true }
-  )
+    isLoading, isFetching,
+    data, count,
+    page, setPage,
+    limit, setLimit,
+    refresh, setQuery
+  } = useFetchList<Report>('/reports/', {}, {});
 
-  const refresh = () => {
-    setPage(0);
-    refetch();
+  const onReportEdit = async (report: Report) => {
+    await router.push(`notebook/${report.id}`);
   }
 
   return (
     <>
       <DataGridToolbar
-        title="Datasets"
-        searchTitle="Search Datasets"
-        addTitle="Add Dataset"
+        title="Reports"
+        searchTitle="Search Reports"
+        addTitle="Add Report"
         onAdd={() => setAddFormOpen(true)}
         onSearch={(query) => setQuery(query)}
       />
@@ -65,23 +58,21 @@ export const DatasetsGrid = (props: {}) => {
           renderColumns={() => (
             <TableRow>
               <TableCell>Name</TableCell>
-              <TableCell>Description</TableCell>
-              <TableCell>Source</TableCell>
-              <TableCell>Database</TableCell>
+              <TableCell>Dataset</TableCell>
+              <TableCell>Updated At</TableCell>
               <TableCell>Created At</TableCell>
               <TableCell>Actions</TableCell>
             </TableRow>
           )}
-          renderRow={(dataset) => (
-            <TableRow hover key={dataset.id}>
-              <TableCell>{dataset.name}</TableCell>
-              <TableCell>{dataset.description}</TableCell>
-              <TableCell>{dataset.source}</TableCell>
-              <TableCell>{dataset.database}</TableCell>
-              <TableCell>{formatDateTime(dataset.created_at)}</TableCell>
+          renderRow={(report: Report) => (
+            <TableRow hover key={report.id}>
+              <TableCell>{report.notebook.metadata.name}</TableCell>
+              <TableCell>{report.dataset.name}</TableCell>
+              <TableCell>{dayjs(report.updated_at).fromNow()}</TableCell>
+              <TableCell>{formatDateTime(report.created_at)}</TableCell>
               <TableCell>
-                <IconButton aria-label="delete">
-                  <AddIcon/>
+                <IconButton aria-label="edit" onClick={async () => await onReportEdit(report)}>
+                  <EditIcon/>
                 </IconButton>
               </TableCell>
             </TableRow>
@@ -103,9 +94,9 @@ export const DatasetsGrid = (props: {}) => {
           left: '50%',
           transform: 'translate(-50%, -50%)',
         }}>
-          <CardHeader title="Import Dataset"/>
+          <CardHeader title="Create Report"/>
           <CardContent>
-            <DatasetCreateForm onClose={(created) => {
+            <ReportCreateForm onClose={(created) => {
               setAddFormOpen(false);
               if (created) {
                 refresh();
