@@ -1,15 +1,11 @@
 import json
-from typing import List
 from uuid import UUID
 
-from django.db.models.expressions import RawSQL
-from celery import shared_task
-from channels.layers import get_channel_layer
-from asgiref.sync import async_to_sync
 import stardog
+from celery import shared_task
 
 from datasets.models import Dataset
-from datasets.services.stardog_api import StardogApi
+from datasets.services.stardog_sparql import StardogSparql
 from reports.models import Report, CellType
 from reports.utils import Packet, PacketType
 from shared import get_logger
@@ -36,7 +32,7 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
     outputs: list = []
     match CellType(cell.get('cell_type', None)):
         case CellType.code:
-            connection = StardogApi.from_database(dataset.database)
+            connection = StardogSparql.from_database(dataset.database)
             source = cell.get('source', '')
             limit = 100 if ' LIMIT ' not in source.upper() else None
             try:
