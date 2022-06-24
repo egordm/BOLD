@@ -1,15 +1,15 @@
 import { Container, IconButton } from "@mui/material";
 import { Add } from '@mui/icons-material';
 import { useCallback } from "react";
-import { useNotebookContext } from "./NotebookProvider";
-import { Cell } from "./structure";
+import { useLocalNotebookContext } from "../../providers/LocalNotebookProvider";
+import { Cell } from "../../types/notebooks";
 import { v4 as uuidv4 } from 'uuid';
 
 
 export const NotebookToolbar = (props: {}) => {
   const {
-    notebook,  setNotebook,
-  } = useNotebookContext();
+    notebook, setNotebook,
+  } = useLocalNotebookContext();
 
   const addCell = useCallback(() => {
     const cell: Cell = {

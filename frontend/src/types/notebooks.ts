@@ -23,6 +23,7 @@ export interface CellBase {
   cell_type: CellType;
   metadata: CellMetadata;
   outputs: CellOutput[];
+  state: CellState;
 }
 
 export interface CodeCell extends CellBase {
@@ -45,6 +46,23 @@ export interface CellMetadata {
   format?: string;
 }
 
+export interface CellState {
+  status: 'finished' | 'error' | 'running' | 'queued' | 'unknown';
+}
+
+export interface CellErrorOutput {
+  output_type: 'error';
+  ename: string;
+  evalue: string;
+  traceback: string[];
+}
+
+export interface CellExecuteOutput {
+  output_type: 'execute_result';
+  execution_count: number;
+  data: OutputData;
+}
+
 export type CellOutput = {
   output_type: OutputType;
 } & {
@@ -54,16 +72,7 @@ export type CellOutput = {
 } & {
   output_type: 'display_data';
   data: OutputData;
-} & {
-  output_type: 'execute_result';
-  execution_count: number;
-  data: OutputData;
-} & {
-  output_type: 'error';
-  ename: string;
-  evalue: string;
-  traceback: string[];
-}
+} | CellExecuteOutput | CellErrorOutput
 
 export type OutputType = 'stream' | 'display_data' | 'execute_result' | 'error' | string;
 
@@ -72,3 +81,14 @@ export interface OutputData {
   'image/png'?: string[];
   'application/json'?: any;
 }
+
+export const setCellOutputs = (notebook: Notebook, cellId: CellId, outputs: CellOutput[]) => ({
+  ...notebook,
+  cells: {
+    ...notebook.cells,
+    [cellId]: {
+      ...notebook.cells[cellId],
+      outputs: outputs,
+    }
+  }
+})

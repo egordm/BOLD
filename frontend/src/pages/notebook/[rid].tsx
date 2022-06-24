@@ -1,9 +1,10 @@
 import Head from 'next/head';
 import { Box, Container } from '@mui/material';
 import { useRouter } from "next/router";
-// import { Notebook } from "../components/notebook/Notebook";
-// import { NotebookProvider } from "../components/notebook/NotebookProvider";
 import { Layout } from '../../components/layout/layout';
+import { Notebook } from "../../components/notebook/Notebook";
+import { LocalNotebookProvider } from "../../providers/LocalNotebookProvider";
+import { RemoteNotebookProvider } from "../../providers/RemoteNotebookProvider";
 
 
 const NotebookPage = () => {
@@ -26,9 +27,11 @@ const NotebookPage = () => {
         }}
       >
         <Container maxWidth={'lg'}>
-          {/*<NotebookProvider notebookId={'878b2ca8-2b97-4a20-abd6-06903415a673'}>*/}
-          {/*  <Notebook/>*/}
-          {/*</NotebookProvider>*/}
+          {rid && <RemoteNotebookProvider notebookId={rid as string}>
+            <LocalNotebookProvider>
+              <Notebook/>
+            </LocalNotebookProvider>
+          </RemoteNotebookProvider>}
         </Container>
       </Box>
     </>
