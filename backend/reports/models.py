@@ -6,9 +6,10 @@ from django.db import models
 
 from datasets.models import Dataset
 from shared.models import TimeStampMixin
+from tasks.models import TaskMixin
 
 
-class Report(TimeStampMixin):
+class Report(TaskMixin, TimeStampMixin):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)

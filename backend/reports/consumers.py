@@ -16,7 +16,7 @@ class NotebookConsumer(WebsocketConsumer):
     report_id: UUID
 
     def connect(self):
-        self.report_id = UUID(self.scope['url_route']['kwargs']['notebook_id'])
+        self.report_id = self.scope['url_route']['kwargs']['notebook_id']
 
         async_to_sync(self.channel_layer.group_add)(
             str(self.report_id), self.channel_name
@@ -33,15 +33,15 @@ class NotebookConsumer(WebsocketConsumer):
         logger.info(f'Received {packet.type} packet')
 
         match PacketType(packet.type):
-            case PacketType.NOTEBOOK_REQUEST:
-                self.send_packet(PacketType.NOTEBOOK_DATA, self.report.notebook)
-            case PacketType.NOTEBOOK_SAVE:
-                report = self.report
-                report.notebook = packet.data
-                report.save()
-                self.send_packet(PacketType.NOTEBOOK_SAVE_SUCCESS, None)
             case PacketType.CELL_RUN:
-                run_cell.delay(self.report_id, packet.data)
+                report = self.report
+                cell_id = UUID(packet.data)
+                cell_index = report.notebook['cell_order'].index(str(cell_id))
+
+                self.report.apply_async(
+                    run_cell, (self.report_id, cell_id),
+                    name='Run cell #{}'.format(cell_index)
+                )
             case PacketType.CELL_RESULT:
                 self.send_packet(PacketType.CELL_RESULT, packet.data)
 
