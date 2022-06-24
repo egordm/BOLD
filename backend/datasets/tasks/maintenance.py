@@ -5,7 +5,6 @@ from celery import shared_task
 from datasets.models import Dataset
 from datasets.services.stardog_api import StardogApi
 from shared import get_logger
-from shared.dict import deepget
 
 logger = get_logger()
 

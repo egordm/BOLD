@@ -36,9 +36,29 @@ class StardogApi:
         response = requests.get(f'{self.endpoint}/{database}/size', headers=self.headers())
         return int(response.content)
 
-    def query(self, database: str, query: str, timeout = 5000, **kwargs) -> dict:
-        response = requests.post(f'{self.endpoint}/{database}/query', headers=self.headers(), data=query, params={
+    def optimize(self, database: str) -> bool:
+        response = requests.get(f'{self.endpoint}/admin/databases/{database}/optimize', headers=self.headers())
+        return response.status_code == 200
+
+    def drop(self, database: str) -> bool:
+        response = requests.delete(f'{self.endpoint}/admin/databases/{database}', headers=self.headers())
+        return response.status_code == 200
+
+    def query(self, database: str, query: str, timeout=5000, format=None, stream=False, **kwargs):
+        extra_headers = {
+            'Content-Type': 'application/sparql-query'
+        }
+        if format is not None:
+            extra_headers['Accept'] = format
+
+        response = requests.post(f'{self.endpoint}/{database}/query', headers={
+            **self.headers(), **extra_headers,
+        }, data=query, params={
             **kwargs,
             'timeout': timeout,
-        })
-        return response.json()
+        }, stream=stream)
+
+        if stream:
+            return response
+        else:
+            return response.json()

@@ -50,22 +50,24 @@ def preprocess_download(download: dict):
     )
 
     return {
+        **download,
         'url': url,
         'available': available,
         'detect_kg': 'YES' if is_kg else ('MAYBE' if maybe_kg else 'NO'),
-        **download,
     }
 
 
 def preprocess_dataset(dataset: dict):
     full_downloads = dataset.get('full_download', [])
     other_downloads = dataset.get('other_download', [])
+    sparql = dataset.get('sparql', [])
 
     full_downloads = [preprocess_download(d) for d in full_downloads]
     other_downloads = [preprocess_download(d) for d in other_downloads]
+    sparql = [preprocess_download(d) for d in sparql]
 
     n_downloads_available, n_downloads_kg, n_downloads_maybekg, n_kg_available = 0, 0, 0, 0
-    for d in it.chain(iter(full_downloads), iter(other_downloads)):
+    for d in it.chain(iter(full_downloads), iter(other_downloads), iter(sparql)):
         n_downloads_available += d['available']
         if d['detect_kg'] == 'YES':
             n_downloads_kg += 1
@@ -74,15 +76,17 @@ def preprocess_dataset(dataset: dict):
             if d['available']:
                 n_kg_available += 1
 
+    dataset['n_downloads_available'] = n_downloads_available
 
     return {
-        'full_downloads': full_downloads,
-        'other_downloads': full_downloads,
+        **dataset,
+        'full_download': full_downloads,
+        'other_download': other_downloads,
+        'sparql': sparql,
         'n_downloads_available': n_downloads_available,
         'n_downloads_kg': n_downloads_kg,
         'n_downloads_maybekg': n_downloads_maybekg,
         'n_kg_available': n_kg_available,
-        **dataset,
     }
 
 

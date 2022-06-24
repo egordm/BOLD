@@ -12,7 +12,7 @@ class Dataset(TaskMixin, TimeStampMixin):
     name = models.CharField(max_length=255)
     database = models.CharField(max_length=255, null=True)
     description = models.TextField(blank=True)
-    source = models.CharField(max_length=255)
+    source = models.JSONField()
     sparql_endpoint = models.CharField(max_length=255, null=True)
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     statistics = models.JSONField(null=True)

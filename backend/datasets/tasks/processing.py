@@ -1,12 +1,16 @@
 import shutil
 from pathlib import Path
+from uuid import UUID
 
 from celery import shared_task
 
+from datasets.models import Dataset
 from datasets.services.bold_cli import BoldCli
+from datasets.services.stardog_api import StardogApi
 from datasets.services.stardog_cli import StarDogCli
 from shared import get_logger
-from shared.paths import EXPORT_DIR, DATA_DIR
+from shared.paths import EXPORT_DIR, DATA_DIR, DOWNLOAD_DIR
+from shared.random import random_string
 from shared.shell import consume_print
 
 logger = get_logger()
@@ -45,32 +49,29 @@ SELECT
 
 
 @shared_task()
-def process_search_index(database: str = None, min_term_count: int = 3) -> str:
-    task_id = process_search_index.request.id
-    logger.info(f'Starting search index processing task: {task_id}')
+def create_search_index(dataset_id: UUID, min_term_count: int = 3, path: str = None) -> str:
+    dataset = Dataset.objects.get(id=dataset_id)
+    logger.info(f"Creating search index for {dataset.name}")
 
-    export_dir = EXPORT_DIR / task_id
-    export_dir.mkdir(parents=True, exist_ok=True)
+    database = dataset.database
+    if database is None:
+        raise Exception("Dataset has no database")
+
+    tmp_dir = (Path(path) if path else DOWNLOAD_DIR) / random_string(10)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        query_file = export_dir / 'query.sparql'
-        terms_file = export_dir / 'terms.tsv'
-
-        logger.info('Writing query to file')
+        terms_file = tmp_dir / 'terms.tsv'
         query = QUERY_EXPORT_SEARCH.replace('{}', str(min_term_count))
-        query_file.write_text(query)
 
         logger.info('Exporting search terms to csv')
-        consume_print(StarDogCli.user_cmd(
-            [
-                'query', 'execute', '--format=TSV', database,
-                str(Path('/var/data/export') / query_file.relative_to(EXPORT_DIR)),
-                '>', str(Path('/var/data/export') / terms_file.relative_to(EXPORT_DIR)),
-            ],
-            inner_bash=True,
-        ))
+        client = StardogApi.from_settings()
+        with client.query(database, query, format='text/tsv', timeout=5000, stream=True) as r:
+            r.raw.decode_content = True
+            with terms_file.open('wb') as f:
+                shutil.copyfileobj(r.raw, f)
 
-        logger.info('Creating search index')
+        logger.info('Creating search index from documents')
         search_index_dir = DATA_DIR / f'search_index_{database}'
         search_index_dir.mkdir(parents=True, exist_ok=True)
         consume_print(BoldCli.cmd(
@@ -79,4 +80,5 @@ def process_search_index(database: str = None, min_term_count: int = 3) -> str:
 
         logger.info('Search index created')
     finally:
-        shutil.rmtree(export_dir)
+        logger.info(f"Cleaning up {tmp_dir}")
+        shutil.rmtree(tmp_dir, ignore_errors=True)

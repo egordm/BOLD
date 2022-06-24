@@ -20,3 +20,43 @@ Content-Type: application/json
 
 ###
 GET http://localhost:8000/tasks/?offset=0&limit=5&ordering=-created&state__in=SUCCESS,FAILURE
+
+
+###
+GET http://localhost:5820/yago/namespaces
+authorization: Basic YWRtaW46YWRtaW4=
+
+###
+POST http://localhost:5820/a1KAZn4jAiX/query
+authorization: Basic YWRtaW46YWRtaW4=
+Content-Type: application/sparql-query
+Accept: text/csv
+
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT
+    ?iri
+    (STR(?label_raw) AS ?label)
+    ?count
+    ?pos
+    ?type
+{
+    {
+        SELECT (?t as ?iri) (COUNT(?t) as ?count) (0 as ?pos)
+        { ?t ?p ?v }
+        GROUP BY ?t HAVING (?count > 1)
+    } UNION {
+        SELECT (?t as ?iri) (COUNT(?t) as ?count) (1 as ?pos)
+        { ?s ?t ?v }
+        GROUP BY ?t HAVING (?count > 1)
+    } UNION {
+        SELECT (?t as ?iri) (COUNT(?t) as ?count) (2 as ?pos)
+        { ?s ?p ?t FILTER(?p != rdfs:label) }
+        GROUP BY ?t HAVING (?count > 1)
+    }
+
+    OPTIONAL {
+        ?iri rdfs:label ?label_raw.
+        FILTER (STRSTARTS(lang(?label_raw), 'en'))
+    }
+    OPTIONAL { ?iri rdfs:type ?type }
+}
