@@ -44,7 +44,7 @@ const isTaskRunning = (task: Task) => IN_PROGRESS_STATES.has(task.state);
 
 export const TasksWidget = (props: {}) => {
   const [ expanded, setExpanded ] = useState(false);
-  const { tasks } = useTasksContext();
+  const { state: { tasks } } = useTasksContext();
 
   const taskList = _.sortBy(Object.values(tasks), 'created');
   const tasksInProgress = taskList.filter(isTaskRunning);

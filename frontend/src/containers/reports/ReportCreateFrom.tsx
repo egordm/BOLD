@@ -22,7 +22,7 @@ export const ReportCreateForm = (props: {
 }) => {
   const router = useRouter()
   const [ loading, setLoading ] = useState(false);
-  const [ msg, sendNotification ] = useNotification();
+  const { sendNotification } = useNotification();
   const {
     onClose,
   } = props;
@@ -46,14 +46,14 @@ export const ReportCreateForm = (props: {
         if (result) {
           if (result.status === 201) {
             sendNotification({
-              msg: "Report created",
+              message: "Report created",
               variant: "success"
             })
             onClose(true);
             await router.push(`notebook/${result.data.id}`);
           } else {
             sendNotification({
-              msg: "Error creating report",
+              message: "Error creating report",
               variant: "error"
             })
           }

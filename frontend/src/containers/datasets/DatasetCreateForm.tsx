@@ -22,7 +22,7 @@ export const DatasetCreateForm = (props: {
 }) => {
   const [ mode, setMode ] = useState('existing');
   const [ loading, setLoading ] = useState(false);
-  const [ msg, sendNotification ] = useNotification();
+  const { sendNotification } = useNotification();
   const {
     onClose,
   } = props;
@@ -62,13 +62,13 @@ export const DatasetCreateForm = (props: {
           if (result.status === 201) {
             console.log(result.data);
             sendNotification({
-              msg: "Dataset scheduled for creation",
+              message: "Dataset scheduled for creation",
               variant: "success"
             })
             onClose(true);
           } else {
             sendNotification({
-              msg: "Error creating dataset",
+              message: "Error creating dataset",
               variant: "error"
             })
           }

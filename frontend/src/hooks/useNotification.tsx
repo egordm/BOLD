@@ -1,40 +1,34 @@
 import { useSnackbar } from 'notistack';
-// import IconButton from "@mui/material/IconButton";
-// import CloseIcon from "@mui/material/SvgIcon/SvgIcon";
-import React, {useEffect, useState} from "react";
+import React from "react";
 
 
-const useNotification = (): [
-  {  msg?: string;  variant: 'default' | 'error' | 'success' | 'warning' | 'info';  },
-  (value: { msg: string; variant: 'default' | 'error' | 'success' | 'warning' | 'info'; }) => void
-
-] => {
-  const [conf, setConf] = useState<{
-    msg?: string;
+const useNotification = () => {
+  const [ notification, setNotification ] = React.useState<{
+    message?: string;
     variant: 'default' | 'error' | 'success' | 'warning' | 'info';
   }>({
-    msg: undefined,
+    message: undefined,
     variant: 'default',
   });
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar } = useSnackbar();
 
-  useEffect(()=>{
-    if(conf?.msg){
+  React.useEffect(() => {
+    if (notification?.message) {
       let variant = 'info';
-      if(conf.variant){
-        variant = conf.variant;
+      if (notification.variant) {
+        variant = notification.variant;
       }
-      enqueueSnackbar(conf.msg, {
+      enqueueSnackbar(notification.message, {
         // @ts-ignore
         variant: variant,
         autoHideDuration: 5000,
       });
     }
-  },[conf]);
-  return [
-    conf,
-    setConf
-  ];
+  }, [ notification ]);
+  return {
+    notification,
+    sendNotification: setNotification
+  };
 };
 
 export default useNotification;
