@@ -2,14 +2,15 @@ import { Container, IconButton } from "@mui/material";
 import { Add } from '@mui/icons-material';
 import { useCallback } from "react";
 import { useLocalNotebookContext } from "../../providers/LocalNotebookProvider";
+import { useNotebookContext } from "../../providers/NotebookProvider";
 import { Cell } from "../../types/notebooks";
 import { v4 as uuidv4 } from 'uuid';
 
 
 export const NotebookToolbar = (props: {}) => {
   const {
-    notebook, setNotebook,
-  } = useLocalNotebookContext();
+    localNotebook, setLocalNotebook,
+  } = useNotebookContext();
 
   const addCell = useCallback(() => {
     const cell: Cell = {
@@ -18,21 +19,24 @@ export const NotebookToolbar = (props: {}) => {
       metadata: {
         id: uuidv4()
       },
+      state: {
+        status: 'finished',
+      },
       outputs: [],
     }
 
-    setNotebook({
-      ...notebook,
+    setLocalNotebook({
+      ...localNotebook,
       cells: {
-        ...notebook?.cells,
+        ...localNotebook?.cells,
         [cell.metadata.id]: cell,
       },
       cell_order: [
-        ...notebook?.cell_order,
+        ...localNotebook?.cell_order,
         cell.metadata.id,
       ],
     })
-  }, [ notebook ]);
+  }, [ localNotebook ]);
 
   return (
     <>

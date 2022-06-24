@@ -1,5 +1,5 @@
 import { Backdrop, CircularProgress } from "@mui/material";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 export interface Packet<U, T> {
   type: U;
@@ -92,11 +92,15 @@ export const createWebsocketProvider = <U, T = any, C = any>() => {
       return connect();
     }, [ endpoint ]);
 
+    const contextValue = useMemo(() => ({
+      status, socket, state, setState
+    }), [ status, socket, state ])
+
     return (
-      <Context.Provider value={{ status, socket, state, setState }}>
+      <Context.Provider value={contextValue}>
         {children}
         <Backdrop open={status !== ConnectionStatus.CONNECTED}>
-          <CircularProgress color="inherit" />
+          <CircularProgress color="inherit"/>
         </Backdrop>
       </Context.Provider>
     );

@@ -1,7 +1,7 @@
 export type NotebookId = string;
 export type CellId = string;
 
-export const newNotebook = (name: string): Notebook => ({
+export const createNotebook = (name: string): Notebook => ({
   metadata: {
     name
   },

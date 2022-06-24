@@ -2,24 +2,23 @@ import { CardHeader, Container, IconButton, Input, Skeleton, Typography } from "
 import _ from "lodash";
 import { useCallback } from "react";
 import { useLocalNotebookContext } from "../../providers/LocalNotebookProvider";
+import { useNotebookContext } from "../../providers/NotebookProvider";
 import { useRemoteNotebookContext } from "../../providers/RemoteNotebookProvider";
 
 
 export const NotebookHeader = (props: {}) => {
   const {
-    state: { isSaving }
-  } = useRemoteNotebookContext();
-
-  const {
-    notebook, setNotebook,
-    isUpToDate,
-  } = useLocalNotebookContext();
+    localNotebook,
+    setLocalNotebook,
+    isSaving,
+    changed,
+  } = useNotebookContext();
 
   const setTitle = (name: string) => {
-    setNotebook({
-      ...notebook,
+    setLocalNotebook({
+      ...localNotebook,
       metadata: {
-        ...notebook?.metadata,
+        ...localNotebook?.metadata,
         name,
       }
     })
@@ -28,20 +27,20 @@ export const NotebookHeader = (props: {}) => {
   return (
     <CardHeader
       title={
-        notebook === null
+        localNotebook === null
           ? <Skeleton variant="text"/>
           : <Input
             fullWidth
-            value={notebook?.metadata?.name}
+            value={localNotebook?.metadata?.name}
             onChange={(e) => setTitle(e.target.value)}
           />
       }
       subheader={
-        notebook === null
+        localNotebook === null
           ? <Skeleton variant="text"/>
           : isSaving
             ? 'Saving...'
-            : isUpToDate
+            : !changed
               ? 'Draft saved'
               : 'Changed'
       }

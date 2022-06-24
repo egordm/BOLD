@@ -12,7 +12,7 @@ import { DatasetSelectInput } from "../../components/input/DatasetSelectInput";
 import useNotification from "../../hooks/useNotification";
 import { Dataset } from "../../types/datasets";
 import * as yup from 'yup';
-import { newNotebook } from "../../types/notebooks";
+import { createNotebook } from "../../types/notebooks";
 import { Report } from "../../types/reports";
 import { apiClient } from "../../utils/api";
 
@@ -40,7 +40,7 @@ export const ReportCreateForm = (props: {
       try {
         const result: AxiosResponse<Report> = await apiClient.post('/reports/', {
           dataset: values.dataset.id,
-          notebook: newNotebook('Untitled Report')
+          notebook: createNotebook('Untitled Report')
         })
 
         if (result) {

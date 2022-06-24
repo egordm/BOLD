@@ -12,8 +12,8 @@ export const CellOutputContainer = (props: {
 
   const outputs = /*useMemo(() =>*/ (cell.outputs.map((output, i) => {
     const OutputComponent = cell_types[output.output_type as any];
-    return <Box sx={{paddingY: 2}}>
-      <OutputComponent key={i} output={output}/>
+    return <Box key={i} sx={{paddingY: 2}}>
+      <OutputComponent  output={output}/>
     </Box>;
   }))/*, [ cell.outputs ]);*/
 

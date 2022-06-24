@@ -4,6 +4,8 @@ import { useRouter } from "next/router";
 import { Layout } from '../../components/layout/layout';
 import { Notebook } from "../../components/notebook/Notebook";
 import { LocalNotebookProvider } from "../../providers/LocalNotebookProvider";
+import { NotebookConnectionProvider } from "../../providers/NotebookConnectionProvider";
+import { NotebookProvider } from "../../providers/NotebookProvider";
 import { RemoteNotebookProvider } from "../../providers/RemoteNotebookProvider";
 
 
@@ -27,11 +29,18 @@ const NotebookPage = () => {
         }}
       >
         <Container maxWidth={'lg'}>
-          {rid && <RemoteNotebookProvider notebookId={rid as string}>
-            <LocalNotebookProvider>
-              <Notebook/>
-            </LocalNotebookProvider>
-          </RemoteNotebookProvider>}
+          {rid && (
+            <NotebookConnectionProvider notebookId={rid as string}>
+              <NotebookProvider notebookId={rid as string}>
+                <Notebook/>
+              </NotebookProvider>
+             {/* <RemoteNotebookProvider notebookId={rid as string}>
+                <LocalNotebookProvider>
+
+                </LocalNotebookProvider>
+              </RemoteNotebookProvider>*/}
+            </NotebookConnectionProvider>
+          )}
         </Container>
       </Box>
     </>
