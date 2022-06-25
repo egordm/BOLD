@@ -1,21 +1,18 @@
+import cgi
 import os.path
 import shutil
 from pathlib import Path
-from typing import Optional, List, Union
+from typing import Optional, List
 from urllib.parse import urlparse
-from urllib.request import urlretrieve
-from uuid import UUID
+from urllib.request import urlretrieve, urlopen
 
 from celery import shared_task
 
-from datasets.models import Dataset
-from datasets.services.lodc_api import KGFormat, LinkedOpenDataCloudApi
 from datasets.services.stardog_cli import StarDogCli
 from shared import get_logger
 from shared.paths import IMPORT_DIR, DOWNLOAD_DIR
 from shared.random import random_string
 from shared.shell import consume_print
-from tasks.models import Task
 
 logger = get_logger()
 
@@ -35,7 +32,17 @@ def download_url(url: str, path: str = None) -> Optional[Path]:
         raise Exception(e)
 
     try:
-        filename = os.path.basename(urlparse(url).path)
+        filename = None
+
+        logger.info('Trying to infer file name')
+        remotefile = urlopen(url)
+        headerblob = remotefile.info().get('Content-Disposition', None)
+        if headerblob:
+            value, params = cgi.parse_header(headerblob)
+            filename = params.get('filename', None)
+
+        if filename is None:
+            filename = os.path.basename(urlparse(url).path)
     except Exception as e:
         logger.error(f"Failed to parse URL {url}. Error: {e}")
         shutil.rmtree(download_folder)
@@ -44,6 +51,7 @@ def download_url(url: str, path: str = None) -> Optional[Path]:
     download_path = download_folder / filename
 
     try:
+        logger.info(f"Downloading {url} to {download_path}")
         # TODO: add a hook to check if file is not too big
         urlretrieve(url, download_path)
         logger.info(f"Downloaded {url} to {download_path}")

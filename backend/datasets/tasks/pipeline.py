@@ -30,7 +30,7 @@ def import_dataset(dataset_id: UUID) -> str:
 
             logger.info(f"Downloading {len(urls)} files")
             files = []
-            for url in urls:
+            for url in set(urls):
                 file = download_url(url, str(tmp_dir))
                 files.append(file)
 
