@@ -1,23 +1,26 @@
 import React, { useCallback, useState } from "react";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import { Task } from "../types/tasks";
 import { apiClient, PaginatedResult } from "../utils/api";
 import { createWebsocketProvider } from "./WebsocketProvider";
 
-export interface TasksState {
-  tasks: Record<string, Task>
-}
-
 type PacketType = 'TASK_UPDATED';
 
-const { useContext, Provider } = createWebsocketProvider<PacketType, any, TasksState>()
+const { useContext, Provider } = createWebsocketProvider<PacketType, any, Record<string, Task>>()
 
 export const TasksProvider = (props: {
   children: React.ReactNode,
 }) => {
-  const [ state, setState ] = useState<TasksState>({
-    tasks: {},
-  });
+  const queryClient = useQueryClient();
+
+  const [ tasks, setTasksInternal ] = useState<Record<string, Task>>({});
+  const tasksRef = React.useRef<Record<string, Task>>(tasks);
+
+  const setTasks = useCallback((tasks: Record<string, Task>) => {
+    tasksRef.current = tasks;
+    setTasksInternal(tasks);
+  }, []);
+
 
   useQuery('GLOBAL_TASKS', async () => {
     const response = await apiClient.get<PaginatedResult<Task>>('/tasks', {
@@ -33,29 +36,30 @@ export const TasksProvider = (props: {
     response.data.results.forEach(task => {
       fetchedTasks[task.task_id] = task;
     })
-    setState({
-      ...state,
-      tasks: fetchedTasks,
+    setTasks({
+      ...tasks,
+      ...fetchedTasks
     });
   })
 
   const onMessage = useCallback((packet) => {
     if (packet.type === "TASK_UPDATED") {
-      setState({
-        ...state,
-        tasks: {
-          ...state.tasks,
-          [packet.data.task_id]: packet.data,
-        }
-      })
+      setTasks({
+        ...tasksRef.current,
+        [packet.data.task_id]: packet.data,
+      });
+
+      if (packet.data.content_type === "dataset") {
+        queryClient.invalidateQueries('/datasets/');
+      }
     }
   }, [])
 
   return (
     <Provider
       endpoint={`${process.env.WS_ENDPOINT}/ws/tasks/`}
-      state={state}
-      setState={setState}
+      state={tasks}
+      setState={setTasks}
       onMessage={onMessage}
     >
       {props.children}

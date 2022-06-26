@@ -7,6 +7,7 @@ from django.forms.models import model_to_dict
 from shared import get_logger
 from shared.websocket import Packet
 from tasks.models import Task
+from tasks.serializers import TaskSerializer
 
 logger = get_logger()
 
@@ -34,4 +35,4 @@ class TasksConsumer(WebsocketConsumer):
 
     def task_updated(self, event):
         task: Task = Task.objects.get(task_id=event['message'])
-        self.send_packet('TASK_UPDATED', model_to_dict(task))
+        self.send_packet('TASK_UPDATED', TaskSerializer(task).data)

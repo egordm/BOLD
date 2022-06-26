@@ -25,6 +25,10 @@ const COLUMNS: GridColDef[] = [
   },
   { field: 'state', headerName: 'State', flex: 0.5 },
   {
+    field: 'content_type', headerName: 'Namespace', flex: 0.5,
+    valueGetter: (params) => params.value.model
+  },
+  {
     field: 'created_at', headerName: 'Created At', flex: 0.5, type: 'dateTime', minWidth: 200,
     valueFormatter: (params) => formatDateTime(params.value)
   },

@@ -20,7 +20,7 @@ import { useState } from "react";
 import { useTasksContext } from "../../providers/TasksProvider";
 import { Task } from "../../types/tasks";
 import FilterNoneIcon from '@mui/icons-material/FilterNone';
-import { formatUUIDShort } from "../../utils/formatting";
+import { formatDuration, formatUUIDShort } from "../../utils/formatting";
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -44,7 +44,7 @@ const isTaskRunning = (task: Task) => IN_PROGRESS_STATES.has(task.state);
 
 export const TasksWidget = (props: {}) => {
   const [ expanded, setExpanded ] = useState(false);
-  const { state: { tasks } } = useTasksContext();
+  const { state: tasks } = useTasksContext();
 
   const taskList = _.sortBy(Object.values(tasks), 'created');
   const tasksInProgress = taskList.filter(isTaskRunning);
@@ -57,7 +57,7 @@ export const TasksWidget = (props: {}) => {
       right: '16px',
     }}>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <List sx={{maxHeight: 400, overflowY: 'auto'}}>
+        <List sx={{ maxHeight: 400, overflowY: 'auto' }}>
           {taskList.map(task => (
             <ListItem disablePadding key={task.task_id}>
               <ListItemButton>
@@ -69,13 +69,17 @@ export const TasksWidget = (props: {}) => {
                       ? <CircularProgress size={24} color="primary"/>
                       : task.state === 'SUCCESS'
                         ? <CheckCircleOutlineIcon color="success"/>
-                        : <ErrorOutlineIcon color="error" />
+                        : <ErrorOutlineIcon color="error"/>
                   }
                 </ListItemIcon>
-                <ListItemText sx={{
-                  textOverflow: 'ellipsis',
-                  overflow: 'hidden',
-                }} primary={`${formatUUIDShort(task.task_id)}: ${task.name}`}/>
+                <ListItemText
+                  sx={{
+                    textOverflow: 'ellipsis',
+                    overflow: 'hidden',
+                  }}
+                  primary={`${formatUUIDShort(task.task_id)}: ${task.name}`}
+                  secondary={`Started ${formatDuration(task.created_at)}`}
+                />
               </ListItemButton>
             </ListItem>
           ))}
