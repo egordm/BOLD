@@ -9,7 +9,6 @@ import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import React from "react";
 import { ServerDataGrid } from "../../components/data/ServerDataGrid";
-import { Dataset } from "../../types/datasets";
 import { Report } from "../../types/reports";
 import { formatDateTime, formatUUIDShort } from "../../utils/formatting";
 
@@ -72,7 +71,6 @@ export const ReportsGrid = (props: {}) => {
         columns={columns}
         initialState={INITIAL_STATE}
         initialSorting={INITIAL_SORTING}
-        getRowId={(row) => row.task_id}
       />
     </Box>
   )

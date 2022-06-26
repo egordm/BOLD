@@ -11,6 +11,20 @@ import { TasksWidget } from "../containers/tasks/TasksWidget";
 import { TasksProvider } from "../providers/TasksProvider";
 import { createEmotionCache } from '../utils/create-emotion-cache';
 import { theme } from '../theme';
+import NProgress from "nprogress";
+import Router from "next/router";
+
+Router.events.on('routeChangeStart', url => {
+  NProgress.start()
+})
+
+Router.events.on('routeChangeComplete', url => {
+  NProgress.done()
+})
+
+Router.events.on('routeChangeError', url => {
+  NProgress.done()
+})
 
 
 const relativeTime = require('dayjs/plugin/relativeTime');

@@ -15,6 +15,7 @@ const COLUMNS: GridColDef[] = [
   { field: 'name', headerName: 'Name', flex: 1 },
   { field: 'description', headerName: 'Description', flex: 1 },
   { field: 'database', headerName: 'Database', flex: 0.5 },
+  { field: 'state', headerName: 'State', flex: 0.5, type: 'singleSelect' },
   {
     field: 'triples', headerName: 'Triples', flex: 0.5, type: 'number',
     valueGetter: (params) => params.row.statistics?.triple_count,
@@ -32,6 +33,7 @@ const COLUMNS: GridColDef[] = [
 const INITIAL_STATE: GridInitialStateCommunity = {
   columns: {
     columnVisibilityModel: {
+      database: true,
       updated_at: false,
     }
   }

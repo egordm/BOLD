@@ -45,11 +45,9 @@ export const DatasetSelectInput = (props: {
       }
       multiple
       limitTags={1}
-      filterOptions={(x) => x}
       options={options}
       autoComplete
       includeInputInList
-      filterSelectedOptions
       value={value}
       onChange={(event: any, newValue: Dataset[] | null) => {
         if (newValue.length > 1) {
@@ -57,7 +55,7 @@ export const DatasetSelectInput = (props: {
         }
 
         setValue([
-          ...newValue.filter((option) => options.find((candidate) => candidate.id == option.id)),
+          ...newValue.filter((option) => options.find((candidate) => candidate.id === option.id)),
         ]);
       }}
       onInputChange={(event, newInputValue) => {
@@ -69,6 +67,7 @@ export const DatasetSelectInput = (props: {
       renderTags={(tagValue, getTagProps) =>
         tagValue.map((option, index) => (
           <Chip
+            key={index}
             label={option.name}
             {...getTagProps({ index })}
           />

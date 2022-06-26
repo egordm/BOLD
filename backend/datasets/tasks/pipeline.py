@@ -3,7 +3,7 @@ from uuid import UUID
 
 from celery import shared_task
 
-from datasets.models import Dataset
+from datasets.models import Dataset, DatasetState
 from datasets.tasks import download_url, import_files, update_dataset_info, create_search_index
 from shared import get_logger
 from shared.paths import DOWNLOAD_DIR
@@ -15,13 +15,17 @@ logger = get_logger()
 @shared_task()
 def import_dataset(dataset_id: UUID) -> str:
     dataset = Dataset.objects.get(id=dataset_id)
+    source = dataset.source
     logger.info(f"Importing dataset {dataset.name}")
 
+    Dataset.objects.filter(id=dataset_id).update(
+        state=DatasetState.IMPORTING.value,
+        import_task_id=import_dataset.request.id,
+    )
     tmp_dir = DOWNLOAD_DIR / random_string(10)
     tmp_dir.mkdir(parents=True)
 
     try:
-        source = dataset.source
         source_type = source.get('source_type', None)
         if source_type == 'urls' or source_type == 'lodc':
             urls = source.get('urls', [])
@@ -50,6 +54,13 @@ def import_dataset(dataset_id: UUID) -> str:
 
         logger.info(f"Creating search index")
         create_search_index(dataset_id, path=str(tmp_dir))
+
+        logger.info(f"Import finished")
+        Dataset.objects.filter(id=dataset_id).update(state=DatasetState.IMPORTED.value)
+    except Exception as e:
+        logger.error(f"Error importing dataset {dataset.name}: {e}")
+        Dataset.objects.filter(id=dataset_id).update(state=DatasetState.FAILED.value)
+        raise e
     finally:
         logger.info(f"Cleaning up {tmp_dir}")
         shutil.rmtree(tmp_dir, ignore_errors=True)
