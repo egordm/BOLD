@@ -10,7 +10,7 @@ import { DataGrid, GridActionsCellItem, GridColDef, GridRowParams, GridToolbar }
 import Link from "next/link";
 import { LODCImportForm } from "./LODCImportForm";
 
-const LODC_DATASET_COLUMNS: GridColDef[] = [
+const COLUMNS: GridColDef[] = [
   { field: 'identifier', headerName: 'ID', flex: 0.5 },
   {
     field: 'title', headerName: 'Title', flex: 1, minWidth: 200,
@@ -36,7 +36,7 @@ const LODC_DATASET_COLUMNS: GridColDef[] = [
   { field: 'n_kg_available', headerName: 'KG Available', type: 'number', width: 180 },
 ];
 
-export const LODCListing = (props: {}) => {
+export const LODCGrid = (props: {}) => {
   const { data: rows } = useQuery<LODCDataset[]>('lodc-datasets', fetchLODCDatasets);
   const [ openItem, setOpenItem ] = React.useState<LODCDataset | null>(null);
 
@@ -45,20 +45,18 @@ export const LODCListing = (props: {}) => {
   }
 
   const columns = [
-    ...LODC_DATASET_COLUMNS,
+    ...COLUMNS,
     {
       field: 'actions',
       type: 'actions',
       getActions: (params: GridRowParams) => [
-        <GridActionsCellItem icon={<CloudDownloadIcon/>} onClick={() => openImportDialog(params.row)} label="Delete"/>,
+        <GridActionsCellItem icon={<CloudDownloadIcon/>} onClick={() => openImportDialog(params.row)} label="Import"/>,
       ]
     }
   ]
 
   return (
-    <Box
-      sx={{ width: '100%', height: 600, bgcolor: 'background.paper' }}
-    >
+    <Box sx={{ width: '100%', height: 600 }}>
       <DataGrid
         components={{
           Toolbar: GridToolbar,
@@ -87,7 +85,6 @@ export const LODCListing = (props: {}) => {
             quickFilterProps: { debounceMs: 500 },
           },
         }}
-
       />
       <Modal
         open={openItem !== null}

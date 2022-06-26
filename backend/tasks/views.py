@@ -47,5 +47,5 @@ class TaskViewSet(viewsets.ModelViewSet):
     serializer_class = TaskSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ['object_id', 'status']
+    search_fields = ['object_id', 'name', 'state']
     filter_class = TaskFilter

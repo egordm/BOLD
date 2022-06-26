@@ -1,6 +1,7 @@
 import Head from 'next/head';
-import { Box, Container } from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Container } from '@mui/material';
 import { Layout } from '../components/layout/layout';
+import { LODCGrid } from "../containers/lodc/LODCGrid";
 import { TasksGrid } from "../containers/tasks/TasksGrid";
 
 
@@ -11,15 +12,14 @@ const TasksPage = () => (
         BOLD Tasks
       </title>
     </Head>
-    <Box
-      component="main"
-      sx={{
-        flexGrow: 1,
-        py: 8
-      }}
-    >
+    <Box component="main" sx={{ flexGrow: 1, py: 8 }}>
       <Container maxWidth={false}>
-        <TasksGrid/>
+        <Card>
+          <CardHeader title="Tasks" />
+          <CardContent>
+            <TasksGrid/>
+          </CardContent>
+        </Card>
       </Container>
     </Box>
   </>

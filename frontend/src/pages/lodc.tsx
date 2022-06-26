@@ -1,7 +1,7 @@
 import Head from 'next/head';
-import { Box, Container } from '@mui/material';
+import { Box, Card, CardContent, CardHeader, Container } from '@mui/material';
 import { Layout } from '../components/layout/layout';
-import { LODCListing } from "../containers/lodc/LODCListing";
+import { LODCGrid } from "../containers/lodc/LODCGrid";
 import { TasksGrid } from "../containers/tasks/TasksGrid";
 
 
@@ -12,12 +12,16 @@ const LODCPage = () => (
         BOLD LODC datasets
       </title>
     </Head>
-    <Box
-      component="main"
-      sx={{ flexGrow: 1, py: 8 }}
-    >
+    <Box component="main" sx={{ flexGrow: 1, py: 8 }}>
       <Container maxWidth={false}>
-        <LODCListing/>
+        <Card>
+          <CardHeader
+            title="Linked Open Data Cloud Datasets"
+          />
+          <CardContent>
+            <LODCGrid/>
+          </CardContent>
+        </Card>
       </Container>
     </Box>
   </>

@@ -1,110 +1,79 @@
 import EditIcon from '@mui/icons-material/Edit';
 import {
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  IconButton,
-  LinearProgress,
-  Modal,
-  TableCell,
-  TableRow
+  Box
 } from "@mui/material";
+import { GridActionsCellItem, GridColDef, GridRowParams } from "@mui/x-data-grid";
+import { GridSortModel } from "@mui/x-data-grid/models/gridSortModel";
+import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateCommunity";
 import dayjs from "dayjs";
 import { useRouter } from "next/router";
 import React from "react";
-import { DataGrid } from "../../components/datagrid/DataGrid";
-import { DataGridToolbar } from "../../components/datagrid/DataGridToolbar";
+import { ServerDataGrid } from "../../components/data/ServerDataGrid";
 import { Dataset } from "../../types/datasets";
 import { Report } from "../../types/reports";
-import { useFetchList } from "../../utils/api";
-import { formatDateTime } from "../../utils/formatting";
-import { ReportCreateForm } from "./ReportCreateFrom";
+import { formatDateTime, formatUUIDShort } from "../../utils/formatting";
+
+const COLUMNS: GridColDef[] = [
+  {
+    field: 'id', headerName: 'ID', flex: 0.5,
+    valueFormatter: (params) => formatUUIDShort(params.value)
+  },
+  {
+    field: 'dataset', headerName: 'Dataset', flex: 1,
+    valueGetter: (params) => params.value.name
+  },
+  {
+    field: 'name', headerName: 'Name', flex: 0.5,
+    valueGetter: (params) => params.row.notebook.metadata.name
+  },
+  {
+    field: 'created_at', headerName: 'Created At', flex: 0.5, type: 'dateTime', minWidth: 200,
+    valueFormatter: (params) => formatDateTime(params.value)
+  },
+  {
+    field: 'updated_at', headerName: 'Updated At', flex: 0.5, type: 'dateTime', minWidth: 200,
+    valueFormatter: (params) => (dayjs(params.value) as any).fromNow()
+  },
+]
+
+const INITIAL_STATE: GridInitialStateCommunity = {
+  columns: {
+    columnVisibilityModel: {}
+  }
+}
+
+const INITIAL_SORTING: GridSortModel = [
+  { field: 'created_at', sort: 'desc' }
+]
 
 
 export const ReportsGrid = (props: {}) => {
   const router = useRouter();
-  const [ addFormOpen, setAddFormOpen ] = React.useState(false);
-
-  const {
-    isLoading, isFetching,
-    data, count,
-    page, setPage,
-    limit, setLimit,
-    refresh, setQuery
-  } = useFetchList<Report>('/reports/', {}, {});
 
   const onReportEdit = async (report: Report) => {
     await router.push(`notebook/${report.id}`);
   }
 
-  return (
-    <>
-      <DataGridToolbar
-        title="Reports"
-        searchTitle="Search Reports"
-        addTitle="Add Report"
-        onAdd={() => setAddFormOpen(true)}
-        onSearch={(query) => setQuery(query)}
-      />
+  const columns = [
+    ...COLUMNS,
+    {
+      field: 'actions',
+      type: 'actions',
+      getActions: (params: GridRowParams) => [
+        <GridActionsCellItem icon={<EditIcon/>} onClick={async () => await onReportEdit(params.row)} label="Edit"/>,
+      ]
+    }
+  ]
 
-      <Box sx={{ mt: 3 }}>
-        {(isLoading || isFetching) && <LinearProgress/>}
-        <DataGrid
-          data={data || []}
-          count={count}
-          page={page}
-          limit={limit}
-          renderColumns={() => (
-            <TableRow>
-              <TableCell>Name</TableCell>
-              <TableCell>Dataset</TableCell>
-              <TableCell>Updated At</TableCell>
-              <TableCell>Created At</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          )}
-          renderRow={(report: Report) => (
-            <TableRow hover key={report.id}>
-              <TableCell>{report.notebook.metadata.name}</TableCell>
-              <TableCell>{report.dataset.name}</TableCell>
-              <TableCell>{dayjs(report.updated_at).fromNow()}</TableCell>
-              <TableCell>{formatDateTime(report.created_at)}</TableCell>
-              <TableCell>
-                <IconButton aria-label="edit" onClick={async () => await onReportEdit(report)}>
-                  <EditIcon/>
-                </IconButton>
-              </TableCell>
-            </TableRow>
-          )}
-          onPageChange={setPage}
-          onLimitChange={setLimit}
-          selectable={false}/>
-      </Box>
-      <Modal
-        open={addFormOpen}
-        onClose={() => setAddFormOpen(false)}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Card sx={{
-          width: 600,
-          position: 'absolute' as 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-        }}>
-          <CardHeader title="Create Report"/>
-          <CardContent>
-            <ReportCreateForm onClose={(created) => {
-              setAddFormOpen(false);
-              if (created) {
-                refresh();
-              }
-            }}/>
-          </CardContent>
-        </Card>
-      </Modal>
-    </>
+  return (
+    <Box sx={{ width: '100%', height: 600 }}>
+      <ServerDataGrid
+        endpoint="/reports/"
+        columns={columns}
+        initialState={INITIAL_STATE}
+        initialSorting={INITIAL_SORTING}
+        getRowId={(row) => row.task_id}
+      />
+    </Box>
   )
 }

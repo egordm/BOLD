@@ -30,47 +30,40 @@ export const DatasetCreateForm = (props: {
 
   const validationSchema = yup.object({});
 
-  const formik = useFormik<Partial<Dataset>>({
+  const formik = useFormik({
     initialValues: {
-      name: "",
-      description: "",
-      database: undefined,
-      source: undefined,
-      sparql_endpoint: undefined,
+      name: "" as string,
+      description: "" as string,
+      database: '' as string,
+      source: '' as string,
+      sparql: '' as string,
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       setLoading(true);
 
       try {
-        let result: AxiosResponse<Dataset> = null;
-        if (mode === 'existing') {
-          result = await apiClient.post('/datasets/create_existing/', {
-            ...values
-          })
-        } else if (mode === 'lodc') {
-          result = await apiClient.post('/datasets/create_lodc/', {
-            ...values
-          })
-        } else if (mode === 'url') {
-          result = await apiClient.post('/datasets/create_url/', {
-            ...values
-          })
-        }
+        const source = mode === 'existing' ? {
+          source_type: 'existing',
+          database: values.database,
+        } : {
+          source_type: 'urls',
+          urls: values.source.split(/\r|\n/),
+          sparql: values.sparql ? [ values.sparql ] : [],
+        };
+
+        const result = await apiClient.post<Dataset>('/datasets/', {
+          name: values.name,
+          description: values.description,
+          source,
+        })
 
         if (result) {
           if (result.status === 201) {
-            console.log(result.data);
-            sendNotification({
-              message: "Dataset scheduled for creation",
-              variant: "success"
-            })
+            sendNotification({ variant: "success", message: "Dataset scheduled for creation" })
             onClose(true);
           } else {
-            sendNotification({
-              message: "Error creating dataset",
-              variant: "error"
-            })
+            sendNotification({ variant: "error", message: "Error creating dataset" })
           }
         }
       } catch (e) {
@@ -84,14 +77,8 @@ export const DatasetCreateForm = (props: {
 
   return (
     <form onSubmit={formik.handleSubmit}>
-      <Grid
-        container
-        spacing={3}
-      >
-        <Grid
-          item
-          xs={12}
-        >
+      <Grid container spacing={3}>
+        <Grid item xs={12}>
           <TextField
             name="name"
             label="Name"
@@ -103,10 +90,7 @@ export const DatasetCreateForm = (props: {
             helperText={formik.touched.name && formik.errors.name}
           />
         </Grid>
-        <Grid
-          item
-          xs={12}
-        >
+        <Grid item xs={12}>
           <TextField
             name="description"
             label="Description"
@@ -119,10 +103,7 @@ export const DatasetCreateForm = (props: {
             helperText={formik.touched.description && formik.errors.description}
           />
         </Grid>
-        <Grid
-          item
-          xs={12}
-        >
+        <Grid item xs={12}>
           <TabContext value={mode}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <TabList
@@ -131,8 +112,7 @@ export const DatasetCreateForm = (props: {
                 centered
               >
                 <Tab label="Existing" value="existing"/>
-                <Tab label="Linked Open Data Cloud" value="lodc"/>
-                <Tab label="From URL" value="url"/>
+                <Tab label="From URL(s)" value="url"/>
               </TabList>
             </Box>
             <TabPanel value="existing">
@@ -151,32 +131,16 @@ export const DatasetCreateForm = (props: {
                 </Grid>
               </Grid>
             </TabPanel>
-            <TabPanel value="lodc">
+            <TabPanel value="url">
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <TextField
                     name="source"
-                    label="Linked Open Data Cloud Name"
-                    variant="outlined"
-                    fullWidth
-                    value={formik.values.source}
-                    onChange={formik.handleChange}
-                    error={formik.touched.source && Boolean(formik.errors.source)}
-                    helperText={formik.touched.source && formik.errors.source}
-                  />
-                </Grid>
-              </Grid>
-            </TabPanel>
-            <TabPanel value="url">
-              <Grid
-                container
-                spacing={3}
-              >
-                <Grid item xs={12}>
-                  <TextField
-                    name="source"
                     label="Url to dataset"
+                    placeholder="Urls separated by newline"
                     variant="outlined"
+                    multiline
+                    rows={3}
                     fullWidth
                     value={formik.values.source}
                     onChange={formik.handleChange}
@@ -190,10 +154,10 @@ export const DatasetCreateForm = (props: {
                     label="Sparql endpoint"
                     variant="outlined"
                     fullWidth
-                    value={formik.values.sparql_endpoint}
+                    value={formik.values.sparql}
                     onChange={formik.handleChange}
-                    error={formik.touched.sparql_endpoint && Boolean(formik.errors.sparql_endpoint)}
-                    helperText={formik.touched.sparql_endpoint && formik.errors.sparql_endpoint}
+                    error={formik.touched.sparql && Boolean(formik.errors.sparql)}
+                    helperText={formik.touched.sparql && formik.errors.sparql}
                   />
                 </Grid>
               </Grid>
