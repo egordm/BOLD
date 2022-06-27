@@ -1,6 +1,5 @@
-import { Card, CardContent, Divider, Typography } from "@mui/material";
+import { Card, CardContent, Divider } from "@mui/material";
 import { CellProvider } from "../../providers/CellProvider";
-import { useLocalNotebookContext } from "../../providers/LocalNotebookProvider";
 import { useNotebookContext } from "../../providers/NotebookProvider";
 import { CellId } from "../../types/notebooks";
 import { CellContainer } from "./cells/CellContainer";
@@ -9,7 +8,7 @@ import { NotebookToolbar } from "./NotebookToolbar";
 
 export const Notebook = (props: {}) => {
   const {
-    localNotebook,
+    notebook,
   } = useNotebookContext();
 
   const renderCell = (cellId: CellId) => (
@@ -18,12 +17,10 @@ export const Notebook = (props: {}) => {
     </CellProvider>
   )
 
-  const cells = localNotebook?.cell_order.map(renderCell);
+  const cells = notebook?.content?.cell_order.map(renderCell);
 
   return (
-    <Card
-      // onKeyDown={onKeyDown}
-    >
+    <Card>
       <NotebookHeader/>
       <Divider/>
       <NotebookToolbar/>
