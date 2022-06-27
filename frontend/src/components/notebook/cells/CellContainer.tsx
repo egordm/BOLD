@@ -2,11 +2,10 @@ import { LoadingButton } from "@mui/lab";
 import { Box, Grid } from "@mui/material";
 import { useCellContext } from "../../../providers/CellProvider";
 import { CELL_TYPES } from "./CellTypes";
-import { CodeCell } from "./types/CodeCell";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 
 export const CellContainer = (props: {}) => {
-  const { cell, runCell, running } = useCellContext();
+  const { cell, outputs, runCell, running } = useCellContext();
 
   const {
     Content, Output
@@ -24,7 +23,7 @@ export const CellContainer = (props: {}) => {
                   <Grid container >
                       <Content/>
                   </Grid>
-                {cell.outputs.length > 0 && (
+                {outputs?.length && (
                   <Output/>
                 )}
               </Grid>

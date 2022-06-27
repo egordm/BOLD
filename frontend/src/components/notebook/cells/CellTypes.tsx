@@ -1,15 +1,15 @@
+import React from "react";
+import { CellType } from "../../../types/notebooks";
 import { CellOutputContainer } from "./CellOutputContainer";
-import { CodeCell } from "./types/CodeCell";
+import { CodeCellComponent } from "./types/CodeCellComponent";
 
 
-export interface CellItem {
+export const CELL_TYPES: Record<CellType, {
   Content: React.FC<any>;
   Output: React.FC<any>;
-}
-
-export const CELL_TYPES: Record<string, CellItem> = {
+}> = {
   code: {
-    Content: CodeCell,
+    Content: CodeCellComponent,
     Output: CellOutputContainer,
   }
 }
