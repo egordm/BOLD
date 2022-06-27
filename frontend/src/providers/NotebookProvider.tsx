@@ -1,97 +1,85 @@
 import _ from "lodash";
-import React, { useCallback, useMemo, useRef } from "react";
-import { useMutation, useQuery } from "react-query";
-import useNotification from "../hooks/useNotification";
-import { CellId, createNotebook, Notebook, setCellOutputs } from "../types/notebooks";
-import { Report } from "../types/reports";
-import { apiClient } from "../utils/api";
+import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import {
+  Cell,
+  CellId,
+  createNotebook,
+  Notebook,
+  setCellContent,
+  setCellOutputs,
+  setCellState
+} from "../types/notebooks";
 import { useNotebookEvent } from "./NotebookConnectionProvider";
+import { useReportContext } from "./ReportProvider";
 
 
 const NotebookContext = React.createContext<{
-  remoteNotebook: Notebook | null,
-  localNotebook: Notebook | null,
-  setLocalNotebook: (notebook: Notebook) => void,
+  notebook: Notebook | null,
+  setNotebook: (notebook: Notebook) => void,
+  setCell: (cell: Cell) => void,
   changed: boolean,
-  focusedCell: CellId | null,
-  setFocusedCell: (cellId: CellId | null) => void,
   save: () => void,
   isSaving: boolean,
-  refetch: () => void,
   isFetching: boolean,
 }>(null);
 
 
 export const NotebookProvider = (props: {
-  notebookId: string,
   children: React.ReactNode,
 }) => {
-  const { notebookId, children, } = props;
-
-  const { sendNotification } = useNotification();
-
-  const [ remoteNotebook, setRemoteNotebookInternal ] = React.useState<Notebook | null>(null);
-  const remoteNotebookRef = useRef<Notebook | null>(null);
-  const [ localNotebook, setLocalNotebookInternal ] = React.useState<Notebook | null>(null);
-  const localNotebookRef = useRef<Notebook | null>(null);
-
+  const { children, } = props;
   const [ changed, setChanged ] = React.useState(false);
 
-  const setRemoteNotebook = useCallback((notebook: Notebook) => {
-    setRemoteNotebookInternal(notebook);
-    remoteNotebookRef.current = notebook;
+  const [ notebook, setNotebookInternal ] = React.useState<Notebook | null>(null);
+  const notebookRef = useRef<Notebook | null>(null);
+
+  const setNotebook = useCallback((notebook: Notebook) => {
+    setNotebookInternal(notebook);
+    notebookRef.current = notebook;
   }, []);
 
-  const setLocalNotebook = useCallback((notebook: Notebook) => {
-    setLocalNotebookInternal(notebook);
-    localNotebookRef.current = notebook;
-    setChanged(true);
+  const setCell = useCallback((cell: Cell) => {
+    setNotebook(setCellContent(notebookRef.current!, cell.metadata.id, cell));
   }, []);
 
-  const { refetch, isFetching } = useQuery([ 'report', notebookId ], async () => {
-    const response = await apiClient.get<Report>(`/reports/${notebookId}/`);
-    return response.data;
-  }, {
-    onSuccess: (data) => {
-      console.debug('Fetched notebook', data);
-      setRemoteNotebook(data.notebook);
-
-      if (remoteNotebookRef.current === null) {
-        setRemoteNotebook(createNotebook(''))
-      }
-      if (localNotebookRef.current === null) {
-        setLocalNotebook(_.cloneDeep(data.notebook));
-        setChanged(false);
-      }
-    },
-    onError: (err) => {
-      sendNotification({ variant: 'error', message: `Failed to fetch notebook` });
-    }
-  });
-
-  const { mutate: saveInternal, isLoading: isSaving } = useMutation(async () => {
-    const response = await apiClient.put<Report>(`/reports/${notebookId}/`, { notebook: localNotebook });
-    return response.data;
-  }, {
-    onSuccess: (output) => {
-      console.debug('Saved notebook', output);
-      setRemoteNotebook(output.notebook);
-
-      if (_.isEqual(output.notebook, localNotebook)) {
-        setChanged(false);
-      }
-    },
-    onError: (err) => {
-      sendNotification({ variant: 'error', message: `Failed to save notebook` });
-    },
-  })
-
+  const { report, isSaving, isFetching, save: saveReport } = useReportContext();
   const save = () => {
-    sendNotification({ variant: 'info', message: `Saving notebook` });
-    saveInternal();
+    // TODO: Save notebook
+    saveReport({
+      ...report,
+      notebook: notebookRef.current,
+    });
   }
 
-  const [ focusedCell, setFocusedCell ] = React.useState<CellId | null>(null);
+  useEffect(() => {
+    if (!isFetching) {
+      if (report?.notebook) {
+        setNotebook(report.notebook);
+      } else {
+        setNotebook(createNotebook('Untitled notebook'));
+      }
+    }
+  }, [ report === null, isFetching ]);
+
+  useEffect(() => {
+    if (notebookRef.current && report.notebook) {
+      const changedLocal = !_.isEqual(notebookRef.current, report.notebook);
+      console.log(notebookRef.current, report.notebook)
+      if (changedLocal !== changed) {
+        setChanged(changedLocal);
+      }
+    }
+  }, [ !changed ? report?.notebook?.content : null, !changed ? notebook : null, isSaving ]);
+
+  useNotebookEvent('CELL_RESULT', (data: any) => {
+    setNotebook(setCellOutputs(notebookRef.current, data.cell_id, data.outputs));
+    console.debug('Added cell result', notebookRef.current);
+  }, []);
+
+  useNotebookEvent('CELL_STATE', (data: any) => {
+    setNotebook(setCellState(notebookRef.current, data.cell_id, data.state));
+    console.debug('Added cell state', notebookRef.current);
+  }, []);
 
   const onKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
     let charCode = String.fromCharCode(event.which).toLowerCase();
@@ -101,16 +89,9 @@ export const NotebookProvider = (props: {
     }
   }, [])
 
-  useNotebookEvent('CELL_RESULT', (data: any) => {
-    setRemoteNotebook(setCellOutputs(remoteNotebookRef.current, data.cell_id, data.outputs));
-    setLocalNotebook(setCellOutputs(localNotebookRef.current, data.cell_id, data.outputs));
-    console.debug('Update result', remoteNotebookRef.current);
-  }, [])
-
   const contextValue = useMemo(() => ({
-    remoteNotebook, localNotebook, changed, focusedCell, isSaving, isFetching,
-    setFocusedCell, save, refetch, setLocalNotebook,
-  }), [ remoteNotebook, localNotebook, changed, focusedCell, isSaving, isFetching ]);
+    notebook, setNotebook, setCell, changed, save, isSaving, isFetching,
+  }), [ notebook, changed, isSaving, isFetching ]);
 
   return (
     <NotebookContext.Provider value={contextValue}>

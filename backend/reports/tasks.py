@@ -21,7 +21,8 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
     report: Report = Report.objects.get(id=report_id)
     notebook = report.notebook
     dataset: Dataset = report.dataset
-    cell = notebook.get('cells', {}).get(str(cell_id), None)
+
+    cell = notebook.get('content', {}).get('cells', {}).get(str(cell_id), None)
 
     if cell is None:
         raise Exception(f'Cell {cell_id} not found in notebook {report_id}')
@@ -41,7 +42,7 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
                     'output_type': 'execute_result',
                     'execute_count': 1,
                     'data': {
-                        'application/json': json.dumps(output)
+                        'application/sparql-results+json': json.dumps(output)
                     }
                 })
             except stardog.exceptions.StardogException as e:
@@ -55,13 +56,9 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
                 logger.error(f'Error running cell {cell_id} in notebook {report_id}')
                 raise e
 
-    print(outputs)
-
     Report.objects.filter(id=report_id).update(
-        notebook=q_json_update('notebook', ['cells', str(cell_id), 'outputs'], outputs)
+        notebook=q_json_update('notebook', ['results', 'outputs', str(cell_id)], outputs)
     )
-    print(outputs)
-    print(cell)
 
     send_to_group_sync(
         str(report_id),

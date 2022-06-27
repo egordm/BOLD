@@ -36,7 +36,7 @@ class NotebookConsumer(WebsocketConsumer):
             case PacketType.CELL_RUN:
                 report = self.report
                 cell_id = UUID(packet.data)
-                cell_index = report.notebook['cell_order'].index(str(cell_id))
+                cell_index = report.notebook.get('content', {}).get('cell_order', []).index(str(cell_id))
 
                 self.report.apply_async(
                     run_cell, (self.report_id, cell_id),

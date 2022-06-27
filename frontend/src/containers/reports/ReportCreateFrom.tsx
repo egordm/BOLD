@@ -50,7 +50,7 @@ export const ReportCreateForm = (props: {
               variant: "success"
             })
             onClose(true);
-            await router.push(`notebook/${result.data.id}`);
+            await router.push(`report/${result.data.id}`);
           } else {
             sendNotification({
               message: "Error creating report",
