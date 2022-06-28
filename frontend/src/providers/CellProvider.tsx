@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 import useNotification from "../hooks/useNotification";
 import { Cell, CellId, CellOutput, CellState } from "../types/notebooks";
+import { useCellFocusContext } from "./CellFocusProvider";
 import { useNotebookConnectionContext } from "./NotebookConnectionProvider";
 import { useNotebookContext } from "./NotebookProvider";
 import { ConnectionStatus } from "./WebsocketProvider";
@@ -11,7 +12,6 @@ export const CellContext = React.createContext<{
   outputs: CellOutput[] | null;
   setCell: (cell: Cell) => void;
   runCell: () => void;
-  running: boolean;
 }>(null);
 
 export const CellProvider = (props: {
@@ -22,14 +22,13 @@ export const CellProvider = (props: {
 
   const { sendNotification } = useNotification();
   const { socket, status } = useNotebookConnectionContext();
+  const { focus, setFocus } = useCellFocusContext();
   const { notebook, setCell, changed, save } = useNotebookContext();
   const [ run, setRun ] = React.useState(false);
 
   const cell = notebook?.content?.cells[cellId];
   const state = notebook?.results?.states[cellId] || null;
   const outputs = notebook?.results?.outputs[cellId] || null;
-
-  const running = run || state?.status === "QUEUED" || state?.status === "RUNNING";
 
   const runCell = useCallback(() => {
     setRun(true);
@@ -56,13 +55,19 @@ export const CellProvider = (props: {
     }
   }
 
+  const onFocus = (event) => {
+    if (focus !== cellId) {
+      setFocus(cellId);
+    }
+  }
+
   const contextValue = useMemo(() => ({
-    cell, state, outputs, setCell, runCell, running,
-  }), [ cell, state, outputs, running ]);
+    cell, state, outputs, setCell, runCell,
+  }), [ cell, state, outputs ]);
 
   return (
     <CellContext.Provider value={contextValue}>
-      <div onKeyDown={onKeyDown}>
+      <div onKeyDown={onKeyDown} onClick={onFocus}>
         {props.children}
       </div>
     </CellContext.Provider>

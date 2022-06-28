@@ -1,17 +1,10 @@
-import { default as YasrTable, Config as YasrConfig } from "@triply/yasr";
+import { default as YasrTable, Config as YasrConfig, Parser, PersistentConfig as YasrPersistentConfig } from "@triply/yasr";
 import _ from "lodash";
 import React from "react";
 
-export type YasrResult = {
-  data: string;
-  contentType: string;
-  status: number;
-  executionTime: number;
-}
-
 
 export class Yasr extends React.Component<{
-  result?: YasrResult;
+  result?: Parser.ResponseSummary;
   prefixes?: { [prefix: string]: string };
 }, {}> {
   containerRef: React.RefObject<HTMLDivElement>;
@@ -29,9 +22,21 @@ export class Yasr extends React.Component<{
   initialize = () => {
     const config: Partial<YasrConfig> = {
       prefixes: this.props.prefixes || undefined,
+      errorRenderers: [
+        // Add default renderers to the end, to give our custom ones priority.
+        ...(YasrTable.defaults.errorRenderers || []),
+      ],
     }
 
-    this.table = new YasrTable(this.containerRef.current, config);
+    const settings: YasrPersistentConfig = {
+      pluginsConfig: {
+        table: {
+          pageSize: 20,
+        }
+      }
+    }
+
+    this.table = new YasrTable(this.containerRef.current, config, settings);
     if (this.props.result) {
       this.table.setResponse(this.props.result);
     }

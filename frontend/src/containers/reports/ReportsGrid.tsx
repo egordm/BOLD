@@ -50,7 +50,7 @@ export const ReportsGrid = (props: {}) => {
   const router = useRouter();
 
   const onReportEdit = async (report: Report) => {
-    await router.push(`notebook/${report.id}`);
+    await router.push(`report/${report.id}`);
   }
 
   const columns = [

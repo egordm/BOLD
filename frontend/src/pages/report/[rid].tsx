@@ -3,6 +3,7 @@ import { Box, Container } from '@mui/material';
 import { useRouter } from "next/router";
 import { Layout } from '../../components/layout/layout';
 import { Notebook } from "../../components/notebook/Notebook";
+import { CellFocusProvider } from "../../providers/CellFocusProvider";
 import { NotebookConnectionProvider } from "../../providers/NotebookConnectionProvider";
 import { NotebookProvider } from "../../providers/NotebookProvider";
 import { ReportProvider } from "../../providers/ReportProvider";
@@ -26,7 +27,9 @@ const NotebookPage = () => {
             <ReportProvider reportId={rid as string}>
               <NotebookConnectionProvider reportId={rid as string}>
                 <NotebookProvider>
-                  <Notebook/>
+                  <CellFocusProvider>
+                    <Notebook/>
+                  </CellFocusProvider>
                 </NotebookProvider>
               </NotebookConnectionProvider>
             </ReportProvider>

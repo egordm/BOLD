@@ -33,22 +33,22 @@ export interface CellMetadata {
   collapsed?: boolean;
 }
 
-export interface CodeCell extends CellBase {
+export interface CodeCellType extends CellBase {
   cell_type: 'code';
   source: string;
 }
 
-export interface MarkdownCell extends CellBase {
+export interface MarkdownCellType extends CellBase {
   cell_type: 'markdown';
   source: string[];
 }
 
-export interface WidgetCell extends CellBase {
+export interface WidgetCellType extends CellBase {
   cell_type: 'widget';
   source: string[];
 }
 
-export type Cell = CodeCell | MarkdownCell | WidgetCell;
+export type Cell = CodeCellType | MarkdownCellType | WidgetCellType;
 
 export type OutputType = 'error' | 'execute_result' | 'stream' | 'display_data' | string;
 

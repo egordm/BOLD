@@ -2,7 +2,7 @@ import { Card, CardContent, Divider } from "@mui/material";
 import { CellProvider } from "../../providers/CellProvider";
 import { useNotebookContext } from "../../providers/NotebookProvider";
 import { CellId } from "../../types/notebooks";
-import { CellContainer } from "./cells/CellContainer";
+import { CellContainer } from "./CellContainer";
 import { NotebookHeader } from "./NotebookHeader";
 import { NotebookToolbar } from "./NotebookToolbar";
 

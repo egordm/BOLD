@@ -9,4 +9,9 @@ export interface Dataset {
   statistics: any;
   created_at: Date;
   updated_at: Date;
+
+  namespaces: null | {
+    prefix: string;
+    name: string;
+  }[]
 }
