@@ -1,5 +1,5 @@
 import { Box, Grid } from "@mui/material";
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useCellContext } from "../../../providers/CellProvider";
 import { useReportContext } from "../../../providers/ReportProvider";
 import { CodeCellType } from "../../../types/notebooks";
@@ -79,14 +79,14 @@ export const CodeCell = (props: {}) => {
     }
   }, [ outputs ]);
 
-  const Result = outputs?.length && (
-    <Box sx={{ height: 400, width: '100%' }}>
+  const Result = useMemo(() => outputs?.length && (
+    <Box sx={{ width: '100%' }}>
       <Yasr
         result={result}
         prefixes={prefixes}
       />
     </Box>
-  )
+  ), [ result, prefixes ]);
 
   return (
     <>

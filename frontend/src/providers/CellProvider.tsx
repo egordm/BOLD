@@ -33,7 +33,7 @@ export const CellProvider = (props: {
   const runCell = useCallback(() => {
     setRun(true);
     save();
-  }, [ socket, cell ]);
+  }, [ socket ]);
 
   useEffect(() => {
     if (!changed && run && status === ConnectionStatus.CONNECTED) {
@@ -54,11 +54,11 @@ export const CellProvider = (props: {
     }
   }
 
-  const onFocus = (event) => {
+  const onFocus = useCallback((event) => {
     if (focus !== cellId) {
       setFocus(cellId);
     }
-  }
+  }, [focus, cellId]);
 
   const contextValue = useMemo(() => ({
     cell, state, outputs, setCell, runCell,

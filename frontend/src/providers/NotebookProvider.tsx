@@ -15,6 +15,7 @@ import { useReportContext } from "./ReportProvider";
 
 const NotebookContext = React.createContext<{
   notebook: Notebook | null,
+  notebookRef: React.MutableRefObject<Notebook | null>,
   setNotebook: (notebook: Notebook) => void,
   setCell: (cell: Cell) => void,
   changed: boolean,
@@ -90,7 +91,7 @@ export const NotebookProvider = (props: {
   }, [])
 
   const contextValue = useMemo(() => ({
-    notebook, setNotebook, setCell, changed, save, isSaving, isFetching,
+    notebook, notebookRef, setNotebook, setCell, changed, save, isSaving, isFetching,
   }), [ notebook, changed, isSaving, isFetching ]);
 
   return (
