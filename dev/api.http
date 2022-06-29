@@ -64,3 +64,19 @@ SELECT
     }
     OPTIONAL { ?iri rdfs:type ?type }
 }
+
+
+###
+GET https://triplydb.com/_api/search/datasets
+
+###
+GET https://api.triplydb.com/datasets/?q=poke
+
+###
+GET https://api.triplydb.com/datasets/?limit=3
+
+###
+GET https://api.triplydb.com/datasets/?limit=200
+
+###
+GET https://api.triplydb.com/datasets/academy/pokemon

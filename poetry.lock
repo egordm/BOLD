@@ -785,14 +785,6 @@ optional = false
 python-versions = ">=3.5"
 
 [[package]]
-name = "tantivy-mirror"
-version = "0.17.0"
-description = ""
-category = "main"
-optional = false
-python-versions = ">=3.7"
-
-[[package]]
 name = "twisted"
 version = "22.4.0"
 description = "An asynchronous networking framework written in Python"
@@ -919,7 +911,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "774c448d0ce38acecab2f9afab9f747e0044016cca26e3c006ee90e60bdee8e5"
+content-hash = "9f88cd9c0246c40b5a4273a847d784c247c2516242d90186b49085d1be883c81"
 
 [metadata.files]
 aiopg = [
@@ -1510,22 +1502,6 @@ sqlalchemy = [
 sqlparse = [
     {file = "sqlparse-0.4.2-py3-none-any.whl", hash = "sha256:48719e356bb8b42991bdbb1e8b83223757b93789c00910a616a071910ca4a64d"},
     {file = "sqlparse-0.4.2.tar.gz", hash = "sha256:0c00730c74263a94e5a9919ade150dfc3b19c574389985446148402998287dae"},
-]
-tantivy-mirror = [
-    {file = "tantivy_mirror-0.17.0-cp310-cp310-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:c0c5b3f0533717c1253586342e5d490ae75fea7aa173324b33fb753f32ba9925"},
-    {file = "tantivy_mirror-0.17.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:a6b9d65d444c9a394ab0b92286e330108b992ca01b5884f343790fda98ab292c"},
-    {file = "tantivy_mirror-0.17.0-cp310-none-win_amd64.whl", hash = "sha256:72c39ce415ebbeae4dd2f16e9acfbe0665ede28bfd1f24e8dc807308d62a8196"},
-    {file = "tantivy_mirror-0.17.0-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:55a973603fad7889b4e7932a0892f65e6448396b7c66b27341c3a1a33687bef9"},
-    {file = "tantivy_mirror-0.17.0-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:408a0a6f0b67b69b253bc167c565cd829b39fade72fa15f7686d6889a7770628"},
-    {file = "tantivy_mirror-0.17.0-cp37-none-win_amd64.whl", hash = "sha256:d6385b470cc1e520bb4b28d334a0c39dc45b0a25364920268a526af2a3b4dd77"},
-    {file = "tantivy_mirror-0.17.0-cp38-cp38-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:52e24cda6a1d94a5aa7c82b142a2e23256f27fefd3b8904ced1dfceb3f10124b"},
-    {file = "tantivy_mirror-0.17.0-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:57c7c6233202612615c55e6b55ba91c315e15968cab38ae036fac97a53e49662"},
-    {file = "tantivy_mirror-0.17.0-cp38-none-win_amd64.whl", hash = "sha256:0be49e4f8dc4a9eacc536dd9b6eb3dbc156a24bdec83be9144d3b3dc943dcbc5"},
-    {file = "tantivy_mirror-0.17.0-cp39-cp39-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:13e717dd7cd6a95b95ee8f3094e5b6ce29343feb3840eaa27e1e05419fdd960f"},
-    {file = "tantivy_mirror-0.17.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:fd486f271c4fa30d864b99c0021593b2d926e8c437a4b573c7f231061c416493"},
-    {file = "tantivy_mirror-0.17.0-cp39-none-win_amd64.whl", hash = "sha256:5da737f878301f1f00e483b61181646d489625395ef13e5bfabc32028bfa0f32"},
-    {file = "tantivy_mirror-0.17.0-pp37-pypy37_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:9dc33f8d24bc212fe8728bda5ba645e282de5a81656ce7e69993052b7af9a87c"},
-    {file = "tantivy_mirror-0.17.0.tar.gz", hash = "sha256:aa15d9e5ac35a74c28f14da0ea1d2a132443d71bce2f68b938629687bb1ea0df"},
 ]
 twisted = [
     {file = "Twisted-22.4.0-py3-none-any.whl", hash = "sha256:f9f7a91f94932477a9fc3b169d57f54f96c6e74a23d78d9ce54039a7f48928a2"},

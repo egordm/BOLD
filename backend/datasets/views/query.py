@@ -1,5 +1,6 @@
 import re
 from dataclasses import dataclass
+from typing import List
 from uuid import UUID
 
 from drf_yasg import openapi
@@ -8,10 +9,21 @@ from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from simple_parsing import Serializable
-from tantivy.tantivy import Document
 
 from datasets.models import Dataset
-from datasets.services.tantivy import Tantivy, tantify_parse_doc
+from datasets.services.bold_cli import BoldCli
+
+
+@dataclass
+class SearchHit(Serializable):
+    score: float
+    document: Serializable
+
+
+@dataclass
+class SearchResult(Serializable):
+    count: int
+    hits: List[SearchHit]
 
 
 @dataclass
@@ -24,10 +36,10 @@ class TermDocument(Serializable):
     label: str = None
 
 
-def parse_doc(doc: Document):
+def parse_doc(doc: dict):
     doc = TermDocument(**{
         k: next(iter(v), None)
-        for k, v in doc.to_dict().items()
+        for k, v in doc.items()
     })
 
     type = 'uri' if 'http' in doc.iri else 'literal'
@@ -43,6 +55,7 @@ def parse_doc(doc: Document):
         'rdf_type': doc.ty if doc.ty else None,
         'label': doc.label if doc.label else None,
         'count': doc.count,
+        'search_text': doc.iri_text,
     }
 
 
@@ -67,11 +80,23 @@ def term_search(request: Request, dataset_id: UUID):
     offset = int(request.GET.get('offset', 0))
     sort_by = request.GET.get('sort_by', None)
 
-    index = Tantivy.from_path(dataset.search_index_path)
-    results = index.search(
-        q, ['iri_text', 'iri', 'label', 'ty'],
-        limit, offset, sort_by,
-        doc_fn=parse_doc
+    result_data = BoldCli.search(dataset.search_index_path, q, limit, offset)
+    results = SearchResult(
+        count=result_data['count'],
+        hits=[
+            SearchHit(
+                score=hit['score'],
+                document=parse_doc(hit['doc'])
+            )
+            for hit in result_data['hits']
+        ]
     )
+
+    # index = Tantivy.from_path(dataset.search_index_path)
+    # results = index.search(
+    #     q, ['iri_text', 'iri', 'label', 'ty'],
+    #     limit, offset, sort_by,
+    #     doc_fn=parse_doc
+    # )
 
     return JsonResponse(results.to_dict())

@@ -7,7 +7,8 @@ use serde_repr::*;
 use std::path::PathBuf;
 use fancy_regex::{Captures, Regex};
 use tantivy::{doc, Index};
-use tantivy::schema::{FAST, INDEXED, Schema, STORED, TEXT};
+use tantivy::schema::{FAST, INDEXED, IndexRecordOption, Schema, STORED, TEXT, TextFieldIndexing, TextOptions};
+use tantivy::tokenizer::{LowerCaser, NgramTokenizer, RemoveLongFilter, TextAnalyzer};
 use url::Url;
 
 #[derive(Debug, Args)]
@@ -57,16 +58,34 @@ pub fn run(args: BuildIndex) -> Result<()> {
     ensure!(!args.index_dir.exists(), "Index directory already exists!");
     std::fs::create_dir_all(&args.index_dir)?;
 
+    let natural_text_indexing = TextFieldIndexing::default()
+        .set_tokenizer("ngram")
+        .set_index_option(IndexRecordOption::WithFreqsAndPositions);
+
+    let natural_text_options = TextOptions::default()
+        .set_indexing_options(natural_text_indexing)
+        .set_stored();
+
+
     let mut schema_builder = Schema::builder();
-    let iri_text = schema_builder.add_text_field("iri_text", TEXT | STORED);
+    let iri_text = schema_builder.add_text_field("iri_text", natural_text_options.clone());
     let iri = schema_builder.add_text_field("iri", TEXT | STORED);
-    let label = schema_builder.add_text_field("label", TEXT | STORED);
+    let label = schema_builder.add_text_field("label", natural_text_options.clone());
     let count = schema_builder.add_u64_field("count", INDEXED | STORED | FAST);
     let pos = schema_builder.add_u64_field("pos", INDEXED | STORED | FAST);
     let ty = schema_builder.add_text_field("ty", TEXT | STORED);
     let schema = schema_builder.build();
 
     let index = Index::create_in_dir(args.index_dir, schema.clone())?;
+
+    let ngram_tokenizer = TextAnalyzer::from(NgramTokenizer::new(2, 8, false))
+        .filter(RemoveLongFilter::limit(40))
+        .filter(LowerCaser);
+
+    index
+        .tokenizers()
+        .register("ngram", ngram_tokenizer);
+
     let mut index_writer = index.writer(50_000_000).unwrap();
 
     let mut rdr = csv::ReaderBuilder::new()
