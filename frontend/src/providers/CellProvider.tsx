@@ -44,7 +44,6 @@ export const CellProvider = (props: {
         data: cell.metadata.id,
       }));
       sendNotification({ variant: 'info', message: 'Running cell' })
-
     }
   }, [ changed, run ]);
 

@@ -144,7 +144,7 @@ export const addCell = (notebook: Notebook, cell: Cell, index: number = -1): Not
   if (index === -1) {
     cellOrder.push(cellId);
   } else {
-    cellOrder.splice(index, 0, cellId);
+    cellOrder.splice(index + 1, 0, cellId);
   }
 
   return {
@@ -155,6 +155,26 @@ export const addCell = (notebook: Notebook, cell: Cell, index: number = -1): Not
         ...notebook.content.cells,
         [cellId]: cell
       },
+      cell_order: cellOrder
+    }
+  }
+}
+
+export const removeCell = (notebook: Notebook, cellId: CellId): Notebook => {
+  const cellOrder = [...notebook.content.cell_order];
+  const index = cellOrder.indexOf(cellId);
+  if (index !== -1) {
+    cellOrder.splice(index, 1);
+  }
+
+  const cells = { ...notebook.content.cells };
+  delete cells[cellId];
+
+  return {
+    ...notebook,
+    content: {
+      ...notebook.content,
+      cells,
       cell_order: cellOrder
     }
   }

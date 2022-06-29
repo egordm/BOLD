@@ -1,4 +1,3 @@
-import axios from "axios";
 import { apiClient } from "../utils/api";
 
 export interface LODCDataset {

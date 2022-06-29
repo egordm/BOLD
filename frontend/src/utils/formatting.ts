@@ -11,3 +11,18 @@ export const formatDuration = (date: Date): string => {
 export const formatUUIDShort = (uuid: string, length = 6): string => {
   return uuid.substring(0, length).toUpperCase()
 }
+
+export const formatIri = (iri: string, prefixes: Record<string, string>): string => {
+  let result = iri;
+  for (const [ alias, prefix ] of Object.entries(prefixes || {})) {
+    if (iri.startsWith(prefix)) {
+      result = `${alias}:${iri.slice(prefix.length)}`;
+      break;
+    }
+  }
+  return result;
+}
+
+export const extractIriLabel = (iri: string): string => {
+  return iri.split('/').pop().split('#').pop().replaceAll(/[_-]/g, ' ');
+}
