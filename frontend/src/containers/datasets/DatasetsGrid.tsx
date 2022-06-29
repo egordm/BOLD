@@ -1,19 +1,23 @@
 import {
   Box
 } from "@mui/material";
-import { GridColDef } from "@mui/x-data-grid";
+import { GridColDef, GridRenderCellParams } from "@mui/x-data-grid";
 import { GridSortModel } from "@mui/x-data-grid/models/gridSortModel";
 import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateCommunity";
 import React from "react";
-import { ServerDataGrid } from "../../components/data/ServerDataGrid";
-import { formatDateTime } from "../../utils/formatting";
+import { ExpandableCell, ServerDataGrid } from "../../components/data/ServerDataGrid";
+import { formatDateTime, formatUUIDShort } from "../../utils/formatting";
 
 const COLUMNS: GridColDef[] = [
   {
     field: 'id', headerName: 'ID', flex: 0.5,
+    valueFormatter: (params) => formatUUIDShort(params.value)
   },
   { field: 'name', headerName: 'Name', flex: 1 },
-  { field: 'description', headerName: 'Description', flex: 1 },
+  {
+    field: 'description', headerName: 'Description', flex: 1,
+    renderCell: (params: GridRenderCellParams) => <ExpandableCell {...params} maxLength={100} />,
+  },
   { field: 'database', headerName: 'Database', flex: 0.5 },
   { field: 'state', headerName: 'State', flex: 0.5, type: 'singleSelect' },
   {

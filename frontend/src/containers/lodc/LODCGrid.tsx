@@ -3,10 +3,18 @@ import {
 } from "@mui/material";
 import React from "react";
 import { useQuery } from "react-query";
+import { ExpandableCell } from "../../components/data/ServerDataGrid";
 import { fetchLODCDatasets, LODCDataset } from "../../services/lodc";
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 
-import { DataGrid, GridActionsCellItem, GridColDef, GridRowParams, GridToolbar } from '@mui/x-data-grid';
+import {
+  DataGrid,
+  GridActionsCellItem,
+  GridColDef,
+  GridRenderCellParams,
+  GridRowParams,
+  GridToolbar
+} from '@mui/x-data-grid';
 import Link from "next/link";
 import { LODCImportForm } from "./LODCImportForm";
 
@@ -21,8 +29,9 @@ const COLUMNS: GridColDef[] = [
     )
   },
   {
-    field: 'description', headerName: 'Description', flex: 0.5,
-    valueGetter: (row) => row.row.description.en ?? ''
+    field: 'description', headerName: 'Description', flex: 1,
+    valueGetter: (row) => row.row.description.en ?? '',
+    renderCell: (params: GridRenderCellParams) => <ExpandableCell {...params} maxLength={80} />,
   },
   { field: 'domain', headerName: 'Domain', flex: 0.5 },
   { field: 'website', headerName: 'Website', flex: 0.5 },
@@ -65,6 +74,8 @@ export const LODCGrid = (props: {}) => {
         rows={rows || []}
         loading={!rows}
         columns={columns}
+        getRowHeight={() => 'auto'}
+        getEstimatedRowHeight={() => 100}
         initialState={{
           filter: {
             filterModel: {
@@ -83,6 +94,20 @@ export const LODCGrid = (props: {}) => {
           toolbar: {
             showQuickFilter: true,
             quickFilterProps: { debounceMs: 500 },
+          },
+        }}
+        sx={{
+          '&.MuiDataGrid-root--densityCompact .MuiDataGrid-cell': {
+            py: 1,
+            overflow: 'hidden',
+          },
+          '&.MuiDataGrid-root--densityStandard .MuiDataGrid-cell': {
+            py: '15px',
+            overflow: 'hidden',
+          },
+          '&.MuiDataGrid-root--densityComfortable .MuiDataGrid-cell': {
+            py: '22px',
+            overflow: 'hidden',
           },
         }}
       />

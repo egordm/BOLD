@@ -2,13 +2,36 @@ import {
   Box,
   LinearProgress
 } from "@mui/material";
-import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
+import { DataGrid, GridColDef, GridRenderCellParams, GridToolbar } from "@mui/x-data-grid";
 import { GridFilterModel } from "@mui/x-data-grid/models/gridFilterModel";
 import { GridSortModel } from "@mui/x-data-grid/models/gridSortModel";
 import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateCommunity";
 import React, { useEffect } from "react";
 import { Report } from "../../types/reports";
 import { useFetchList } from "../../utils/api";
+import Link from '@mui/material/Link';
+
+
+export const ExpandableCell = ({ value, maxLength = 200 }: GridRenderCellParams & {maxLength?: number}) => {
+  const [expanded, setExpanded] = React.useState(false);
+
+  return (
+    <Box>
+      {expanded ? value : value.slice(0, maxLength)}&nbsp;
+      {value.length > maxLength && (
+        // eslint-disable-next-line jsx-a11y/anchor-is-valid
+        <Link
+          type="button"
+          component="button"
+          sx={{ fontSize: 'inherit' }}
+          onClick={() => setExpanded(!expanded)}
+        >
+          {expanded ? 'view less' : 'view more'}
+        </Link>
+      )}
+    </Box>
+  );
+};
 
 
 export const ServerDataGrid = (props: {
@@ -64,6 +87,8 @@ export const ServerDataGrid = (props: {
       onFilterModelChange={setFilterModel}
       sortingMode="server"
       onSortModelChange={setSortModel}
+      getRowHeight={() => 'auto'}
+      getEstimatedRowHeight={() => 100}
       components={{
         Toolbar: GridToolbar,
         LoadingOverlay: LinearProgress
@@ -73,6 +98,20 @@ export const ServerDataGrid = (props: {
         toolbar: {
           showQuickFilter: true,
           quickFilterProps: { debounceMs: 500 },
+        },
+      }}
+      sx={{
+        '&.MuiDataGrid-root--densityCompact .MuiDataGrid-cell': {
+          py: 1,
+          overflow: 'hidden',
+        },
+        '&.MuiDataGrid-root--densityStandard .MuiDataGrid-cell': {
+          py: '15px',
+          overflow: 'hidden',
+        },
+        '&.MuiDataGrid-root--densityComfortable .MuiDataGrid-cell': {
+          py: '22px',
+          overflow: 'hidden',
         },
       }}
     />
