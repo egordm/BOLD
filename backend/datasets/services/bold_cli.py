@@ -26,6 +26,8 @@ class BoldCli:
             '--offset', str(offset),
             *sort_args,
             query
-        ], **kwargs))
+        ], ignore_errors=True, **kwargs))
+
+        print(result_lines)
 
         return json.loads(''.join(result_lines))

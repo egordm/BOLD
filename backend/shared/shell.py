@@ -29,6 +29,7 @@ class CommandFailed(Exception):
 def execute_command(
     cmd: Union[List[str], str],
     timeout: int = None,
+    ignore_errors: bool = False,
     **kwargs,
 ) -> Iterator[str]:
     p = subprocess.Popen(
@@ -45,7 +46,7 @@ def execute_command(
 
         p.stdout.close()
         code = p.wait()
-        if code != 0:
+        if code != 0 and not ignore_errors:
             raise CommandFailed(code)
 
     if timeout is not None:
