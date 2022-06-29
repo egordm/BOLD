@@ -5,7 +5,7 @@ from rest_framework.pagination import LimitOffsetPagination
 
 from datasets.models import Dataset
 from datasets.serializers import DatasetSerializer
-from datasets.tasks.pipeline import import_dataset
+from datasets.tasks.pipeline import import_dataset, delete_dataset
 
 
 class DatasetViewSet(viewsets.ModelViewSet):
@@ -25,4 +25,11 @@ class DatasetViewSet(viewsets.ModelViewSet):
             import_dataset,
             (instance.id, ),
             name=f'Import dataset {instance.name}'
+        )
+
+    def perform_destroy(self, instance):
+        instance.apply_async(
+            delete_dataset,
+            (instance.id, ),
+            name=f'Deleting dataset {instance.name}'
         )

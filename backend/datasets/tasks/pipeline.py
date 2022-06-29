@@ -4,6 +4,7 @@ from uuid import UUID
 from celery import shared_task
 
 from datasets.models import Dataset, DatasetState
+from datasets.services.stardog_api import StardogApi
 from datasets.tasks import download_url, import_files, update_dataset_info, create_search_index
 from shared import get_logger
 from shared.paths import DOWNLOAD_DIR
@@ -64,3 +65,20 @@ def import_dataset(dataset_id: UUID) -> str:
     finally:
         logger.info(f"Cleaning up {tmp_dir}")
         shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+@shared_task()
+def delete_dataset(dataset_id: UUID) -> str:
+    dataset = Dataset.objects.get(id=dataset_id)
+    logger.info(f"Deleting dataset {dataset.name}")
+
+    if dataset.database:
+        if dataset.search_index_path and dataset.search_index_path.exists():
+            logger.info(f"Deleting search index {dataset.search_index_path}")
+            shutil.rmtree(dataset.search_index_path)
+
+        logger.info(f"Deleting database {dataset.database}")
+        client = StardogApi.from_settings()
+        client.drop(dataset.database)
+
+    dataset.delete()
