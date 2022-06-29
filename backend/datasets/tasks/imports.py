@@ -66,6 +66,9 @@ def download_url(url: str, path: str = None) -> Optional[Path]:
 
 @shared_task()
 def import_files(files: List[Path], database: Optional[str] = None) -> str:
+    if database is None:
+        database = 'a' + random_string(10)
+
     logger.info(f"Starting KG import {files} into {database}")
     if isinstance(files, str):
         files = Path(files)
@@ -77,9 +80,6 @@ def import_files(files: List[Path], database: Optional[str] = None) -> str:
             files = [files]
 
     logger.info(f"Loading KG from {files}")
-    if database is None:
-        database = 'a' + random_string(10)
-
     def remap_file(file: Path) -> Path:
         if file.is_relative_to(IMPORT_DIR):
             return Path('/var/data/import') / file.relative_to(IMPORT_DIR)

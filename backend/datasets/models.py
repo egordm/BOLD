@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import models
 
 from shared.models import TimeStampMixin
+from shared.paths import DATA_DIR
 from tasks.models import TaskMixin
 
 
@@ -31,3 +32,7 @@ class Dataset(TaskMixin, TimeStampMixin):
     import_task = models.OneToOneField('tasks.Task', on_delete=models.SET_NULL, null=True)
 
     objects = models.Manager()
+
+    @property
+    def search_index_path(self):
+        return DATA_DIR / f'search_index_{self.database}' if self.database else None

@@ -40,14 +40,9 @@ class Tantivy:
 
     @staticmethod
     def from_path(path: Path) -> Self:
+        if not path.exists():
+            raise FileNotFoundError(f'Index not found at {path}')
         return Tantivy(Index.open(str(path)))
-
-    @staticmethod
-    def from_database(database: str) -> Self:
-        index_path = DATA_DIR / f'search_index_{database}'
-        if not index_path.exists():
-            raise FileNotFoundError(f'Index not found at {index_path}')
-        return Tantivy.from_path(index_path)
 
     def search(
         self, query: str, fields: List[str],
@@ -58,6 +53,7 @@ class Tantivy:
             doc_fn = lambda doc: doc
 
         query = self.index.parse_query(query, fields)
+        print(query)
         result = self.searcher.search(query, limit, True, sort_by, offset)
 
         data = SearchResult(

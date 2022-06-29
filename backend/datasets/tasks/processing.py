@@ -64,11 +64,12 @@ def create_search_index(dataset_id: UUID, min_term_count: int = 3, path: str = N
         terms_file = tmp_dir / 'terms.tsv'
         query = QUERY_EXPORT_SEARCH.replace('{}', str(min_term_count))
 
-        logger.info('Exporting search terms to csv')
+        logger.info(f'Exporting search terms to {terms_file}')
         client = StardogApi.from_settings()
-        with client.query(database, query, format='text/tsv', timeout=5000, stream=True) as r:
+        with client.query(database, query, format='text/tsv', timeout=60 * 60 * 1000, stream=True) as r:
             r.raw.decode_content = True
             with terms_file.open('wb') as f:
+                # https://stackoverflow.com/a/49684845
                 shutil.copyfileobj(r.raw, f)
 
         logger.info('Creating search index from documents')

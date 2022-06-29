@@ -17,6 +17,10 @@ Content-Type: application/json
     "n_bins": 10
 }
 
+###
+GET http://localhost:8000/terms/2f306b76-4347-4d68-a76c-a48b9a94bbfb/search?query=%2Bpos%3A1%20wikipedia
+#GET http://localhost:8000/terms/33cb191a-b879-43ab-9667-0592acee2d21/search?query=%2Bpos%3A1
+
 
 ###
 GET http://localhost:8000/tasks/?offset=0&limit=5&ordering=-created&state__in=SUCCESS,FAILURE

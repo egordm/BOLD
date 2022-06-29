@@ -5,8 +5,10 @@ use anyhow::{ensure, Result};
 use serde_repr::*;
 
 use std::path::PathBuf;
+use fancy_regex::{Captures, Regex};
 use tantivy::{doc, Index};
 use tantivy::schema::{FAST, INDEXED, Schema, STORED, TEXT};
+use url::Url;
 
 #[derive(Debug, Args)]
 #[clap(args_conflicts_with_subcommands = true)]
@@ -47,7 +49,7 @@ enum PosType {
 
 
 pub fn run(args: BuildIndex) -> Result<()> {
-    if args.force {
+    if args.force && args.index_dir.exists() {
         println!("Deleting old index directory");
         std::fs::remove_dir_all(&args.index_dir)?;
     }
@@ -56,6 +58,7 @@ pub fn run(args: BuildIndex) -> Result<()> {
     std::fs::create_dir_all(&args.index_dir)?;
 
     let mut schema_builder = Schema::builder();
+    let iri_text = schema_builder.add_text_field("iri_text", TEXT | STORED);
     let iri = schema_builder.add_text_field("iri", TEXT | STORED);
     let label = schema_builder.add_text_field("label", TEXT | STORED);
     let count = schema_builder.add_u64_field("count", INDEXED | STORED | FAST);
@@ -71,13 +74,30 @@ pub fn run(args: BuildIndex) -> Result<()> {
         .has_headers(true)
         .from_path(args.input)?;
 
+    let re_upper = Regex::new(r"(?<![A-Z])([A-Z])").unwrap();
+    let re_special = Regex::new(r"([-_#])").unwrap();
+
     let mut cursor = 0;
     let mut success_count = 0;
     let mut error_count = 0;
     for result in rdr.deserialize::<Record>() {
         match result {
             Ok(record) => {
+                let text = if record.iri.trim_start_matches("<").starts_with("http") {
+                    Url::parse(&record.iri.trim_start_matches("<").trim_end_matches(">")).ok()
+                        .and_then(|url| url.path_segments().and_then(|ss| ss.last().map(|s| s.to_string())))
+                        .unwrap_or("".to_string())
+                } else {
+                    record.iri.clone()
+                };
+
+                let text = re_special.replace_all(&text, " ");
+                let text = re_upper.replace_all(&text, |caps: &Captures| {
+                    format!(" {}", &caps[1])
+                }).to_string();
+
                 index_writer.add_document(doc!(
+                    iri_text => text,
                     iri => record.iri,
                     label => record.label,
                     count => record.count as u64,
