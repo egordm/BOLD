@@ -1,10 +1,14 @@
+import re
 from dataclasses import dataclass
 from uuid import UUID
 
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from django.http import JsonResponse
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from simple_parsing import Serializable
+from tantivy.tantivy import Document
 
 from datasets.models import Dataset
 from datasets.services.tantivy import Tantivy, tantify_parse_doc
@@ -20,6 +24,38 @@ class TermDocument(Serializable):
     label: str = None
 
 
+def parse_doc(doc: Document):
+    doc = TermDocument(**{
+        k: next(iter(v), None)
+        for k, v in doc.to_dict().items()
+    })
+
+    type = 'uri' if 'http' in doc.iri else 'literal'
+    lang = None
+    if type == 'literal' and re.match(r'^.*@[a-z]*$', doc.iri):
+        doc.iri, lang = doc.iri.rsplit('@', 1)
+
+    return {
+        'type': type,
+        'value': doc.iri.removeprefix('<').removesuffix('>'),
+        'lang': lang,
+        'pos': TERM_POSITIONS[doc.pos],
+        'rdf_type': doc.ty if doc.ty else None,
+        'label': doc.label if doc.label else None,
+        'count': doc.count,
+    }
+
+
+TERM_POSITIONS = [
+    'SUBJECT',
+    'PREDICATE',
+    'OBJECT',
+]
+
+
+@swagger_auto_schema(methods=['get'], manual_parameters=[
+    openapi.Parameter('query', openapi.IN_QUERY, "Search query", type=openapi.TYPE_STRING),
+])
 @api_view(['GET'])
 def term_search(request: Request, dataset_id: UUID):
     dataset = Dataset.objects.get(id=dataset_id)
@@ -35,9 +71,7 @@ def term_search(request: Request, dataset_id: UUID):
     results = index.search(
         q, ['iri_text', 'iri', 'label', 'ty'],
         limit, offset, sort_by,
-        doc_fn=tantify_parse_doc(TermDocument)
+        doc_fn=parse_doc
     )
-
-    print(q)
 
     return JsonResponse(results.to_dict())

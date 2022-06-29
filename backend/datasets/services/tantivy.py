@@ -48,7 +48,7 @@ class Tantivy:
         self, query: str, fields: List[str],
         limit: int = 10, offset: int = 0, sort_by: str = None,
         doc_fn: Callable[[Document], Any] = None
-    ) -> List[dict]:
+    ) -> SearchResult:
         if doc_fn is None:
             doc_fn = lambda doc: doc
 
