@@ -1,54 +1,55 @@
-import LocationOnIcon from "@mui/icons-material/LocationOn";
-import { Autocomplete, Button, CircularProgress, IconButton, TextField } from "@mui/material";
+import {
+  Autocomplete,
+  Avatar,
+  Badge,
+  Box, Chip,
+  Divider,
+  ListItem,
+  ListItemAvatar,
+  ListItemText, Table, TableBody, TableCell, TableRow,
+  TextField, Tooltip, Typography
+} from "@mui/material";
 import { AutocompleteProps } from "@mui/material/Autocomplete/Autocomplete";
-import Box from "@mui/material/Box";
-import { ChipTypeMap } from "@mui/material/Chip";
-import Grid from "@mui/material/Grid";
-import Typography from "@mui/material/Typography";
-import axios from "axios";
+import _ from "lodash";
 import throttle from "lodash/throttle";
-import React from "react";
+import React, { useMemo } from "react";
+import { Term, TermPos, SearchResult } from "../../types/terms";
+import { apiClient } from "../../utils/api";
+import BeachAccessIcon from '@mui/icons-material/BeachAccess';
+import { extractIriLabel, formatIri } from "../../utils/formatting";
 
-export interface Term {
-  iri: string;
-  label?: string;
-  ty?: string;
-  pos?: number;
+const POS_TO_ID = {
+  'SUBJECT': 0,
+  'PREDICATE': 1,
+  'OBJECT': 2,
 }
 
-interface SearchResult<T> {
-  count: number;
-  hits: readonly {
-    score: number;
-    document: T;
-  }[];
-}
 
-interface Props extends AutocompleteProps<Term[], true, undefined, undefined> {
-}
+export const TermInput = (props: {
+  datasetId: string;
+  pos: TermPos,
+  prefixes?: Record<string, string>
+  onChange?: (terms: Term[]) => void;
+} & Omit<AutocompleteProps<Term, true, false, undefined>, 'onChange'>) => {
+  const { datasetId, pos, prefixes, onChange } = props;
 
-export const TermInput = (props: Props) => {
   const [ value, setValue ] = React.useState<Term[]>([]);
   const [ inputValue, setInputValue ] = React.useState('');
   const [ options, setOptions ] = React.useState<readonly Term[]>([]);
 
-  const fetch = React.useMemo(() => throttle(
+  const fetchOptions = React.useMemo(() => throttle(
     async (
       request: { query: string },
       callback: (result?: SearchResult<Term>) => void,
     ) => {
-      const result = await axios.get(
-        'http://127.0.0.1:8000/api/data/yago/search_terms',
-        {
-          params: {
-            limit: 10,
-            query: request.query,
-          }
+      const result = await apiClient.get(`/terms/${datasetId}/search`, {
+        params: {
+          limit: 10,
+          query: `+pos:${POS_TO_ID[pos]} ${request.query}`,
         }
-      )
+      })
       callback(result.data)
-    },
-    200), [])
+    }, 200), [ pos, datasetId ]);
 
   React.useEffect(() => {
     let active = true;
@@ -58,84 +59,98 @@ export const TermInput = (props: Props) => {
       return undefined;
     }
 
-    fetch({ query: inputValue }, (results?: SearchResult<Term>) => {
+    fetchOptions({ query: inputValue }, (results?: SearchResult<Term>) => {
       if (active) {
-        let newOptions: readonly Term[] = [];
+        const optionCandidates: readonly Term[] = results
+          ? [ ...value, ...results.hits.map(hit => hit.document) ]
+          : [ ...value ];
 
-        if (value) {
-          newOptions = [...value];
-        }
-
-        if (results) {
-          newOptions = [...newOptions, ...results.hits.map(hit => hit.document)];
-        }
-
-        setOptions(newOptions);
-        console.log('Setting options', newOptions)
+        const options = _.uniqBy(optionCandidates, 'value');
+        setOptions(options);
       }
     });
 
     return () => {
       active = false;
     };
-  }, [value, inputValue, fetch]);
+  }, [ value, inputValue, fetch ]);
 
-  const posToStr = {
-    0: 'S',
-    1: 'P',
-    2: 'v',
-  }
+  const renderInput = useMemo(() => (params) => (
+    <TextField
+      {...params}
+      fullWidth
+      label="Group Prop"
+    />
+  ), []);
 
+  const renderOption = useMemo(() => (props, option: Term) => {
+    const { className, ...rest } = props;
+
+    const bgcolor = option.pos === 'SUBJECT' ? 'info.light'
+      : option.pos === 'PREDICATE' ? 'warning.light'
+        : 'success.light';
+
+    const iri = option.type === 'uri' ? formatIri(option.value, prefixes || {}) : option.value;
+    const primary = option.label ? option.label : extractIriLabel(option.value);
+    const secondary = option.type === 'uri' ? iri : option.pos;
+
+    return (
+      <>
+        <ListItem {...rest} sx={{ alignItems: 'stretch', cursor: 'pointer' }}>
+          <Box sx={{ width: 4, bgcolor, mr: 1, borderRadius: 1 }}/>
+          <ListItemText
+            primary={<>
+              <Typography component="span" fontWeight={option.label ? 500 : 'normal'}>{primary} </Typography>
+              <Typography variant="caption" component="span">({option.count})</Typography>
+            </>}
+            secondary={secondary}
+          />
+        </ListItem>
+        <Divider variant="fullWidth" component="li"/>
+      </>
+    )
+  }, [ prefixes ]);
+
+  const renderTag = useMemo(() => (props, option: Term) => {
+    const iri = option.type === 'uri' ? formatIri(option.value, prefixes || {}) : option.value;
+    const primary = option.label ? option.label : extractIriLabel(option.value);
+
+    return (
+      <Tooltip sx={{ maxWidth: 'none' }} arrow title={iri}>
+        <Chip
+          label={<>
+            <Typography variant="body2" component="span" fontWeight={option.label ? 500 : 'normal'}>{primary} </Typography>
+            <Typography variant="caption" component="span">({option.count})</Typography>
+          </>}
+          {...props}
+        />
+      </Tooltip>
+    )
+  }, [ prefixes ]);
 
   return (
     <Autocomplete
       autoComplete
       multiple
-      id="combo-box-demo"
-      getOptionLabel={(option) => option.iri}
-      filterOptions={(x) => x}
       options={options}
+      getOptionLabel={(option) => typeof option === 'string' ? option : option.value}
+      filterOptions={(x) => x}
+      // @ts-ignore
       onChange={(event, newValue: Term[]) => {
-        setOptions(newValue ? [...newValue, ...options] : options);
+        setOptions(newValue ? [ ...newValue, ...options ] : options);
         setValue(newValue);
+        if (onChange) onChange(newValue);
       }}
       onInputChange={(event, newInputValue) => {
         setInputValue(newInputValue);
       }}
-      renderInput={(params) => (
-        <TextField
-          {...params}
-          fullWidth
-          label="Group Prop"
-        />
-      )}
-      renderOption={(props, option) => {
-        console.log(option)
-
-        return (
-          <li {...props}>
-            <Grid container alignItems="center">
-              <Grid item>
-                <Button size="small" variant="contained" sx={{
-                  mr: 2, minWidth: 34, borderRadius: '50%',
-                  padding: "6px 0px", textTransform: 'uppercase'
-                }} color={{ 0: 'secondary', 1: 'warning',  2: 'error'}[option.pos]}>
-                  {{ 0: 'S', 1: 'P',  2: 'V'}[option.pos]}
-                </Button>
-              </Grid>
-              <Grid item xs>
-                <span style={{fontWeight: 400}}>
-                  {option.iri} ({option.count})
-                </span>
-                <Typography variant="body2" color="text.secondary">
-                  {option.label}
-                </Typography>
-              </Grid>
-            </Grid>
-          </li>
-        );
-      }}
+      renderInput={renderInput}
+      renderOption={renderOption}
+      renderTags={(tagValue, getTagProps) =>
+        tagValue.map((option, index) => renderTag(getTagProps({ index }), option as Term))
+      }
       {...props}
     />
   )
+
 }
