@@ -1,12 +1,28 @@
-import { Button, CardHeader, Grid, IconButton, Input, Slider, Stack, TextField, Typography } from "@mui/material";
-import React, { useCallback, useMemo } from "react";
+import {
+  Button,
+  CardHeader,
+  Grid,
+  IconButton,
+  Input,
+  Modal,
+  Slider,
+  Stack,
+  TextField,
+  Typography
+} from "@mui/material";
+import { Box } from "@mui/system";
+import { SELECT } from "@tpluscode/sparql-builder";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useCellContext } from "../../../providers/CellProvider";
 import { useReportContext } from "../../../providers/ReportProvider";
 import { WidgetCellType } from "../../../types/notebooks";
 import { Term } from "../../../types/terms";
+import { SourceViewModal } from "../../data/SourceViewModal";
 import { TermInput } from "../../input/TermInput";
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
+import { variable, literal, namedNode } from '@rdfjs/data-model'
+import CodeIcon from '@mui/icons-material/Code';
 
 interface ValueDistributionWidgetData {
   group_predicate?: Term[];
@@ -19,10 +35,65 @@ interface ValueDistributionWidgetData {
 
 const MAX_GROUP_COUNT = 101;
 
+const termToSparql = (term: Term) => {
+  if (term.type === 'literal') {
+    return literal(term.value, term.lang ?? undefined);
+  } else {
+    return namedNode(term.value);
+  }
+}
+
+
+
+const buildQuery = (data: ValueDistributionWidgetData) => {
+  const groupPredicates = (data.group_predicate ?? []).map(termToSparql);
+
+  let query = SELECT`?v (COUNT(?v) as ?count)`
+    .WHERE`
+      VALUES ?p { ${groupPredicates} } 
+      ?s ?p ?v
+     `;
+
+  (data.filters ?? []).forEach((filter, index) => {
+    const predicate = filter.predicate?.map(termToSparql) ?? [];
+    const object = filter.object?.map(termToSparql) ?? [];
+
+    const predicateVar = variable(`p${index}`);
+    const objectVar = variable(`o${index}`);
+
+    query = query.WHERE`
+      VALUES ${predicateVar} { ${predicate} }
+      VALUES ${objectVar} { ${object} }
+      ?s ${predicateVar} ${objectVar}
+    `
+  });
+
+  const groupCount = data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20);
+  query = query
+    .GROUP().BY(variable('v'))
+    .ORDER().BY(variable('count'), true)
+    .LIMIT(groupCount);
+
+  return query.build();
+}
+
 export const ValueDistributionWidget = (props: {}) => {
   const { report } = useReportContext();
   const { cell, cellRef, outputs, setCell } = useCellContext();
   const { data, source } = cell as WidgetCellType<ValueDistributionWidgetData>;
+  const [showSource, setShowSource] = React.useState(false);
+
+  console.log(buildQuery(data));
+
+  useEffect(() => {
+    const query = buildQuery(data);
+    setCell({
+      ...cell,
+      source: [
+        query
+      ],
+    } as any)
+  }, [ data ]);
 
   const setData = useCallback((newData: Partial<ValueDistributionWidgetData>) => {
     const cell = cellRef.current as WidgetCellType<ValueDistributionWidgetData>;
@@ -140,34 +211,46 @@ export const ValueDistributionWidget = (props: {}) => {
   }, [ data.group_count ]);
 
   const Content = (
-    <Grid container spacing={2}>
-      <Grid item xs={12}>
-        <CardHeader
-          sx={{ p: 0 }}
-          title="Value Distribution Query Builder"
-          subheader="Plots distribution of values for a given predicate and a filter"
-        />
+    <>
+      <Grid container spacing={2}>
+        <Grid item xs={12}>
+          <CardHeader
+            sx={{ p: 0 }}
+            title="Value Distribution Query Builder"
+            subheader="Plots distribution of values for a given predicate and a filter"
+            action={
+              <IconButton aria-label="View source" onClick={() => setShowSource(true)}>
+                <CodeIcon/>
+              </IconButton>
+            }
+          />
+        </Grid>
+        <Grid item xs={2}>
+          <TextField label="Value" value="Any" variant="filled" disabled={true}/>
+        </Grid>
+        <Grid item xs={10}>
+          <TermInput
+            datasetId={report?.dataset?.id}
+            pos={'PREDICATE'}
+            label="Group values of"
+            value={data?.group_predicate ?? []}
+            onChange={(value) => setData({ group_predicate: value })}
+          />
+        </Grid>
+        {Filters}
+        <Grid item xs={2}/>
+        <Grid item xs={10}>
+          <Button variant="text" startIcon={<AddIcon/>} onClick={onAddFilter}> Add filter</Button>
+        </Grid>
+        {GroupCount}
+        <Grid item xs={6}/>
       </Grid>
-      <Grid item xs={2}>
-        <TextField label="Value" value="Any" variant="filled" disabled={true}/>
-      </Grid>
-      <Grid item xs={10}>
-        <TermInput
-          datasetId={report?.dataset?.id}
-          pos={'PREDICATE'}
-          label="Group values of"
-          value={data?.group_predicate ?? []}
-          onChange={(value) => setData({ group_predicate: value })}
-        />
-      </Grid>
-      {Filters}
-      <Grid item xs={2}/>
-      <Grid item xs={10}>
-        <Button variant="text" startIcon={<AddIcon/>} onClick={onAddFilter}> Add filter</Button>
-      </Grid>
-      {GroupCount}
-      <Grid item xs={6}/>
-    </Grid>
+      <SourceViewModal
+        source={source}
+        open={showSource}
+        onClose={() =>setShowSource(false)}
+      />
+    </>
   )
 
   return (

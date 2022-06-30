@@ -98,7 +98,7 @@ export const TermInput = (props: {
 
     const iri = option.type === 'uri' ? formatIri(option.value, prefixes || {}) : option.value;
     const primary = option.label ? option.label : extractIriLabel(option.value);
-    const secondary = option.type === 'uri' ? iri : option.pos;
+    const secondary = iri;
 
     return (
       <>
