@@ -6,7 +6,7 @@ import { createWebsocketProvider } from "./WebsocketProvider";
 
 type PacketType = 'TASK_UPDATED';
 
-const { useContext, Provider } = createWebsocketProvider<PacketType, any, Record<string, Task>>()
+const { useContext, Provider } = createWebsocketProvider<PacketType, any, Record<string, Task>>(false)
 
 export const TasksProvider = (props: {
   children: React.ReactNode,

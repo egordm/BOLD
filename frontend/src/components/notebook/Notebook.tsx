@@ -12,9 +12,12 @@ export const Notebook = (props: {}) => {
   const { notebook, } = useNotebookContext();
 
   const renderCell = (cellId: CellId) => (
-    <CellProvider key={cellId} cellId={cellId}>
-      <CellContainer/>
-    </CellProvider>
+    <>
+      <CellProvider key={cellId} cellId={cellId}>
+        <CellContainer/>
+      </CellProvider>
+      <Divider/>
+    </>
   )
 
   const cells = notebook?.content?.cell_order.map(renderCell);
@@ -23,7 +26,7 @@ export const Notebook = (props: {}) => {
     <Paper>
       <Stack sx={{
         position: 'sticky',
-        zIndex: 100,
+        zIndex: 10,
         left: 0,
         right: 0,
         top: 0,

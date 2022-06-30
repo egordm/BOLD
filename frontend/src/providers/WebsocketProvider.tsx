@@ -12,7 +12,7 @@ export enum ConnectionStatus {
   DISCONNECTED = 2,
 }
 
-export const createWebsocketProvider = <U, T = any, C = any>() => {
+export const createWebsocketProvider = <U, T = any, C = any>(useBackdrop: boolean = true) => {
   const Context = React.createContext<{
     status: ConnectionStatus,
     socket: WebSocket | null,
@@ -99,9 +99,9 @@ export const createWebsocketProvider = <U, T = any, C = any>() => {
     return (
       <Context.Provider value={contextValue}>
         {children}
-        <Backdrop open={status !== ConnectionStatus.CONNECTED}>
-          <CircularProgress color="inherit"/>
-        </Backdrop>
+        {useBackdrop && <Backdrop open={status !== ConnectionStatus.CONNECTED}>
+            <CircularProgress color="inherit"/>
+        </Backdrop>}
       </Context.Provider>
     );
   }

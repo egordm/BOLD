@@ -16,11 +16,13 @@ import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { styled } from "@mui/material/styles";
 import _ from "lodash";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTasksContext } from "../../providers/TasksProvider";
+import { ConnectionStatus } from "../../providers/WebsocketProvider";
 import { Task } from "../../types/tasks";
 import FilterNoneIcon from '@mui/icons-material/FilterNone';
 import { formatDuration, formatUUIDShort } from "../../utils/formatting";
+import CloudOffIcon from '@mui/icons-material/CloudOff';
 
 interface ExpandMoreProps extends IconButtonProps {
   expand: boolean;
@@ -44,10 +46,40 @@ const isTaskRunning = (task: Task) => IN_PROGRESS_STATES.has(task.state);
 
 export const TasksWidget = (props: {}) => {
   const [ expanded, setExpanded ] = useState(false);
-  const { state: tasks } = useTasksContext();
+  const { state: tasks, status } = useTasksContext();
 
   const taskList = _.sortBy(Object.values(tasks), 'created');
   const tasksInProgress = taskList.filter(isTaskRunning);
+
+  const TaskList = useMemo(() => (
+    <List sx={{ maxHeight: 400, overflowY: 'auto' }}>
+      {taskList.map(task => (
+        <ListItem disablePadding key={task.task_id}>
+          <ListItemButton>
+            <ListItemIcon sx={{
+              minWidth: '46px'
+            }}>
+              {
+                isTaskRunning(task)
+                  ? <CircularProgress size={24} color="primary"/>
+                  : task.state === 'SUCCESS'
+                    ? <CheckCircleOutlineIcon color="success"/>
+                    : <ErrorOutlineIcon color="error"/>
+              }
+            </ListItemIcon>
+            <ListItemText
+              sx={{
+                textOverflow: 'ellipsis',
+                overflow: 'hidden',
+              }}
+              primary={`${formatUUIDShort(task.task_id)}: ${task.name}`}
+              secondary={`Started ${formatDuration(task.created_at)}`}
+            />
+          </ListItemButton>
+        </ListItem>
+      ))}
+    </List>
+  ), [ tasks ]);
 
   return (
     <Card sx={{
@@ -57,41 +89,23 @@ export const TasksWidget = (props: {}) => {
       right: '16px',
     }}>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
-        <List sx={{ maxHeight: 400, overflowY: 'auto' }}>
-          {taskList.map(task => (
-            <ListItem disablePadding key={task.task_id}>
-              <ListItemButton>
-                <ListItemIcon sx={{
-                  minWidth: '46px'
-                }}>
-                  {
-                    isTaskRunning(task)
-                      ? <CircularProgress size={24} color="primary"/>
-                      : task.state === 'SUCCESS'
-                        ? <CheckCircleOutlineIcon color="success"/>
-                        : <ErrorOutlineIcon color="error"/>
-                  }
-                </ListItemIcon>
-                <ListItemText
-                  sx={{
-                    textOverflow: 'ellipsis',
-                    overflow: 'hidden',
-                  }}
-                  primary={`${formatUUIDShort(task.task_id)}: ${task.name}`}
-                  secondary={`Started ${formatDuration(task.created_at)}`}
-                />
-              </ListItemButton>
-            </ListItem>
-          ))}
-        </List>
+        {TaskList}
         <Divider/>
       </Collapse>
       <CardActions disableSpacing>
-        <IconButton aria-label="add to favorites">
-          {tasksInProgress.length > 0 ? <CircularProgress size={24}/> : <FilterNoneIcon/>}
+        <IconButton aria-label="progress">
+          {
+            status !== ConnectionStatus.CONNECTED ? <CloudOffIcon/>
+              : tasksInProgress.length > 0 ? <CircularProgress size={24}/>
+                : <FilterNoneIcon/>
+          }
         </IconButton>
         <Typography paragraph sx={{ mb: 0, ml: 2 }}>
-          {tasksInProgress.length > 0 ? `${tasksInProgress.length} tasks in progress` : 'No tasks in progress'}
+          {
+            status !== ConnectionStatus.CONNECTED ? 'Disconnected'
+              : tasksInProgress.length > 0 ? `${tasksInProgress.length} tasks in progress`
+                : 'No tasks in progress'
+          }
         </Typography>
         <ExpandMore
           expand={expanded}
