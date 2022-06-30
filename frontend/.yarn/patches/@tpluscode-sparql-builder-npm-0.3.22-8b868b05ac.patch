@@ -1,0 +1,30 @@
+diff --git a/lib/SelectBuilder.js b/lib/SelectBuilder.js
+index 92c05d82e0d75de40f49e5b02651a48950b5945d..473f76240df1f56372cb0b98a9ca0a39ef1312c5 100644
+--- a/lib/SelectBuilder.js
++++ b/lib/SelectBuilder.js
+@@ -32,9 +32,9 @@ const SelectBuilder = (strings, ...values) => ({
+         return rdf_string_1.sparql `SELECT ${modifier}${this.variables}
+ ${this.fromClause()}
+ ${this.whereClause()}
+-${this.orderClause()}
+ ${this.groupByClause()}
+ ${this.havingClause()}
++${this.orderClause()}
+ ${this.limitOffsetClause()}`;
+     },
+ });
+diff --git a/lib/SelectBuilder.mjs b/lib/SelectBuilder.mjs
+index 172b57982e61f10ce8edc5b72e05bfc6f8ad9d32..f20eb0292d2f4e4944f0dcde923a2f9726896284 100644
+--- a/lib/SelectBuilder.mjs
++++ b/lib/SelectBuilder.mjs
+@@ -27,9 +27,9 @@ const SelectBuilder = (strings, ...values) => ({ ...Builder(),
+     return sparql`SELECT ${modifier}${this.variables}
+ ${this.fromClause()}
+ ${this.whereClause()}
+-${this.orderClause()}
+ ${this.groupByClause()}
+ ${this.havingClause()}
++${this.orderClause()}
+ ${this.limitOffsetClause()}`;
+   }
+ 
