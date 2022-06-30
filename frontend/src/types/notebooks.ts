@@ -62,7 +62,7 @@ export type OutputType = 'error' | 'execute_result' | 'stream' | 'display_data' 
 
 export interface BaseOutput {
   output_type: OutputType;
-  execution_time: number;
+  execution_time?: number;
 }
 
 export interface CellErrorOutput extends BaseOutput {

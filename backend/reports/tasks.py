@@ -1,4 +1,5 @@
 import json
+from timeit import default_timer as timer
 from uuid import UUID
 
 import stardog
@@ -6,12 +7,9 @@ from celery import shared_task
 
 from datasets.models import Dataset
 from datasets.services.stardog_sparql import StardogSparql
-from reports.models import Report, CellState, PacketType
+from reports.models import Report, CellState
 from shared import get_logger
 from shared.dict import deepget
-from shared.query import q_json_update
-from shared.websocket import Packet
-from tasks.utils import send_to_group_sync
 
 logger = get_logger()
 
@@ -20,6 +18,7 @@ DEFAULT_TIMEOUT = 5000
 
 
 def run_sparql(database: str, source: str, timeout: int = None, limit: int = None):
+    start_time = timer()
     connection = StardogSparql.from_database(database)
     limit = (limit or DEFAULT_LIMIT) if ' LIMIT ' not in source.upper() else None
     timeout = timeout or DEFAULT_TIMEOUT
@@ -32,7 +31,8 @@ def run_sparql(database: str, source: str, timeout: int = None, limit: int = Non
             'execute_count': 1,
             'data': {
                 'application/sparql-results+json': json.dumps(output)
-            }
+            },
+            'execution_time': float(timer() - start_time)
         })
     except stardog.exceptions.StardogException as e:
         error = True
@@ -40,7 +40,8 @@ def run_sparql(database: str, source: str, timeout: int = None, limit: int = Non
             'output_type': 'error',
             'ename': type(e).__name__,
             'evalue': str(e),
-            'traceback': []
+            'traceback': [],
+            'execution_time': float(timer() - start_time)
         })
 
     return outputs, error
