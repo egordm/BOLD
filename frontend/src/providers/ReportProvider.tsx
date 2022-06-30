@@ -7,6 +7,7 @@ import { apiClient } from "../utils/api";
 
 const ReportContext = React.createContext<{
   report: Report | null,
+  reportRef: React.MutableRefObject<Report | null>,
   save: (report: Report) => void,
   isSaving: boolean,
   refetch: () => void,
@@ -55,14 +56,14 @@ export const ReportProvider = (props: {
     },
   })
 
-  const save = (report: Report) => {
+  const save = useCallback((report?: Report) => {
     sendNotification({ variant: 'info', message: `Saving report` });
     setReport(report);
     saveInternal();
-  }
+  }, []);
 
   const contextValue = useMemo(() => ({
-    report, setReport, save, isSaving, refetch, isFetching,
+    report, reportRef, setReport, save, isSaving, refetch, isFetching,
   }), [ report, isSaving, isFetching ]);
 
   return (

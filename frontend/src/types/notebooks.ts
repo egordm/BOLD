@@ -31,6 +31,7 @@ export interface CellBase {
 export interface CellMetadata {
   id: CellId;
   collapsed?: boolean;
+  timeout?: number;
 }
 
 export interface CodeCellType extends CellBase {
@@ -127,13 +128,33 @@ export const setCellOutputs = (notebook: Notebook, cellId: CellId, outputs: Cell
   }
 })
 
-export const setCellState = (notebook: Notebook, cellId: CellId, state: CellState): Notebook => ({
+export const setCellState = (notebook: Notebook, cellId: CellId, state: Partial<CellState>): Notebook => ({
   ...notebook,
   results: {
     ...notebook.results,
     states: {
       ...notebook.results.states,
-      [cellId]: state
+      [cellId]: {
+        ...notebook.results.states[cellId],
+        ...state,
+      }
+    }
+  }
+})
+
+export const setCellMeta = (notebook: Notebook, cellId: CellId, meta: Partial<CellMetadata>): Notebook => ({
+  ...notebook,
+  content: {
+    ...notebook.content,
+    cells: {
+      ...notebook.content.cells,
+      [cellId]: {
+        ...notebook.content.cells[cellId],
+        metadata: {
+          ...notebook.content.cells[cellId].metadata,
+          ...meta
+        }
+      }
     }
   }
 })

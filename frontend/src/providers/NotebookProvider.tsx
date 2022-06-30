@@ -43,14 +43,14 @@ export const NotebookProvider = (props: {
     setNotebook(setCellContent(notebookRef.current!, cell.metadata.id, cell));
   }, []);
 
-  const { report, isSaving, isFetching, save: saveReport } = useReportContext();
-  const save = () => {
+  const { report, reportRef, isSaving, isFetching, save: saveReport } = useReportContext();
+  const save = useCallback(() => {
     // TODO: Save notebook
     saveReport({
-      ...report,
+      ...reportRef.current,
       notebook: notebookRef.current,
     });
-  }
+  }, []);
 
   useEffect(() => {
     if (!isFetching) {

@@ -8,6 +8,7 @@ from datasets.models import Dataset
 from datasets.services.stardog_sparql import StardogSparql
 from reports.models import Report, CellState, PacketType
 from shared import get_logger
+from shared.dict import deepget
 from shared.query import q_json_update
 from shared.websocket import Packet
 from tasks.utils import send_to_group_sync
@@ -33,6 +34,8 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
         if dataset.database is None:
             raise Exception(f'Dataset {dataset.id} has no database')
 
+        timeout = deepget(cell, ['metadata', 'timeout'], 5000)
+
         outputs: list = []
         match cell.get('cell_type', None):
             case 'code':
@@ -40,7 +43,7 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
                 source = cell.get('source', '')
                 limit = 100 if ' LIMIT ' not in source.upper() else None
                 try:
-                    output = connection.query(source, limit=limit, timeout=5000)
+                    output = connection.query(source, limit=limit, timeout=timeout)
                     outputs.append({
                         'output_type': 'execute_result',
                         'execute_count': 1,
