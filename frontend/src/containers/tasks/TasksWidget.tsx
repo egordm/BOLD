@@ -87,6 +87,7 @@ export const TasksWidget = (props: {}) => {
       position: 'fixed',
       bottom: '16px',
       right: '16px',
+      zIndex: 100,
     }}>
       <Collapse in={expanded} timeout="auto" unmountOnExit>
         {TaskList}

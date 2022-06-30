@@ -7,6 +7,7 @@ import { CellFocusProvider } from "../../providers/CellFocusProvider";
 import { NotebookConnectionProvider } from "../../providers/NotebookConnectionProvider";
 import { NotebookProvider } from "../../providers/NotebookProvider";
 import { ReportProvider } from "../../providers/ReportProvider";
+import { RunQueueProvider } from "../../providers/RunQueueProvider";
 
 
 const NotebookPage = () => {
@@ -22,17 +23,19 @@ const NotebookPage = () => {
         </title>
       </Head>
       <Box component="main">
-          {rid && (
-            <ReportProvider reportId={rid as string}>
-              <NotebookConnectionProvider reportId={rid as string}>
-                <NotebookProvider>
-                  <CellFocusProvider>
+        {rid && (
+          <ReportProvider reportId={rid as string}>
+            <NotebookConnectionProvider reportId={rid as string}>
+              <NotebookProvider>
+                <CellFocusProvider>
+                  <RunQueueProvider>
                     <Notebook/>
-                  </CellFocusProvider>
-                </NotebookProvider>
-              </NotebookConnectionProvider>
-            </ReportProvider>
-          )}
+                  </RunQueueProvider>
+                </CellFocusProvider>
+              </NotebookProvider>
+            </NotebookConnectionProvider>
+          </ReportProvider>
+        )}
       </Box>
     </>
   );

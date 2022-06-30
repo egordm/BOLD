@@ -2,21 +2,29 @@ import React, { useCallback, useEffect, useMemo } from "react";
 
 export const CellFocusContext = React.createContext<{
   focus: string | null;
+  focusRef: React.MutableRefObject<string | null>;
   setFocus: (cellId: string | null) => void;
 }>(null);
 
 export const CellFocusProvider = (props: {
   children: React.ReactNode,
 }) => {
-  const [ focus, setFocus ] = React.useState<string | null>(null);
+  const [ focus, setFocusInternal ] = React.useState<string | null>(null);
+  const focusRef = React.useRef<string | null>(null);
+
+  const setFocus = useCallback((cellId: string | null) => {
+    setFocusInternal(cellId);
+    focusRef.current = cellId;
+  }, []);
+
 
   const contextValue = useMemo(() => ({
-    focus, setFocus,
+    focus, focusRef, setFocus,
   }), [ focus ]);
 
   return (
     <CellFocusContext.Provider value={contextValue}>
-        {props.children}
+      {props.children}
     </CellFocusContext.Provider>
   );
 }

@@ -148,7 +148,7 @@ export const ValueDistributionWidget = (props: {}) => {
 
   const Filters = useMemo(() => {
     return (data?.filters ?? []).map((filter, index) => (
-      <>
+      <Grid container item xs={12} key={index}>
         <Grid item xs={2}/>
         <Grid item xs={5}>
           <TermInput
@@ -176,7 +176,7 @@ export const ValueDistributionWidget = (props: {}) => {
             </IconButton>
           </Stack>
         </Grid>
-      </>
+      </Grid>
     ));
   }, [ data.filters ]);
 

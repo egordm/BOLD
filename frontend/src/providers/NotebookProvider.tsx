@@ -1,5 +1,6 @@
 import _ from "lodash";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import useNotification from "../hooks/useNotification";
 import {
   Cell,
   CellId,
@@ -33,6 +34,8 @@ export const NotebookProvider = (props: {
 
   const [ notebook, setNotebookInternal ] = React.useState<Notebook | null>(null);
   const notebookRef = useRef<Notebook | null>(null);
+
+  const { sendNotification } = useNotification();
 
   const setNotebook = useCallback((notebook: Notebook) => {
     setNotebookInternal(notebook);
@@ -74,6 +77,14 @@ export const NotebookProvider = (props: {
   useNotebookEvent('CELL_RESULT', (data: any) => {
     setNotebook(setCellOutputs(notebookRef.current, data.cell_id, data.outputs));
     console.debug('Added cell result', notebookRef.current);
+
+    const errored = data.outputs.some(output => output.output_type === 'error');
+    const cellIdx = notebookRef.current?.content?.cell_order?.findIndex(cellId => cellId === data.cell_id) ?? -1;
+    if (errored) {
+      sendNotification({ variant: 'error', message: `Cell #${cellIdx + 1} run failed` });
+    } else {
+      sendNotification({ variant: 'success', message: `Cell #${cellIdx + 1} run succeeded` });
+    }
   }, []);
 
   useNotebookEvent('CELL_STATE', (data: any) => {
@@ -101,7 +112,7 @@ export const NotebookProvider = (props: {
 
   return (
     <NotebookContext.Provider value={contextValue}>
-        {children}
+      {children}
     </NotebookContext.Provider>
   );
 }

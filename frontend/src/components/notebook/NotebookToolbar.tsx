@@ -1,7 +1,6 @@
 import {
   Autocomplete,
   Box,
-  Container,
   Divider,
   FormControl,
   IconButton,
@@ -14,7 +13,8 @@ import { useCallback, useEffect, useMemo } from "react";
 import useNotification from "../../hooks/useNotification";
 import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useNotebookContext } from "../../providers/NotebookProvider";
-import { addCell, Cell, createCell, removeCell, setCellContent, setCellMeta } from "../../types/notebooks";
+import { useRunQueueContext } from "../../providers/RunQueueProvider";
+import { addCell, createCell, removeCell, setCellContent, setCellMeta } from "../../types/notebooks";
 import { v4 as uuidv4 } from 'uuid';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCutIcon from '@mui/icons-material/ContentCut';
@@ -24,8 +24,9 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FastForwardIcon from '@mui/icons-material/FastForward';
 
 export const NotebookToolbar = (props: {}) => {
-  const { focus, setFocus } = useCellFocusContext();
+  const { focus, focusRef, setFocus } = useCellFocusContext();
   const { notebook, notebookRef, setNotebook } = useNotebookContext();
+  const { runCells } = useRunQueueContext();
 
   const { sendNotification } = useNotification();
 
@@ -33,38 +34,44 @@ export const NotebookToolbar = (props: {}) => {
   const focusCellType = focusCell?.cell_type ?? 'code';
   const focusCellTimeout = focusCell?.metadata?.timeout ?? 5000;
 
-  console.log('focusCell', focusCellTimeout);
-
   useEffect(() => {
     if (!focus && notebookRef.current && notebookRef.current.content.cell_order.length > 0) {
       setFocus(notebookRef.current.content.cell_order[0]);
     }
   }, [ focus === null ]);
 
-  const onAddCell = useCallback((focus: string) => {
-    const focusIdx = notebook.content.cell_order.findIndex(id => id === focus);
+  const onAddCell = useCallback(() => {
+    const focusIdx = notebook.content.cell_order.findIndex(id => id === focusRef.current);
 
     const cell = createCell('code');
     setNotebook(addCell(notebookRef.current, cell, focusIdx));
     sendNotification({ variant: 'success', message: 'Cell added' });
   }, []);
 
-  const onDeleteCell = useCallback((focus: string) => {
-    const focusIdx = notebookRef.current.content.cell_order.findIndex(id => id === focus);
-    setNotebook(removeCell(notebookRef.current, focus));
+  const onDeleteCell = useCallback(() => {
+    const focusIdx = notebookRef.current.content.cell_order.findIndex(id => id === focusRef.current);
+    setNotebook(removeCell(notebookRef.current, focusRef.current));
     sendNotification({ variant: 'success', message: `Cell #${focusIdx + 1} deleted` });
   }, []);
 
-  const onChangeCellType = useCallback((focus: string, newType: string) => {
-    const focusIdx = notebookRef.current.content.cell_order.findIndex(id => id === focus);
-    const cell = notebookRef.current.content.cells[focus];
+  const onChangeCellType = useCallback((newType: string) => {
+    const focusIdx = notebookRef.current.content.cell_order.findIndex(id => id === focusRef.current);
+    const cell = notebookRef.current.content.cells[focusRef.current];
     const newCell = createCell(newType, cell.metadata);
-    setNotebook(setCellContent(notebookRef.current, focus, newCell));
+    setNotebook(setCellContent(notebookRef.current, focusRef.current, newCell));
     sendNotification({ variant: 'success', message: `Cell #${focusIdx + 1} type changed to ${newType}` });
   }, []);
 
-  const onChangeTimeout = useCallback((focus: string, timeout: number) => {
-    setNotebook(setCellMeta(notebookRef.current, focus, { timeout }));
+  const onChangeTimeout = useCallback((timeout: number) => {
+    setNotebook(setCellMeta(notebookRef.current, focusRef.current, { timeout }));
+  }, []);
+
+  const onRunCell = useCallback(() => {
+    runCells([focusRef.current]);
+  }, []);
+
+  const onRunAll = useCallback(() => {
+    runCells(notebookRef.current.content.cell_order);
   }, []);
 
   return useMemo(() => (
@@ -82,10 +89,10 @@ export const NotebookToolbar = (props: {}) => {
         pl: 2,
       }}
     >
-      <IconButton aria-label="add" size="large" onClick={() => onAddCell(focus)}>
+      <IconButton aria-label="add" size="large" onClick={onAddCell}>
         <Add fontSize="inherit"/>
       </IconButton>
-      <IconButton aria-label="delete" size="large" onClick={() => onDeleteCell(focus)}>
+      <IconButton aria-label="delete" size="large" onClick={onDeleteCell}>
         <DeleteIcon fontSize="inherit"/>
       </IconButton>
       <Divider orientation="vertical" flexItem/>
@@ -99,10 +106,10 @@ export const NotebookToolbar = (props: {}) => {
         <ContentPasteIcon fontSize="inherit"/>
       </IconButton>
       <Divider orientation="vertical" flexItem/>
-      <IconButton aria-label="run" size="large">
+      <IconButton aria-label="run" size="large" onClick={onRunCell}>
         <PlayArrowIcon fontSize="inherit"/>
       </IconButton>
-      <IconButton aria-label="runAll" size="large">
+      <IconButton aria-label="runAll" size="large" onClick={onRunAll}>
         <FastForwardIcon fontSize="inherit"/>
       </IconButton>
       <Divider orientation="vertical" flexItem/>
@@ -112,7 +119,7 @@ export const NotebookToolbar = (props: {}) => {
           displayEmpty
           sx={{ border: 'none' }}
           value={focusCellType}
-          onChange={(e) => onChangeCellType(focus, e.target.value)}
+          onChange={(e) => onChangeCellType(e.target.value)}
         >
           <MenuItem value={'code'}>Code</MenuItem>
           <MenuItem value={'markdown'}>Markdown</MenuItem>
@@ -127,7 +134,7 @@ export const NotebookToolbar = (props: {}) => {
         options={[ 5, 60, 60 * 3, 60 * 10 ]}
         disableClearable={true}
         value={focusCellTimeout / 1000}
-        onChange={(event, newValue) => newValue && onChangeTimeout(focus, newValue as number * 1000)}
+        onChange={(event, newValue) => newValue && onChangeTimeout(newValue as number * 1000)}
       />
     </Box>
   ), [ focus, focusCellType, focusCellTimeout ]);

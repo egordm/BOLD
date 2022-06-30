@@ -9,7 +9,7 @@ export const cellOutputToYasgui = (output: CellErrorOutput | CellOutput) => {
     return {
       data, contentType,
       status: 200,
-      executionTime: output.execution_time ?? 0,
+      executionTime: (output.execution_time ?? 0) * 1000,
     }
   } else if (output.output_type === 'error') {
     const error = [
@@ -20,7 +20,7 @@ export const cellOutputToYasgui = (output: CellErrorOutput | CellOutput) => {
 
     return {
       status: 400,
-      executionTime: output.execution_time ?? 0,
+      executionTime: (output.execution_time ?? 0) * 1000,
       error: {
         status: 400,
         text: error.join('\n\n'),
@@ -29,7 +29,7 @@ export const cellOutputToYasgui = (output: CellErrorOutput | CellOutput) => {
   } else {
     return {
       status: 400,
-      executionTime: output.execution_time ?? 0,
+      executionTime: (output.execution_time ?? 0) * 1000,
       error: {
         status: 400,
         text: `Cant render output`,
