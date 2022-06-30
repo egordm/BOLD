@@ -15,6 +15,36 @@ from tasks.utils import send_to_group_sync
 
 logger = get_logger()
 
+DEFAULT_LIMIT = 100
+DEFAULT_TIMEOUT = 5000
+
+
+def run_sparql(database: str, source: str, timeout: int = None, limit: int = None):
+    connection = StardogSparql.from_database(database)
+    limit = (limit or DEFAULT_LIMIT) if ' LIMIT ' not in source.upper() else None
+    timeout = timeout or DEFAULT_TIMEOUT
+
+    outputs, error = [], False
+    try:
+        output = connection.query(source, limit=limit, timeout=timeout)
+        outputs.append({
+            'output_type': 'execute_result',
+            'execute_count': 1,
+            'data': {
+                'application/sparql-results+json': json.dumps(output)
+            }
+        })
+    except stardog.exceptions.StardogException as e:
+        error = True
+        outputs.append({
+            'output_type': 'error',
+            'ename': type(e).__name__,
+            'evalue': str(e),
+            'traceback': []
+        })
+
+    return outputs, error
+
 
 @shared_task()
 def run_cell(report_id: UUID, cell_id: UUID) -> str:
@@ -34,37 +64,26 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
         if dataset.database is None:
             raise Exception(f'Dataset {dataset.id} has no database')
 
-        timeout = deepget(cell, ['metadata', 'timeout'], 5000)
+        timeout = deepget(cell, ['metadata', 'timeout'], None)
+        limit = deepget(cell, ['metadata', 'limit'], None)
 
         outputs: list = []
-        match cell.get('cell_type', None):
+        cell_type = cell.get('cell_type', '')
+        match cell_type:
             case 'code':
-                connection = StardogSparql.from_database(dataset.database)
-                source = cell.get('source', '')
-                limit = 100 if ' LIMIT ' not in source.upper() else None
-                try:
-                    output = connection.query(source, limit=limit, timeout=timeout)
-                    outputs.append({
-                        'output_type': 'execute_result',
-                        'execute_count': 1,
-                        'data': {
-                            'application/sparql-results+json': json.dumps(output)
-                        }
-                    })
-                except stardog.exceptions.StardogException as e:
-                    error = True
-                    outputs.append({
-                        'output_type': 'error',
-                        'ename': type(e).__name__,
-                        'evalue': str(e),
-                        'traceback': []
-                    })
-                except Exception as e:
-                    logger.error(f'Error running cell {cell_id} in notebook {report_id}')
-                    raise e
+                outputs, error = run_sparql(dataset.database, cell.get('source', ''), timeout, limit)
+            case _ if cell_type.startswith('widget_'):
+                for source in cell.get('source', []):
+                    outputs_s, error = run_sparql(dataset.database, source, timeout, limit)
+                    outputs.extend(outputs_s)
+                    if error:
+                        break
+            case _:
+                raise Exception(f'Cell {cell_id} in notebook {report_id} has unknown cell type {cell_type}')
 
         Report.update_cell_outputs(report_id, cell_id, outputs)
     except Exception as e:
+        logger.error(f'Error running cell {cell_id} in notebook {report_id}')
         Report.update_cell_state(report_id, cell_id, CellState.ERROR)
         raise e
 
