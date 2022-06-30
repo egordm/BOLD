@@ -4,6 +4,7 @@ import { Cell, CellId, CellOutput, CellState, setCellState } from "../types/note
 import { useCellFocusContext } from "./CellFocusProvider";
 import { useNotebookConnectionContext } from "./NotebookConnectionProvider";
 import { useNotebookContext } from "./NotebookProvider";
+import { useRunQueueContext } from "./RunQueueProvider";
 import { ConnectionStatus } from "./WebsocketProvider";
 
 export const CellContext = React.createContext<{
@@ -21,11 +22,10 @@ export const CellProvider = (props: {
 }) => {
   const { cellId } = props;
 
-  const { sendNotification } = useNotification();
+  const { runCells } = useRunQueueContext();
   const { socket, status } = useNotebookConnectionContext();
   const { focus, setFocus } = useCellFocusContext();
   const { notebook, notebookRef, setNotebook, setCell, changed, save } = useNotebookContext();
-  const [ run, setRun ] = React.useState(false);
   const cellRef = React.useRef<Cell>(null);
 
   const cell = notebook?.content?.cells[cellId];
@@ -35,28 +35,8 @@ export const CellProvider = (props: {
 
   const runCell = useCallback(() => {
     setNotebook(setCellState(notebookRef.current!, cellId, { status: 'QUEUED', }));
-    setRun(true);
-    save();
+    runCells([cellId]);
   }, [ socket ]);
-
-  useEffect(() => {
-    if (!changed && run && status === ConnectionStatus.CONNECTED) {
-      console.debug('Running cell', cell.metadata.id);
-      setRun(false);
-      socket.send(JSON.stringify({
-        type: 'CELL_RUN',
-        data: cell.metadata.id,
-      }));
-      sendNotification({ variant: 'info', message: 'Running cell' })
-    }
-  }, [ changed, run ]);
-
-  const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.shiftKey && event.key === 'Enter') {
-      event.preventDefault();
-      runCell();
-    }
-  }
 
   const onFocus = useCallback((event) => {
     if (focus !== cellId) {
@@ -70,7 +50,7 @@ export const CellProvider = (props: {
 
   return (
     <CellContext.Provider value={contextValue}>
-      <div onKeyDown={onKeyDown} onClick={onFocus}>
+      <div onClick={onFocus}>
         {props.children}
       </div>
     </CellContext.Provider>

@@ -18,6 +18,7 @@ import { usePrefixes, useReportContext } from "../../../providers/ReportProvider
 import { CellOutput, WidgetCellType } from "../../../types/notebooks";
 import { SparQLResult } from "../../../types/sparql";
 import { Term } from "../../../types/terms";
+import { extractIriLabel } from "../../../utils/formatting";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { HistogramPlot } from "../../data/HistogramPlot";
 import { SourceViewModal } from "../../data/SourceViewModal";
@@ -266,7 +267,7 @@ const ResultTab = ({ outputs, mode }: { outputs: CellOutput[], mode: string }) =
   if (mode === 'plot') {
     if (output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
       const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
-      const x = data.results.bindings.map((row) => row['v'].value);
+      const x = data.results.bindings.map((row) => extractIriLabel(row['v'].value));
       const y = data.results.bindings.map((row) => parseInt(row['count'].value));
 
       return (

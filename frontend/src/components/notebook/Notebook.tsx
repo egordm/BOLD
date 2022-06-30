@@ -1,4 +1,5 @@
 import { Card, CardContent, Divider, Paper, Stack } from "@mui/material";
+import { Box } from "@mui/system";
 import { CellProvider } from "../../providers/CellProvider";
 import { useNotebookContext } from "../../providers/NotebookProvider";
 import { useReportContext } from "../../providers/ReportProvider";
@@ -12,12 +13,12 @@ export const Notebook = (props: {}) => {
   const { notebook, } = useNotebookContext();
 
   const renderCell = (cellId: CellId) => (
-    <>
-      <CellProvider key={cellId} cellId={cellId}>
+    <Box key={cellId}>
+      <CellProvider  cellId={cellId}>
         <CellContainer/>
       </CellProvider>
       <Divider/>
-    </>
+    </Box>
   )
 
   const cells = notebook?.content?.cell_order.map(renderCell);

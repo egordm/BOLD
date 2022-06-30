@@ -28,7 +28,7 @@ def import_dataset(dataset_id: UUID) -> str:
 
     try:
         source_type = source.get('source_type', None)
-        if source_type == 'urls' or source_type == 'lodc':
+        if source_type == 'urls' or source_type == 'lodc' or source_type == 'tdb':
             urls = source.get('urls', [])
             if len(urls) == 0:
                 raise Exception("No URLs specified")

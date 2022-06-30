@@ -41,7 +41,7 @@ export const NotebookToolbar = (props: {}) => {
   }, [ focus === null ]);
 
   const onAddCell = useCallback(() => {
-    const focusIdx = notebook.content.cell_order.findIndex(id => id === focusRef.current);
+    const focusIdx = notebookRef.current?.content?.cell_order?.findIndex(id => id === focusRef.current) ?? -1;
 
     const cell = createCell('code');
     setNotebook(addCell(notebookRef.current, cell, focusIdx));
@@ -49,13 +49,14 @@ export const NotebookToolbar = (props: {}) => {
   }, []);
 
   const onDeleteCell = useCallback(() => {
-    const focusIdx = notebookRef.current.content.cell_order.findIndex(id => id === focusRef.current);
+    const focusIdx = notebookRef.current?.content?.cell_order?.findIndex(id => id === focusRef.current) ?? -1;
+
     setNotebook(removeCell(notebookRef.current, focusRef.current));
     sendNotification({ variant: 'success', message: `Cell #${focusIdx + 1} deleted` });
   }, []);
 
   const onChangeCellType = useCallback((newType: string) => {
-    const focusIdx = notebookRef.current.content.cell_order.findIndex(id => id === focusRef.current);
+    const focusIdx = notebookRef.current?.content?.cell_order?.findIndex(id => id === focusRef.current) ?? -1;
     const cell = notebookRef.current.content.cells[focusRef.current];
     const newCell = createCell(newType, cell.metadata);
     setNotebook(setCellContent(notebookRef.current, focusRef.current, newCell));

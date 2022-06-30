@@ -9,6 +9,7 @@ import ArticleIcon from '@mui/icons-material/Article';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import CloudIcon from '@mui/icons-material/Cloud';
 import { NavItem } from './nav-item';
+import StorageIcon from '@mui/icons-material/Storage';
 
 const items = [
   {
@@ -22,6 +23,9 @@ const items = [
   },
   {
     href: '/lodc', icon: (<CloudIcon fontSize="small"/>), title: 'LODC'
+  },
+  {
+    href: '/triplydb', icon: (<StorageIcon fontSize="small"/>), title: 'TriplyDB'
   },
   // {
   //   href: '/datasets', icon: (<UsersIcon fontSize="small"/>), title: 'Datasets'
