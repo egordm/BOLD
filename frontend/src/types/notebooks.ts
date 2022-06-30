@@ -127,13 +127,13 @@ export const setCellOutputs = (notebook: Notebook, cellId: CellId, outputs: Cell
   }
 })
 
-export const setCellState = (notebook: Notebook, cellId: CellId, outputs: CellState): Notebook => ({
+export const setCellState = (notebook: Notebook, cellId: CellId, state: CellState): Notebook => ({
   ...notebook,
   results: {
     ...notebook.results,
     states: {
       ...notebook.results.states,
-      [cellId]: outputs
+      [cellId]: state
     }
   }
 })

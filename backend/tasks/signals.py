@@ -67,10 +67,7 @@ def handle_task_revoked(sender=None, request=None, **kwargs):
 
 @receiver(post_save, sender=Task)
 def handle_task_update(sender, instance, created, **kwargs):
-    send_to_group_sync(
-        str('TASKS_GLOBAL'),
-        {
-            'type': 'task_updated',
-            'message': str(instance.task_id)
-        }
-    )
+    send_to_group_sync(str('TASKS_GLOBAL'), {
+        'type': 'task_updated',
+        'message': str(instance.task_id)
+    })

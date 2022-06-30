@@ -4,10 +4,10 @@ from uuid import UUID
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
-from reports.models import Report
+from reports.models import Report, CellState, PacketType
 from shared import get_logger
+from shared.websocket import Packet
 from .tasks import run_cell
-from .utils import Packet, PacketType
 
 logger = get_logger()
 
@@ -38,21 +38,22 @@ class NotebookConsumer(WebsocketConsumer):
                 cell_id = UUID(packet.data)
                 cell_index = report.notebook.get('content', {}).get('cell_order', []).index(str(cell_id))
 
+                Report.update_cell_outputs(self.report_id, cell_id, [])
+                Report.update_cell_state(self.report_id, cell_id, CellState.QUEUED)
                 self.report.apply_async(
                     run_cell, (self.report_id, cell_id),
                     name='Run cell #{}'.format(cell_index)
                 )
             case PacketType.CELL_RESULT:
                 self.send_packet(PacketType.CELL_RESULT, packet.data)
+            case PacketType.CELL_STATE:
+                self.send_packet(PacketType.CELL_STATE, packet.data)
 
     def task_message(self, event):
-        if event['type'] == 'task_message':
-            self.receive(event['message'])
+        self.receive(event['message'])
 
     def send_packet(self, type: PacketType, data: Any):
-        self.send(
-            text_data=Packet(type, data).dumps()
-        )
+        self.send(text_data=Packet(type.value, data).dumps())
 
     @property
     def report(self) -> Report:

@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo } from "react";
 import useNotification from "../hooks/useNotification";
-import { Cell, CellId, CellOutput, CellState } from "../types/notebooks";
+import { Cell, CellId, CellOutput, CellState, setCellState } from "../types/notebooks";
 import { useCellFocusContext } from "./CellFocusProvider";
 import { useNotebookConnectionContext } from "./NotebookConnectionProvider";
 import { useNotebookContext } from "./NotebookProvider";
@@ -23,7 +23,7 @@ export const CellProvider = (props: {
   const { sendNotification } = useNotification();
   const { socket, status } = useNotebookConnectionContext();
   const { focus, setFocus } = useCellFocusContext();
-  const { notebook, setCell, changed, save } = useNotebookContext();
+  const { notebook, notebookRef, setNotebook, setCell, changed, save } = useNotebookContext();
   const [ run, setRun ] = React.useState(false);
 
   const cell = notebook?.content?.cells[cellId];
@@ -31,6 +31,7 @@ export const CellProvider = (props: {
   const outputs = notebook?.results?.outputs[cellId] || null;
 
   const runCell = useCallback(() => {
+    setNotebook(setCellState(notebookRef.current!, cellId, { status: 'QUEUED', }));
     setRun(true);
     save();
   }, [ socket ]);

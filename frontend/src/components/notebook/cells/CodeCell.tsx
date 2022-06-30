@@ -79,14 +79,14 @@ export const CodeCell = (props: {}) => {
     }
   }, [ outputs ]);
 
-  const Result = useMemo(() => outputs?.length && (
+  const Result = useMemo(() => !!outputs?.length && (
     <Box sx={{ width: '100%' }}>
       <Yasr
         result={result}
         prefixes={prefixes}
       />
     </Box>
-  ), [ result, prefixes ]);
+  ), [ outputs, prefixes ]);
 
   return (
     <>
