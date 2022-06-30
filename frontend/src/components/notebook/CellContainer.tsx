@@ -5,9 +5,11 @@ import { useMemo } from "react";
 import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useCellContext } from "../../providers/CellProvider";
 import { CodeCell } from "./cells/CodeCell";
+import { ValueDistributionWidget } from "./cells/ValueDistributionWidget";
 
 export const CELL_TYPES = {
-  code: CodeCell
+  code: CodeCell,
+  widget_valuedistribution: ValueDistributionWidget,
 }
 
 export const CellContainer = (props: {}) => {
@@ -33,12 +35,12 @@ export const CellContainer = (props: {}) => {
         variant="text"
         onClick={runCell}
         color={color}
-        loadingIndicator={<CircularProgress color="primary" size={16} />}
+        loadingIndicator={<CircularProgress color="primary" size={16}/>}
       >
         <PlayArrowIcon/>
       </LoadingButton>
     )
-  }, [state]);
+  }, [ state ]);
 
   return (
     <Box py={2} sx={{
@@ -50,7 +52,7 @@ export const CellContainer = (props: {}) => {
       <Box>
         {ActionButton}
       </Box>
-      <Stack spacing={2} sx={{flex: 1}}>
+      <Stack spacing={2} sx={{ flex: 1 }}>
         <Cell/>
       </Stack>
     </Box>

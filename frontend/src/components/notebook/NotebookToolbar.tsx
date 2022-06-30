@@ -14,7 +14,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import useNotification from "../../hooks/useNotification";
 import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useNotebookContext } from "../../providers/NotebookProvider";
-import { addCell, Cell, removeCell, setCellMeta } from "../../types/notebooks";
+import { addCell, Cell, createCell, removeCell, setCellContent, setCellMeta } from "../../types/notebooks";
 import { v4 as uuidv4 } from 'uuid';
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCutIcon from '@mui/icons-material/ContentCut';
@@ -44,25 +44,23 @@ export const NotebookToolbar = (props: {}) => {
   const onAddCell = useCallback((focus: string) => {
     const focusIdx = notebook.content.cell_order.findIndex(id => id === focus);
 
-    const cell: Cell = {
-      cell_type: 'code',
-      source: '',
-      metadata: {
-        id: uuidv4()
-      },
-    }
-
+    const cell = createCell('code');
     setNotebook(addCell(notebookRef.current, cell, focusIdx));
     sendNotification({ variant: 'success', message: 'Cell added' });
   }, []);
 
   const onDeleteCell = useCallback((focus: string) => {
-    const focusIdx = notebook.content.cell_order.findIndex(id => id === focus);
+    const focusIdx = notebookRef.current.content.cell_order.findIndex(id => id === focus);
     setNotebook(removeCell(notebookRef.current, focus));
     sendNotification({ variant: 'success', message: `Cell #${focusIdx + 1} deleted` });
   }, []);
 
   const onChangeCellType = useCallback((focus: string, newType: string) => {
+    const focusIdx = notebookRef.current.content.cell_order.findIndex(id => id === focus);
+    const cell = notebookRef.current.content.cells[focus];
+    const newCell = createCell(newType, cell.metadata);
+    setNotebook(setCellContent(notebookRef.current, focus, newCell));
+    sendNotification({ variant: 'success', message: `Cell #${focusIdx + 1} type changed to ${newType}` });
   }, []);
 
   const onChangeTimeout = useCallback((focus: string, timeout: number) => {
@@ -108,27 +106,29 @@ export const NotebookToolbar = (props: {}) => {
         <FastForwardIcon fontSize="inherit"/>
       </IconButton>
       <Divider orientation="vertical" flexItem/>
-      <FormControl hiddenLabel={true} variant="filled" sx={{ minWidth: 120 }}>
+      <FormControl variant="filled" sx={{ minWidth: 120 }}>
+        <InputLabel>Cell Type</InputLabel>
         <Select
           displayEmpty
           sx={{ border: 'none' }}
           value={focusCellType}
+          onChange={(e) => onChangeCellType(focus, e.target.value)}
         >
           <MenuItem value={'code'}>Code</MenuItem>
           <MenuItem value={'markdown'}>Markdown</MenuItem>
-          <MenuItem value={'widget_hist'}>Histogram Widget</MenuItem>
+          <MenuItem value={'widget_valuedistribution'}>Histogram Widget</MenuItem>
         </Select>
       </FormControl>
       <Autocomplete
         sx={{ minWidth: 140 }}
         getOptionLabel={(option) => option.toString()}
         renderInput={(params) =>
-          <TextField {...params} variant="filled" label="Timeout (s)" placeholder="Timeout (s)" />}
-        options={[5, 60, 60 * 3, 60 * 10]}
+          <TextField {...params} variant="filled" label="Timeout (s)" placeholder="Timeout (s)"/>}
+        options={[ 5, 60, 60 * 3, 60 * 10 ]}
         disableClearable={true}
         value={focusCellTimeout / 1000}
         onChange={(event, newValue) => newValue && onChangeTimeout(focus, newValue as number * 1000)}
-        />
+      />
     </Box>
-  ), [focus, focusCellType, focusCellTimeout]);
+  ), [ focus, focusCellType, focusCellTimeout ]);
 }

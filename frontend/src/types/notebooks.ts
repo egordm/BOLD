@@ -1,3 +1,6 @@
+import { v4 as uuidv4 } from 'uuid';
+
+
 export type NotebookId = string;
 export type CellId = string;
 
@@ -21,7 +24,9 @@ export interface CellState {
   status: 'FINISHED' | 'ERROR' | 'RUNNING' | 'QUEUED' | 'INITIAL';
 }
 
-export type CellType = 'code' | 'markdown' | 'widget' | string;
+export type CellTypeWidget = `widget_${string}`;
+
+export type CellType = 'code' | 'markdown' | CellTypeWidget | string;
 
 export interface CellBase {
   cell_type: CellType;
@@ -44,8 +49,10 @@ export interface MarkdownCellType extends CellBase {
   source: string[];
 }
 
-export interface WidgetCellType extends CellBase {
-  cell_type: 'widget';
+
+export interface WidgetCellType<D = any> extends CellBase {
+  cell_type: CellTypeWidget;
+  data: D;
   source: string[];
 }
 
@@ -106,6 +113,31 @@ export const createNotebook = (name: string): Notebook => ({
   }
 })
 
+export const createCell = (cellType: CellType, metadata?: CellMetadata): Cell => {
+  metadata = metadata ?? { id: uuidv4() }
+
+  if (cellType === 'code') {
+    return {
+      cell_type: 'code',
+      metadata,
+      source: 'SELECT * \n{ ?s ?p ?o } \nLIMIT 10'
+    }
+  } else if (cellType === 'markdown') {
+    return {
+      cell_type: 'markdown',
+      metadata,
+      source: [ '# Markdown cell' ]
+    }
+  } else if (cellType.startsWith('widget_')) {
+    return {
+      cell_type: cellType as any,
+      metadata,
+      source: [],
+      data: {}
+    }
+  }
+}
+
 export const setCellContent = (notebook: Notebook, cellId: CellId, cell: Cell): Notebook => ({
   ...notebook,
   content: {
@@ -161,7 +193,7 @@ export const setCellMeta = (notebook: Notebook, cellId: CellId, meta: Partial<Ce
 
 export const addCell = (notebook: Notebook, cell: Cell, index: number = -1): Notebook => {
   const cellId = cell.metadata.id;
-  const cellOrder = [...notebook.content.cell_order];
+  const cellOrder = [ ...notebook.content.cell_order ];
   if (index === -1) {
     cellOrder.push(cellId);
   } else {
@@ -182,7 +214,7 @@ export const addCell = (notebook: Notebook, cell: Cell, index: number = -1): Not
 }
 
 export const removeCell = (notebook: Notebook, cellId: CellId): Notebook => {
-  const cellOrder = [...notebook.content.cell_order];
+  const cellOrder = [ ...notebook.content.cell_order ];
   const index = cellOrder.indexOf(cellId);
   if (index !== -1) {
     cellOrder.splice(index, 1);

@@ -1,5 +1,5 @@
 import { Box, Grid } from "@mui/material";
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useCellContext } from "../../../providers/CellProvider";
 import { useReportContext } from "../../../providers/ReportProvider";
 import { CodeCellType } from "../../../types/notebooks";
