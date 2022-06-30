@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     'reports',
     'users',
     'tasks',
-    'profiling',
 ]
 
 MIDDLEWARE = [
