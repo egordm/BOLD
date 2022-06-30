@@ -15,3 +15,10 @@ export interface Dataset {
     name: string;
   }[]
 }
+
+
+export const namespacesToPrefixes = (namespaces: null | { prefix: string; name: string; }[]) => {
+  return {
+    ...Object.fromEntries(namespaces.map(({ prefix, name }) => [ prefix, name ])),
+  }
+}

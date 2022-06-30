@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from "react";
 import { useMutation, useQuery } from "react-query";
 import useNotification from "../hooks/useNotification";
+import { namespacesToPrefixes } from "../types/datasets";
 import { Report } from "../types/reports";
 import { apiClient } from "../utils/api";
 
@@ -80,3 +81,11 @@ export const useReportContext = () => {
   }
   return context;
 };
+
+export const usePrefixes = () => {
+  const { report } = useReportContext();
+
+  return React.useMemo(() => {
+    return namespacesToPrefixes(report?.dataset?.namespaces);
+  }, [ report?.dataset?.namespaces ]);
+}

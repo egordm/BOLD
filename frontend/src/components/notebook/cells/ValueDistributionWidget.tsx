@@ -1,6 +1,6 @@
 import {
   Button,
-  CardHeader,
+  CardHeader, Container,
   Grid,
   IconButton,
   Input,
@@ -14,15 +14,21 @@ import { Box } from "@mui/system";
 import { SELECT } from "@tpluscode/sparql-builder";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useCellContext } from "../../../providers/CellProvider";
-import { useReportContext } from "../../../providers/ReportProvider";
-import { WidgetCellType } from "../../../types/notebooks";
+import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
+import { CellOutput, WidgetCellType } from "../../../types/notebooks";
+import { SparQLResult } from "../../../types/sparql";
 import { Term } from "../../../types/terms";
+import { cellOutputToYasgui } from "../../../utils/yasgui";
+import { HistogramPlot } from "../../data/HistogramPlot";
 import { SourceViewModal } from "../../data/SourceViewModal";
+import { Yasr } from "../../data/Yasr";
+import { NumberedSlider } from "../../input/NumberedSlider";
 import { TermInput } from "../../input/TermInput";
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import { variable, literal, namedNode } from '@rdfjs/data-model'
 import CodeIcon from '@mui/icons-material/Code';
+import { VirtualizedTabs } from "../../layout/VirtualizedTabs";
 
 interface ValueDistributionWidgetData {
   group_predicate?: Term[];
@@ -31,9 +37,16 @@ interface ValueDistributionWidgetData {
     object?: Term[];
   }[];
   group_count?: number;
+  min_group_size?: number;
+  output_mode?: 'plot' | 'table';
 }
 
 const MAX_GROUP_COUNT = 101;
+
+const OUTPUT_TABS = [
+  { value: 'plot', label: 'Show Plot' },
+  { value: 'table', label: 'Show Table' },
+]
 
 const termToSparql = (term: Term) => {
   if (term.type === 'literal') {
@@ -42,7 +55,6 @@ const termToSparql = (term: Term) => {
     return namedNode(term.value);
   }
 }
-
 
 
 const buildQuery = (data: ValueDistributionWidgetData) => {
@@ -69,8 +81,9 @@ const buildQuery = (data: ValueDistributionWidgetData) => {
   });
 
   const groupCount = data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20);
+
   query = query
-    .GROUP().BY(variable('v'))
+    .GROUP().BY(variable('v')).HAVING`?count >= ${data.min_group_size ?? 1}`
     .ORDER().BY(variable('count'), true)
     .LIMIT(groupCount);
 
@@ -81,9 +94,7 @@ export const ValueDistributionWidget = (props: {}) => {
   const { report } = useReportContext();
   const { cell, cellRef, outputs, setCell } = useCellContext();
   const { data, source } = cell as WidgetCellType<ValueDistributionWidgetData>;
-  const [showSource, setShowSource] = React.useState(false);
-
-  console.log(buildQuery(data));
+  const [ showSource, setShowSource ] = React.useState(false);
 
   useEffect(() => {
     const query = buildQuery(data);
@@ -169,48 +180,7 @@ export const ValueDistributionWidget = (props: {}) => {
     ));
   }, [ data.filters ]);
 
-  const GroupCount = useMemo(() => {
-    const group_count = data?.group_count ?? 20;
-
-    return (
-      <Grid item xs={6}>
-        <Typography gutterBottom>Limit number of groups</Typography>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs>
-            <Slider
-              aria-label="Small steps"
-              defaultValue={20}
-              valueLabelFormat={(value) => value != MAX_GROUP_COUNT ? value.toString() : 'Unlimited'}
-              step={1}
-              marks
-              min={1}
-              max={MAX_GROUP_COUNT}
-              valueLabelDisplay="auto"
-              value={group_count}
-              onChange={(event, value) => setData({ group_count: value as number })}
-            />
-          </Grid>
-          <Grid item>
-            <Input
-              value={group_count}
-              size="small"
-              onChange={(event) => setData({ group_count: parseInt(event.target.value) })}
-              onBlur={(event) => setData({ group_count: parseInt(event.target.value) })}
-              inputProps={{
-                step: 10,
-                min: 0,
-                max: 100,
-                type: 'number',
-                'aria-labelledby': 'input-slider',
-              }}
-            />
-          </Grid>
-        </Grid>
-      </Grid>
-    )
-  }, [ data.group_count ]);
-
-  const Content = (
+  const Content = useMemo(() => (
     <>
       <Grid container spacing={2}>
         <Grid item xs={12}>
@@ -242,21 +212,86 @@ export const ValueDistributionWidget = (props: {}) => {
         <Grid item xs={10}>
           <Button variant="text" startIcon={<AddIcon/>} onClick={onAddFilter}> Add filter</Button>
         </Grid>
-        {GroupCount}
-        <Grid item xs={6}/>
+        <Grid item xs={12}>
+          <Container maxWidth="md">
+            <NumberedSlider
+              label={'Limit number of groups'}
+              value={data?.group_count ?? 20}
+              valueLabelFormat={(value) => value !== MAX_GROUP_COUNT ? value.toString() : 'Unlimited'}
+              onChange={(event, value) => setData({ group_count: value as number })}
+              min={1} max={MAX_GROUP_COUNT} step={1}
+            />
+          </Container>
+        </Grid>
+        <Grid item xs={12}>
+          <Container maxWidth="md">
+            <NumberedSlider
+              label={'Min group size'}
+              value={data?.min_group_size ?? 2}
+              onChange={(event, value) => setData({ min_group_size: value as number })}
+              min={1} max={20} step={1}
+            />
+          </Container>
+        </Grid>
       </Grid>
-      <SourceViewModal
-        source={source}
-        open={showSource}
-        onClose={() =>setShowSource(false)}
-      />
     </>
-  )
+  ), [ data ]);
+
+  const Result = useMemo(() => !!outputs?.length && (
+    <VirtualizedTabs
+      value={data.output_mode ?? 'plot'}
+      tabs={OUTPUT_TABS}
+      onChange={(event, value) => setData({ output_mode: value as any })}
+      renderTab={(tab) => <ResultTab mode={tab} outputs={outputs}/>}
+    />
+  ), [ data.output_mode, outputs ]);
 
   return (
     <>
       {Content}
-      <Typography>Value Distribution</Typography>
+      {Result}
+      <SourceViewModal
+        source={source}
+        open={showSource}
+        onClose={() => setShowSource(false)}
+      />
     </>
   )
+}
+
+const ResultTab = ({ outputs, mode }: { outputs: CellOutput[], mode: string }) => {
+  const prefixes = usePrefixes();
+  const output = outputs[0];
+
+  if (mode === 'plot') {
+    if (output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
+      const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
+      const x = data.results.bindings.map((row) => row['v'].value);
+      const y = data.results.bindings.map((row) => parseInt(row['count'].value));
+
+      return (
+        <HistogramPlot
+          x={x} y={y}
+          layout={{
+            xaxis: {
+              title: 'Value',
+            },
+            yaxis: {
+              title: 'Count',
+            }
+          }}
+        />
+      )
+    }
+  } else if (mode === 'table') {
+    const result = cellOutputToYasgui(output);
+    return (
+      <Yasr
+        result={result}
+        prefixes={prefixes}
+      />
+    )
+  }
+
+  return null;
 }

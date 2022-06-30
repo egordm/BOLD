@@ -1,7 +1,6 @@
 import axios from "axios";
 import React, { useState } from "react";
 import { useQuery, UseQueryOptions } from "react-query";
-import { Dataset } from "../types/datasets";
 
 
 export const apiClient = axios.create({

@@ -65,7 +65,6 @@ export const NotebookProvider = (props: {
   useEffect(() => {
     if (notebookRef.current && report.notebook) {
       const changedLocal = !_.isEqual(notebookRef.current, report.notebook);
-      console.log(notebookRef.current, report.notebook)
       if (changedLocal !== changed) {
         setChanged(changedLocal);
       }
