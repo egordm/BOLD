@@ -28,14 +28,19 @@ const POS_TO_ID = {
 export const TermInput = (props: {
   datasetId: string;
   pos: TermPos,
+  label?: string;
   prefixes?: Record<string, string>
+  value?: Term[];
   onChange?: (terms: Term[]) => void;
-} & Omit<AutocompleteProps<Term, true, false, undefined>, 'onChange'>) => {
-  const { datasetId, pos, prefixes, onChange } = props;
+  limit?: number;
+} & Partial<Omit<AutocompleteProps<Term, true, false, undefined>, 'onChange'>>) => {
+  const { datasetId, pos, prefixes, label, onChange, limit, value: propValue, ...rest } = props;
 
-  const [ value, setValue ] = React.useState<Term[]>([]);
+  const [ valueInternal, setValue ] = React.useState<Term[]>([]);
   const [ inputValue, setInputValue ] = React.useState('');
   const [ options, setOptions ] = React.useState<readonly Term[]>([]);
+
+  const value = propValue ?? valueInternal;
 
   const fetchOptions = React.useMemo(() => throttle(
     async (
@@ -44,12 +49,12 @@ export const TermInput = (props: {
     ) => {
       const result = await apiClient.get(`/terms/${datasetId}/search`, {
         params: {
-          limit: 10,
+          limit: limit ?? 50,
           query: `+pos:${POS_TO_ID[pos]} ${request.query}`,
         }
       })
       callback(result.data)
-    }, 200), [ pos, datasetId ]);
+    }, 200), [ pos, datasetId, limit ]);
 
   React.useEffect(() => {
     let active = true;
@@ -78,10 +83,11 @@ export const TermInput = (props: {
   const renderInput = useMemo(() => (params) => (
     <TextField
       {...params}
+      variant="filled"
       fullWidth
-      label="Group Prop"
+      label={label}
     />
-  ), []);
+  ), [label]);
 
   const renderOption = useMemo(() => (props, option: Term) => {
     const { className, ...rest } = props;
@@ -111,12 +117,12 @@ export const TermInput = (props: {
     )
   }, [ prefixes ]);
 
-  const renderTag = useMemo(() => (props, option: Term) => {
+  const renderTag = useMemo(() => (index, props, option: Term) => {
     const iri = option.type === 'uri' ? formatIri(option.value, prefixes || {}) : option.value;
     const primary = option.label ? option.label : extractIriLabel(option.value);
 
     return (
-      <Tooltip sx={{ maxWidth: 'none' }} arrow title={iri}>
+      <Tooltip key={index} sx={{ maxWidth: 'none' }} arrow title={iri}>
         <Chip
           label={<>
             <Typography variant="body2" component="span" fontWeight={option.label ? 500 : 'normal'}>{primary} </Typography>
@@ -132,6 +138,7 @@ export const TermInput = (props: {
     <Autocomplete
       autoComplete
       multiple
+      value={value}
       options={options}
       getOptionLabel={(option) => typeof option === 'string' ? option : option.value}
       filterOptions={(x) => x}
@@ -147,9 +154,9 @@ export const TermInput = (props: {
       renderInput={renderInput}
       renderOption={renderOption}
       renderTags={(tagValue, getTagProps) =>
-        tagValue.map((option, index) => renderTag(getTagProps({ index }), option as Term))
+        tagValue.map((option, index) => renderTag(index, getTagProps({ index }), option as Term))
       }
-      {...props}
+      {...rest}
     />
   )
 
