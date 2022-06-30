@@ -8,6 +8,7 @@ import { ConnectionStatus } from "./WebsocketProvider";
 
 export const CellContext = React.createContext<{
   cell: Cell;
+  cellRef: React.RefObject<Cell>;
   state: CellState | null;
   outputs: CellOutput[] | null;
   setCell: (cell: Cell) => void;
@@ -25,10 +26,12 @@ export const CellProvider = (props: {
   const { focus, setFocus } = useCellFocusContext();
   const { notebook, notebookRef, setNotebook, setCell, changed, save } = useNotebookContext();
   const [ run, setRun ] = React.useState(false);
+  const cellRef = React.useRef<Cell>(null);
 
   const cell = notebook?.content?.cells[cellId];
   const state = notebook?.results?.states[cellId] || null;
   const outputs = notebook?.results?.outputs[cellId] || null;
+  cellRef.current = cell;
 
   const runCell = useCallback(() => {
     setNotebook(setCellState(notebookRef.current!, cellId, { status: 'QUEUED', }));
@@ -62,7 +65,7 @@ export const CellProvider = (props: {
   }, [focus, cellId]);
 
   const contextValue = useMemo(() => ({
-    cell, state, outputs, setCell, runCell,
+    cell, cellRef, state, outputs, setCell, runCell,
   }), [ cell, state, outputs ]);
 
   return (

@@ -41,9 +41,6 @@ export const Notebook = (props: {}) => {
       <CardContent>
         {cells}
       </CardContent>
-      {/*<TermInput datasetId={'33cb191a-b879-43ab-9667-0592acee2d21'} pos={'PREDICATE'}/>*/}
-      {/*<TermInput datasetId={report?.dataset?.id} pos={'PREDICATE'}/>*/}
-      {/*<TermInput datasetId={report?.dataset?.id} pos={'SUBJECT'}/>*/}
     </Paper>
   );
 }

@@ -82,13 +82,19 @@ export const NotebookProvider = (props: {
     console.debug('Added cell state', notebookRef.current);
   }, []);
 
-  const onKeyDown = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
-    let charCode = String.fromCharCode(event.which).toLowerCase();
-    if ((event.ctrlKey || event.metaKey) && charCode === 's') {
-      event.preventDefault();
-      save();
+  useEffect(() => {
+    const keyDownHandler = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 's') {
+        event.preventDefault();
+        save();
+      }
     }
-  }, [])
+
+    document.addEventListener('keydown', keyDownHandler);
+    return () => {
+      document.removeEventListener('keydown', keyDownHandler);
+    }
+  }, []);
 
   const contextValue = useMemo(() => ({
     notebook, notebookRef, setNotebook, setCell, changed, save, isSaving, isFetching,
@@ -96,9 +102,7 @@ export const NotebookProvider = (props: {
 
   return (
     <NotebookContext.Provider value={contextValue}>
-      <div onKeyDown={onKeyDown}>
         {children}
-      </div>
     </NotebookContext.Provider>
   );
 }
