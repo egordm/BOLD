@@ -80,7 +80,7 @@ def term_search(request: Request, dataset_id: UUID):
     offset = int(request.GET.get('offset', 0))
     sort_by = request.GET.get('sort_by', None)
 
-    result_data = BoldCli.search(dataset.search_index_path, q, limit, offset)
+    result_data = BoldCli.search(dataset.search_index_path, q, limit, offset, sort_by)
     results = SearchResult(
         count=result_data['count'],
         hits=[
@@ -91,12 +91,5 @@ def term_search(request: Request, dataset_id: UUID):
             for hit in result_data['hits']
         ]
     )
-
-    # index = Tantivy.from_path(dataset.search_index_path)
-    # results = index.search(
-    #     q, ['iri_text', 'iri', 'label', 'ty'],
-    #     limit, offset, sort_by,
-    #     doc_fn=parse_doc
-    # )
 
     return JsonResponse(results.to_dict())

@@ -35,6 +35,7 @@ def update_dataset_info(dataset_id: UUID):
     dataset = Dataset.objects.get(id=dataset_id)
     dataset.namespaces = namespaces
     dataset.statistics = {
+        **(dataset.statistics or {}),
         'triple_count': triple_count,
     }
     dataset.save()

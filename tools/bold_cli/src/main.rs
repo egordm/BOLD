@@ -1,7 +1,4 @@
-use std::ffi::OsString;
-use std::path::PathBuf;
-
-use clap::{Args, Parser, Subcommand};
+use clap::{Parser, Subcommand};
 use crate::subcommands::build_index::BuildIndex;
 use crate::subcommands::search::Search;
 

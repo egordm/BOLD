@@ -1,14 +1,14 @@
-use clap::{Args, Parser};
+use clap::{Args};
 
-use serde::{Deserialize, Serialize};
-use anyhow::{anyhow, ensure, Result};
+use serde::{Serialize};
+use anyhow::{Result};
 use serde_repr::*;
 
 use std::path::PathBuf;
-use tantivy::{doc, DocAddress, Document, Index, Score};
-use tantivy::collector::{Count, Fruit, MultiCollector, TopDocs};
-use tantivy::query::QueryParser;
-use tantivy::schema::{Field, FieldType, INDEXED, NamedFieldDocument, Schema, STORED, TEXT};
+use tantivy::{doc, DocAddress, Document, Index};
+use tantivy::collector::{Count, MultiCollector, TopDocs};
+use tantivy::query::{QueryParser};
+use tantivy::schema::{Field, FieldType, NamedFieldDocument};
 use tantivy::tokenizer::{LowerCaser, NgramTokenizer, RemoveLongFilter, TextAnalyzer};
 
 #[derive(Debug, Args)]
@@ -41,7 +41,7 @@ struct SearchResult {
 pub fn run(args: Search) -> Result<()> {
     let index = Index::open_in_dir(args.index)?;
 
-    let ngram_tokenizer = TextAnalyzer::from(NgramTokenizer::new(2, 8, false))
+    let ngram_tokenizer = TextAnalyzer::from(NgramTokenizer::new(3, 3, false))
         .filter(RemoveLongFilter::limit(40))
         .filter(LowerCaser);
 
@@ -64,8 +64,9 @@ pub fn run(args: Search) -> Result<()> {
     let reader = index.reader()?;
 
     let query = query_parser.parse_query(&args.query)?;
-    let searcher = reader.searcher();
+    // dbg!(&query); TODO: build the query ourselves and use slop parameter with %fuzziness
 
+    let searcher = reader.searcher();
 
     let create_hit = |score: f64, doc: &Document, doc_address: DocAddress| -> Hit {
         Hit {
@@ -84,6 +85,7 @@ pub fn run(args: Search) -> Result<()> {
             let field = schema.get_field(&order_by).expect("Order field must exist");
             let collector = options.order_by_u64_field(field);
             let top_docs_handle = multicollector.add_collector(collector);
+            // let mut ret = searcher.search(&query, &multicollector)?;
             let mut ret = searcher.search(&query, &multicollector)?;
 
             let top_docs = top_docs_handle.extract(&mut ret);

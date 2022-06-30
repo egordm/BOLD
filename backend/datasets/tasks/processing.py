@@ -25,17 +25,9 @@ SELECT
     ?type
 {
     {
-        SELECT (?t as ?iri) (COUNT(?t) as ?count) (0 as ?pos)  
-        { ?t ?p ?v }
-        GROUP BY ?t HAVING (?count > {})
-    } UNION {
-        SELECT (?t as ?iri) (COUNT(?t) as ?count) (1 as ?pos)  
-        { ?s ?t ?v }
-        GROUP BY ?t HAVING (?count > {})
-    } UNION {
-        SELECT (?t as ?iri) (COUNT(?t) as ?count) (2 as ?pos)  
-        { ?s ?p ?t FILTER(?p != rdfs:label) }
-        GROUP BY ?t HAVING (?count > {})
+        SELECT (?t as ?iri) (COUNT(?t) as ?count) ({pos} as ?pos)  
+        {triple}
+        GROUP BY ?t HAVING (?count > {min_count})
     }
 
     OPTIONAL { 
@@ -45,7 +37,17 @@ SELECT
     OPTIONAL { ?iri rdfs:type ?type }
 }
 '''
+
+
 # TODO: remove labels from main results
+
+def query_to_file(database: str, query: str, file: Path, timeout: int):
+    client = StardogApi.from_settings()
+    with client.query(database, query, format='text/tsv', timeout=timeout, stream=True) as r:
+        r.raw.decode_content = True
+        with file.open('wb') as f:
+            # https://stackoverflow.com/a/49684845
+            shutil.copyfileobj(r.raw, f)
 
 
 @shared_task()
@@ -61,22 +63,40 @@ def create_search_index(dataset_id: UUID, min_term_count: int = 3, path: str = N
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
     try:
-        terms_file = tmp_dir / 'terms.tsv'
-        query = QUERY_EXPORT_SEARCH.replace('{}', str(min_term_count))
+        terms_files = []
 
-        logger.info(f'Exporting search terms to {terms_file}')
-        client = StardogApi.from_settings()
-        with client.query(database, query, format='text/tsv', timeout=60 * 60 * 1000, stream=True) as r:
-            r.raw.decode_content = True
-            with terms_file.open('wb') as f:
-                # https://stackoverflow.com/a/49684845
-                shutil.copyfileobj(r.raw, f)
+        terms_s_file = tmp_dir / 'terms_s.tsv'
+        query = QUERY_EXPORT_SEARCH \
+            .replace('{triple}', '{ ?t ?p ?v }') \
+            .replace('{min_count}', str(min_term_count)) \
+            .replace('{pos}', '0')
+        logger.info(f'Exporting subject search terms {terms_s_file}')
+        query_to_file(database, query, terms_s_file, timeout=60 * 60 * 1000)
+        terms_files.append(terms_s_file)
+
+        terms_p_file = tmp_dir / 'terms_p.tsv'
+        query = QUERY_EXPORT_SEARCH \
+            .replace('{triple}', '{ ?s ?t ?v }') \
+            .replace('{min_count}', str(min_term_count)) \
+            .replace('{pos}', '1')
+        logger.info(f'Exporting predicate search terms {terms_p_file}')
+        query_to_file(database, query, terms_p_file, timeout=60 * 60 * 1000)
+        terms_files.append(terms_p_file)
+
+        terms_o_file = tmp_dir / 'terms_o.tsv'
+        query = QUERY_EXPORT_SEARCH \
+            .replace('{triple}', '{ ?s ?p ?t FILTER(?p != rdfs:label) }') \
+            .replace('{min_count}', str(min_term_count)) \
+            .replace('{pos}', '2')
+        logger.info(f'Exporting object search terms {terms_o_file}')
+        query_to_file(database, query, terms_o_file, timeout=60 * 60 * 1000)
+        terms_files.append(terms_o_file)
 
         logger.info('Creating search index from documents')
         search_index_dir = DATA_DIR / f'search_index_{database}'
         search_index_dir.mkdir(parents=True, exist_ok=True)
         consume_print(BoldCli.cmd(
-            ['build-index', '--force', str(terms_file), str(search_index_dir)]
+            ['build-index', '--force', *map(str, terms_files), '--index', str(search_index_dir)]
         ))
 
         logger.info('Search index created')

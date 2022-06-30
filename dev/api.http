@@ -34,7 +34,7 @@ authorization: Basic YWRtaW46YWRtaW4=
 POST http://localhost:5820/a1KAZn4jAiX/query
 authorization: Basic YWRtaW46YWRtaW4=
 Content-Type: application/sparql-query
-Accept: text/csv
+Accept: text/tsv
 
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT
