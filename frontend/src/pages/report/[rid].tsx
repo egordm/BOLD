@@ -21,8 +21,7 @@ const NotebookPage = () => {
           BOLD Profiler
         </title>
       </Head>
-      <Box component="main" sx={{ flexGrow: 1, py: 8 }}>
-        <Container maxWidth={'lg'}>
+      <Box component="main">
           {rid && (
             <ReportProvider reportId={rid as string}>
               <NotebookConnectionProvider reportId={rid as string}>
@@ -34,7 +33,6 @@ const NotebookPage = () => {
               </NotebookConnectionProvider>
             </ReportProvider>
           )}
-        </Container>
       </Box>
     </>
   );
