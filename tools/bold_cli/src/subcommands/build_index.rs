@@ -10,6 +10,7 @@ use tantivy::{doc, Index};
 use tantivy::schema::{FAST, INDEXED, IndexRecordOption, Schema, STORED, TEXT, TextFieldIndexing, TextOptions};
 use tantivy::tokenizer::{LowerCaser, NgramTokenizer, RemoveLongFilter, TextAnalyzer};
 use url::Url;
+use crate::utils::query::register_tokenizers;
 
 #[derive(Debug, Args)]
 #[clap(args_conflicts_with_subcommands = true)]
@@ -32,21 +33,10 @@ struct Record {
     #[serde(rename = "?count")]
     count: i64,
     #[serde(rename = "?pos")]
-    pos: PosType,
+    pos: u64,
     #[serde(rename = "?type")]
     ty: String,
 
-}
-
-#[derive(Debug, Deserialize_repr)]
-#[repr(u8)]
-enum PosType {
-    #[serde(rename = "subject")]
-    Subject = 0,
-    #[serde(rename = "property")]
-    Property = 1,
-    #[serde(rename = "value")]
-    Value = 2,
 }
 
 
@@ -79,14 +69,7 @@ pub fn run(args: BuildIndex) -> Result<()> {
     let schema = schema_builder.build();
 
     let index = Index::create_in_dir(args.index, schema.clone())?;
-
-    let ngram_tokenizer = TextAnalyzer::from(NgramTokenizer::new(3, 3, false))
-        .filter(RemoveLongFilter::limit(40))
-        .filter(LowerCaser);
-
-    index
-        .tokenizers()
-        .register("ngram", ngram_tokenizer);
+    register_tokenizers(&index);
 
     let mut index_writer = index.writer(50_000_000).unwrap();
 
@@ -130,7 +113,7 @@ pub fn run(args: BuildIndex) -> Result<()> {
                     ty => record.ty,
                 ))?;
                     success_count += 1;
-                },
+                }
                 Err(e) => {
                     error_count += 1;
                     println!("Error occured at document {}: {}", cursor, e);

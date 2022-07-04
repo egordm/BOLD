@@ -16,18 +16,40 @@ class BoldCli:
         )
 
     @staticmethod
-    def search(index_path: Path, query: str, limit: int, offset: int, sort_by: str = None, **kwargs) -> dict:
-        sort_args = ['--order-by', sort_by] if sort_by else []
+    def search(
+        index_path: Path,
+        query: str, limit: int, offset: int,
+        pos: int = None, url: int = None,
+        min_count: int = None, max_count: int = None,
+        **kwargs
+    ) -> dict:
+        filter_args = []
+        if pos is not None:
+            filter_args.append(f'--pos={pos}')
+        if url is not None:
+            filter_args.append(f'--url={url}')
+        if min_count is not None:
+            filter_args.append(f'--min-count={min_count}')
+        if max_count is not None:
+            filter_args.append(f'--max-count={max_count}')
+
+        print([
+            'search',
+            '--index', str(index_path),
+            '--limit', str(limit),
+            '--offset', str(offset),
+            *filter_args,
+            query
+        ])
 
         result_lines = list(BoldCli.cmd([
             'search',
             '--index', str(index_path),
             '--limit', str(limit),
             '--offset', str(offset),
-            *sort_args,
+            *filter_args,
             query
         ], ignore_errors=True, **kwargs))
 
         print(result_lines)
-
         return json.loads(''.join(result_lines))

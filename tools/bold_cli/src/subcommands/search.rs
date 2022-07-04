@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use clap::{Args};
 
 use serde::{Serialize};
@@ -6,23 +7,34 @@ use serde_repr::*;
 
 use std::path::PathBuf;
 use tantivy::{doc, DocAddress, Document, Index};
-use tantivy::collector::{Count, MultiCollector, TopDocs};
-use tantivy::query::{QueryParser};
-use tantivy::schema::{Field, FieldType, NamedFieldDocument};
+use tantivy::aggregation::agg_req::{Aggregation, Aggregations, MetricAggregation};
+use tantivy::aggregation::agg_result::{AggregationResult, MetricResult};
+use tantivy::aggregation::AggregationCollector;
+use tantivy::aggregation::metric::StatsAggregation;
+use tantivy::collector::{Count, HistogramCollector, MultiCollector, TopDocs};
+use tantivy::query::{PhraseQuery, Query, QueryParser, TermQuery};
+use tantivy::schema::{Field, FieldType, IndexRecordOption, NamedFieldDocument};
 use tantivy::tokenizer::{LowerCaser, NgramTokenizer, RemoveLongFilter, TextAnalyzer};
+use crate::utils::query::{build_query, parse_query, QueryParams, register_tokenizers};
 
 #[derive(Debug, Args)]
 #[clap(args_conflicts_with_subcommands = true)]
 pub struct Search {
-    query: String,
     #[clap(short, long)]
     index: PathBuf,
+    query: String,
     #[clap(short, long, default_value_t = 10)]
     limit: usize,
     #[clap(short, long, default_value_t = 0)]
     offset: usize,
     #[clap(long)]
-    order_by: Option<String>,
+    pos: Option<u64>,
+    #[clap(long)]
+    url: Option<bool>,
+    #[clap(long)]
+    min_count: Option<u64>,
+    #[clap(long)]
+    max_count: Option<u64>,
 }
 
 #[derive(Debug, Serialize)]
@@ -36,35 +48,25 @@ struct Hit {
 struct SearchResult {
     count: usize,
     hits: Vec<Hit>,
+    agg: HashMap<String, AggResult>,
+}
+
+#[derive(Debug, Serialize)]
+struct AggResult {
+    min: f64,
+    max: f64,
+    mean: f64,
 }
 
 pub fn run(args: Search) -> Result<()> {
     let index = Index::open_in_dir(args.index)?;
-
-    let ngram_tokenizer = TextAnalyzer::from(NgramTokenizer::new(3, 3, false))
-        .filter(RemoveLongFilter::limit(40))
-        .filter(LowerCaser);
-
-    index
-        .tokenizers()
-        .register("ngram", ngram_tokenizer);
+    register_tokenizers(&index);
 
     let schema = index.schema();
-    let default_fields: Vec<Field> = schema
-        .fields()
-        .filter(|&(_, field_entry)| match field_entry.field_type() {
-            FieldType::Str(ref text_field_options) => {
-                text_field_options.get_indexing_options().is_some()
-            }
-            _ => false,
-        })
-        .map(|(field, _)| field)
-        .collect();
-    let query_parser = QueryParser::new(schema.clone(), default_fields, index.tokenizers().clone());
     let reader = index.reader()?;
-
-    let query = query_parser.parse_query(&args.query)?;
-    // dbg!(&query); TODO: build the query ourselves and use slop parameter with %fuzziness
+    let query = build_query(&index, &args.query, args.pos, args.url, args.min_count, args.max_count)?;
+    // let query = parse_query(&index, &args.query)?;
+    // dbg!(&query); // TODO: build the query ourselves and use slop parameter with %fuzziness
 
     let searcher = reader.searcher();
 
@@ -77,61 +79,56 @@ pub fn run(args: Search) -> Result<()> {
     };
 
     let mut multicollector = MultiCollector::new();
+
+    let agg_req: Aggregations = vec![(
+        "count_stats".to_string(),
+        Aggregation::Metric(MetricAggregation::Stats(
+            StatsAggregation::from_field_name("count".to_string()),
+        )),
+    )]
+        .into_iter()
+        .collect();
+    let collector = AggregationCollector::from_aggs(agg_req);
+    let agg_handle = multicollector.add_collector(collector);
+    let top_docs_handle = multicollector.add_collector(
+        TopDocs::with_limit(args.limit).and_offset(args.offset));
     let count_handle = multicollector.add_collector(Count);
 
-    let options = TopDocs::with_limit(args.limit).and_offset(args.offset);
-    let (mut multifruit, top_docs) = {
-        if let Some(order_by) = args.order_by {
-            let field = schema.get_field(&order_by).expect("Order field must exist");
-            let collector = options.order_by_u64_field(field);
-            let top_docs_handle = multicollector.add_collector(collector);
-            // let mut ret = searcher.search(&query, &multicollector)?;
-            let mut ret = searcher.search(&query, &multicollector)?;
-
-            let top_docs = top_docs_handle.extract(&mut ret);
-            let result: Vec<(f64, DocAddress)> = top_docs
-                .into_iter()
-                .map(|(f, d)| {
-                    (f as f64, DocAddress::from(d))
-                })
-                .collect();
-            (ret, result)
-        } else {
-            let collector = options;
-            let top_docs_handle = multicollector.add_collector(collector);
-            let mut ret = searcher.search(&query, &multicollector)?;
-
-            let top_docs = top_docs_handle.extract(&mut ret);
-            let result: Vec<(f64, DocAddress)> = top_docs
-                .into_iter()
-                .map(|(f, d)| {
-                    (f as f64, DocAddress::from(d))
-                })
-                .collect();
-            (ret, result)
-        }
-    };
+    let mut multifruit = searcher.search(&query, &multicollector)?;
 
     let num_hits = count_handle.extract(&mut multifruit);
+    let top_docs = top_docs_handle.extract(&mut multifruit);
+    let hits: Vec<Hit> = top_docs
+        .into_iter()
+        .map(|(score, doc_address)| {
+            let doc: Document = searcher.doc(doc_address.clone()).unwrap();
+            create_hit(score as f64, &doc, doc_address)
+        })
+        .collect();
 
-
-    // let (top_docs, num_hits) = searcher.search(&query, &multicollector)?;
-
-    let hits: Vec<Hit> = {
-        top_docs
-            .into_iter()
-            .map(|(score, doc_address)| {
-                let doc: Document = searcher.doc(doc_address.clone()).unwrap();
-                create_hit(score, &doc, doc_address)
-            })
-            .collect()
+    let aggs = agg_handle.extract(&mut multifruit);
+    let mut agg_values = HashMap::new();
+    match &aggs.0["count_stats"] {
+        AggregationResult::BucketResult(_) => {}
+        AggregationResult::MetricResult(r) => match r {
+            MetricResult::Average(_) => {}
+            MetricResult::Stats(s) => {
+                agg_values.insert("counts".to_string(), AggResult {
+                    min: s.min.unwrap_or(0.0),
+                    max: s.max.unwrap_or(0.0),
+                    mean: s.avg.unwrap_or(0.0),
+                });
+            }
+        }
     };
 
     let result = SearchResult {
         count: num_hits,
         hits,
+        agg: agg_values,
     };
 
     println!("{}", serde_json::to_string_pretty(&result)?);
     Ok(())
 }
+

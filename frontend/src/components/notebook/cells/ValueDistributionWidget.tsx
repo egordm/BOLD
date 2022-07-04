@@ -197,7 +197,7 @@ export const ValueDistributionWidget = (props: {}) => {
           />
         </Grid>
         <Grid item xs={2}>
-          <TextField label="Value" value="Any" variant="filled" disabled={true}/>
+          <TextField label="For Subject" value="Any" variant="filled" disabled={true}/>
         </Grid>
         <Grid item xs={10}>
           <TermInput

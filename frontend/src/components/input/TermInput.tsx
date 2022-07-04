@@ -50,7 +50,8 @@ export const TermInput = (props: {
       const result = await apiClient.get(`/terms/${datasetId}/search`, {
         params: {
           limit: limit ?? 50,
-          query: `+pos:${POS_TO_ID[pos]} ${request.query}`,
+          query: request.query,
+          pos: POS_TO_ID[pos],
         }
       })
       callback(result.data)

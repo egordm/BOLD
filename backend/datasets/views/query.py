@@ -24,6 +24,7 @@ class SearchHit(Serializable):
 class SearchResult(Serializable):
     count: int
     hits: List[SearchHit]
+    agg: dict
 
 
 @dataclass
@@ -66,6 +67,11 @@ TERM_POSITIONS = [
 ]
 
 
+def parse_int_or_none(value: str) -> int:
+    if value is None:
+        return None
+    return int(value)
+
 @swagger_auto_schema(methods=['get'], manual_parameters=[
     openapi.Parameter('query', openapi.IN_QUERY, "Search query", type=openapi.TYPE_STRING),
 ])
@@ -78,9 +84,12 @@ def term_search(request: Request, dataset_id: UUID):
     q = request.GET.get('query', '')
     limit = int(request.GET.get('limit', 10))
     offset = int(request.GET.get('offset', 0))
-    sort_by = request.GET.get('sort_by', None)
+    pos = parse_int_or_none(request.GET.get('pos', None))
+    url = parse_int_or_none(request.GET.get('url', None))
+    min_count = parse_int_or_none(request.GET.get('min_count', None))
+    max_count = parse_int_or_none(request.GET.get('max_count', None))
 
-    result_data = BoldCli.search(dataset.search_index_path, q, limit, offset, sort_by)
+    result_data = BoldCli.search(dataset.search_index_path, q, limit, offset, pos, url, min_count, max_count)
     results = SearchResult(
         count=result_data['count'],
         hits=[
@@ -89,7 +98,8 @@ def term_search(request: Request, dataset_id: UUID):
                 document=parse_doc(hit['doc'])
             )
             for hit in result_data['hits']
-        ]
+        ],
+        agg=result_data['agg']
     )
 
     return JsonResponse(results.to_dict())
