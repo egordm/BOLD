@@ -25,8 +25,8 @@ export const RunQueueProvider = (props: {
   }, []);
 
   const runCells = useCallback((cellsIds: CellId[]) => {
-    setRunQueue(_.uniq(runQueueRef.current.concat(cellsIds)));
     save();
+    setRunQueue(_.uniq(runQueueRef.current.concat(cellsIds)));
   }, []);
 
   const { sendNotification } = useNotification();

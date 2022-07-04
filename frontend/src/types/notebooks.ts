@@ -146,6 +146,18 @@ export const setCellContent = (notebook: Notebook, cellId: CellId, cell: Cell): 
       ...notebook.content.cells,
       [cellId]: cell
     }
+  },
+  results: {
+    outputs: {
+      ...notebook.results.outputs,
+      [cellId]: []
+    },
+    states: {
+      ...notebook.results.states,
+      [cellId]: {
+        status: 'INITIAL'
+      }
+    },
   }
 })
 
