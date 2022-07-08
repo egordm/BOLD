@@ -51,5 +51,5 @@ class BoldCli:
             query
         ], ignore_errors=True, **kwargs))
 
-        print(result_lines)
+        # print(''.join(result_lines))
         return json.loads(''.join(result_lines))

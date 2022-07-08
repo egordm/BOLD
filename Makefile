@@ -10,3 +10,12 @@ start_worker:
 start_frontend:
 	@echo "Starting frontend"
 	cd frontend && yarn start
+
+release-tools:
+	cd tools && cargo build --release
+	cp tools/target/release/bold-cli dev/bold-cli
+
+release-frontend:
+	cd frontend && yarn build && yarn export
+	rm -rf backend/frontend/static
+	cp -r frontend/out backend/frontend/static

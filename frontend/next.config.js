@@ -3,10 +3,12 @@
  */
 const nextConfig = {
     env: {
-        API_ENDPOINT: 'http://localhost:8000',
+        API_ENDPOINT: 'http://localhost:8000/api',
         WS_ENDPOINT: 'ws://localhost:8000',
     },
-    output: 'standalone',
+    typescript: {
+        ignoreBuildErrors: true,
+    },
 }
 
 module.exports = nextConfig
