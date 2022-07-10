@@ -11,9 +11,14 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 import os
 from pathlib import Path
+import environ
+
+env = environ.Env()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -84,11 +89,11 @@ TEMPLATES = [
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-DB_HOST = os.environ.get('DB_HOST', 'localhost')
-DB_PORT = os.environ.get('DB_PORT', '5432')
-DB_NAME = os.environ.get('DB_NAME', 'develop')
-DB_USER = os.environ.get('DB_USER', 'root')
-DB_PASS = os.environ.get('DB_PASS', 'helloworld')
+DB_HOST = env('DB_HOST', default='localhost')
+DB_PORT = env('DB_PORT', default='5432')
+DB_NAME = env('DB_NAME', default='develop')
+DB_USER = env('DB_USER', default='root')
+DB_PASS = env('DB_PASS', default='helloworld')
 
 DATABASES = {
     'default': {
@@ -199,12 +204,14 @@ LOGGING = {
     },
 }
 
-STARDOG_HOST = os.getenv('STARDOG_HOST', 'localhost')
-STARDOG_PORT = os.getenv('STARDOG_PORT', '5820')
+STARDOG_HOST = env('STARDOG_HOST', default='localhost')
+STARDOG_PORT = env('STARDOG_PORT', default='5820')
 STARDOG_ENDPOINT = f'http://{STARDOG_HOST}:{STARDOG_PORT}'
-STARDOG_USER = os.getenv('STARDOG_USER', 'admin')
-STARDOG_PASS = os.getenv('STARDOG_PASS', 'admin')
+STARDOG_USER = env('STARDOG_USER', default='admin')
+STARDOG_PASS = env('STARDOG_PASS', default='admin')
 
 ROOT_DIR = BASE_DIR.parent.absolute()
 
-STORAGE_DIR = Path(os.getenv('STORAGE_DIR', str(ROOT_DIR / 'storage')))
+STORAGE_DIR = Path(env('STORAGE_DIR', default=str(ROOT_DIR / 'storage')))
+
+OPENAPI_KEY = env('OPENAPI_KEY', default=None)

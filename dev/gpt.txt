@@ -1,0 +1,17 @@
+### Generate SPARQL that
+### Counts all the males and females separately
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX dbp: <http://dbpedia.org/ontology/>
+PREFIX yago: <http://yago-knowledge.org/resource/>
+SELECT
+(COUNT(?male) AS ?maleCount)
+(COUNT(?female) AS ?femaleCount)
+WHERE {
+?male a yago:Male109818508.
+?female a yago:Female109619168.
+}
+

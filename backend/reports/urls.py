@@ -9,4 +9,6 @@ router.register(r'reports', views.ReportViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('services/gpt_prompt', views.gpt_prompt),
+
 ]
