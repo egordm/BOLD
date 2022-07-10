@@ -3,14 +3,9 @@ import {
   CardHeader, Container,
   Grid,
   IconButton,
-  Input,
-  Modal,
-  Slider,
   Stack,
-  TextField,
-  Typography
+  TextField
 } from "@mui/material";
-import { Box } from "@mui/system";
 import { SELECT } from "@tpluscode/sparql-builder";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useCellContext } from "../../../providers/CellProvider";

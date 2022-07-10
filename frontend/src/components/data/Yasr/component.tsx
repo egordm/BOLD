@@ -1,6 +1,7 @@
 import { default as YasrTable, Config as YasrConfig, Parser, PersistentConfig as YasrPersistentConfig } from "@triply/yasr";
 import _ from "lodash";
 import React from "react";
+import "@triply/yasgui/build/yasgui.min.css";
 
 
 export class Yasr extends React.Component<{

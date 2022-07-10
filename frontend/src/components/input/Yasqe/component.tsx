@@ -1,38 +1,7 @@
-import { StreamLanguage } from "@codemirror/language";
-import { sparql } from "@codemirror/legacy-modes/mode/sparql";
 import { default as YasqeEditor, PartialConfig as YasqeConfig } from "@triply/yasqe";
-import { Config } from "@triply/yasqe/src";
-import CodeMirror from "@uiw/react-codemirror/esm";
-import { useEffect, useRef } from "react";
 import "@triply/yasgui/build/yasgui.min.css";
-import { editorTheme } from "../../../theme";
 import React from "react";
 import _, { debounce } from "lodash";
-
-
-// export const Yasqe = (props: {
-//   value: string;
-//   onChange?: (value: string) => void;
-// }) => {
-//   const container = useRef();
-//   const editorRef = useRef<YasqeClass>();
-//
-//   const config: Partial<YasqeConfig> = {
-//     editorHeight: "300px",
-//   }
-//
-//   useEffect(() => {
-//     if (container.current) {
-//       editorRef.current = new YasqeClass(container.current, config);
-//       this.codeMirror.on('change', this.codemirrorValueChanged);
-//     }
-//     return () => {};
-//   }, [ ]);
-//
-//   return (
-//     <div ref={container}/>
-//   )
-// }
 
 function normalizeLineEndings(str) {
   if (!str) return str;

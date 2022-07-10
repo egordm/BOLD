@@ -147,18 +147,6 @@ export const setCellContent = (notebook: Notebook, cellId: CellId, cell: Cell): 
       [cellId]: cell
     }
   },
-  results: {
-    outputs: {
-      ...notebook.results.outputs,
-      [cellId]: []
-    },
-    states: {
-      ...notebook.results.states,
-      [cellId]: {
-        status: 'INITIAL'
-      }
-    },
-  }
 })
 
 export const setCellOutputs = (notebook: Notebook, cellId: CellId, outputs: CellOutput[]): Notebook => ({
@@ -221,6 +209,18 @@ export const addCell = (notebook: Notebook, cell: Cell, index: number = -1): Not
         [cellId]: cell
       },
       cell_order: cellOrder
+    },
+    results: {
+      outputs: {
+        ...notebook.results.outputs,
+        [cellId]: []
+      },
+      states: {
+        ...notebook.results.states,
+        [cellId]: {
+          status: 'INITIAL'
+        }
+      },
     }
   }
 }

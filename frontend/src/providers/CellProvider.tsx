@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useMemo } from "react";
-import useNotification from "../hooks/useNotification";
 import { Cell, CellId, CellOutput, CellState, setCellState } from "../types/notebooks";
 import { useCellFocusContext } from "./CellFocusProvider";
 import { useNotebookConnectionContext } from "./NotebookConnectionProvider";
 import { useNotebookContext } from "./NotebookProvider";
 import { useRunQueueContext } from "./RunQueueProvider";
-import { ConnectionStatus } from "./WebsocketProvider";
 
 export const CellContext = React.createContext<{
   cell: Cell;
@@ -23,9 +21,9 @@ export const CellProvider = (props: {
   const { cellId } = props;
 
   const { runCells } = useRunQueueContext();
-  const { socket, status } = useNotebookConnectionContext();
+  const { socket } = useNotebookConnectionContext();
   const { focus, setFocus } = useCellFocusContext();
-  const { notebook, notebookRef, setNotebook, setCell, changed, save } = useNotebookContext();
+  const { notebook, notebookRef, setNotebook, setCell } = useNotebookContext();
   const cellRef = React.useRef<Cell>(null);
 
   const cell = notebook?.content?.cells[cellId];
