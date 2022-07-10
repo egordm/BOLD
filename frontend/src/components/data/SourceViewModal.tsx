@@ -1,4 +1,4 @@
-import { Modal, Typography } from "@mui/material";
+import { Divider, Modal, Stack, Typography } from "@mui/material";
 import { Box } from "@mui/system";
 import React from "react";
 
@@ -21,7 +21,7 @@ const style = {
 
 
 export const SourceViewModal = (props: {
-  source: string[];
+  source: Record<string, string>;
   open: boolean;
   onClose: () => void;
 }) => {
@@ -33,13 +33,19 @@ export const SourceViewModal = (props: {
       onClose={onClose}
     >
       <Box sx={style}>
-        {(source ?? []).map((s, index) => (
-          <Typography key={index}>
+        <Stack spacing={2}>
+          {(Object.entries(source) ?? []).map(([ title, s ], index) => (
+            <Box>
+              <Divider/>
+              <Typography variant="h6">{title}</Typography>
+              <Typography key={index}>
               <pre style={{ fontFamily: 'inherit' }}>
-                {s}
+                {s.replaceAll('\n\n', '\n')}
               </pre>
-          </Typography>
-        ))}
+              </Typography>
+            </Box>
+          ))}
+        </Stack>
       </Box>
     </Modal>
   )

@@ -42,6 +42,7 @@ const MAX_GROUP_COUNT = 101;
 const OUTPUT_TABS = [
   { value: 'plot', label: 'Show Plot' },
   { value: 'table', label: 'Show Table' },
+  { value: 'examples', label: 'Show Example Matches' },
 ]
 
 const termToSparql = (term: Term) => {
@@ -56,10 +57,10 @@ const termToSparql = (term: Term) => {
 const buildQuery = (data: ValueDistributionWidgetData) => {
   const groupPredicates = (data.group_predicate ?? []).map(termToSparql);
 
-  let query = SELECT`?v (COUNT(?v) as ?count)`
+  let query = SELECT`?o (COUNT(?o) as ?count)`
     .WHERE`
       VALUES ?p { ${groupPredicates} } 
-      ?s ?p ?v
+      ?s ?p ?o
      `;
 
   (data.filters ?? []).forEach((filter, index) => {
@@ -79,9 +80,38 @@ const buildQuery = (data: ValueDistributionWidgetData) => {
   const groupCount = data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20);
 
   query = query
-    .GROUP().BY(variable('v')).HAVING`?count >= ${data.min_group_size ?? 1}`
+    .GROUP().BY(variable('o')).HAVING`?count >= ${data.min_group_size ?? 1}`
     .ORDER().BY(variable('count'), true)
     .LIMIT(groupCount);
+
+  return query.build();
+}
+
+const buildExamplesQuery = (data: ValueDistributionWidgetData) => {
+  const groupPredicates = (data.group_predicate ?? []).map(termToSparql);
+
+  let query = SELECT`?s ?p ?o`
+    .WHERE`
+      VALUES ?p { ${groupPredicates} } 
+      ?s ?p ?o
+     `;
+
+  (data.filters ?? []).forEach((filter, index) => {
+    const predicate = filter.predicate?.map(termToSparql) ?? [];
+    const object = filter.object?.map(termToSparql) ?? [];
+
+    const predicateVar = variable(`p${index}`);
+    const objectVar = variable(`o${index}`);
+
+    query = query.WHERE`
+      VALUES ${predicateVar} { ${predicate} }
+      VALUES ${objectVar} { ${object} }
+      ?s ${predicateVar} ${objectVar}
+    `
+  });
+
+  query = query
+    .LIMIT(100);
 
   return query.build();
 }
@@ -94,10 +124,12 @@ export const ValueDistributionWidget = (props: {}) => {
 
   useEffect(() => {
     const query = buildQuery(data);
+    const examplesQuery = buildExamplesQuery(data);
     setCell({
       ...cell,
       source: [
-        query
+        query,
+        examplesQuery,
       ],
     } as any)
   }, [ data ]);
@@ -247,7 +279,10 @@ export const ValueDistributionWidget = (props: {}) => {
       {Content}
       {Result}
       <SourceViewModal
-        source={source}
+        source={{
+          'Main Query': source[0],
+          'Example Query': source[1],
+        }}
         open={showSource}
         onClose={() => setShowSource(false)}
       />
@@ -257,12 +292,12 @@ export const ValueDistributionWidget = (props: {}) => {
 
 const ResultTab = ({ outputs, mode }: { outputs: CellOutput[], mode: string }) => {
   const prefixes = usePrefixes();
-  const output = outputs[0];
 
   if (mode === 'plot') {
+    const output = outputs[0];
     if (output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
       const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
-      const x = data.results.bindings.map((row) => extractIriLabel(row['v'].value));
+      const x = data.results.bindings.map((row) => extractIriLabel(row['o'].value));
       const y = data.results.bindings.map((row) => parseInt(row['count'].value));
 
       return (
@@ -280,7 +315,15 @@ const ResultTab = ({ outputs, mode }: { outputs: CellOutput[], mode: string }) =
       )
     }
   } else if (mode === 'table') {
-    const result = cellOutputToYasgui(output);
+    const result = cellOutputToYasgui(outputs[0]);
+    return (
+      <Yasr
+        result={result}
+        prefixes={prefixes}
+      />
+    )
+  } else if (mode === 'examples') {
+    const result = cellOutputToYasgui(outputs[1]);
     return (
       <Yasr
         result={result}

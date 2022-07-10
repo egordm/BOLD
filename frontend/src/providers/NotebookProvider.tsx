@@ -80,10 +80,12 @@ export const NotebookProvider = (props: {
 
     const errored = data.outputs.some(output => output.output_type === 'error');
     const cellIdx = notebookRef.current?.content?.cell_order?.findIndex(cellId => cellId === data.cell_id) ?? -1;
-    if (errored) {
-      sendNotification({ variant: 'error', message: `Cell #${cellIdx + 1} run failed` });
-    } else {
-      sendNotification({ variant: 'success', message: `Cell #${cellIdx + 1} run succeeded` });
+    if (data.outputs.length > 0) {
+      if (errored) {
+        sendNotification({ variant: 'error', message: `Cell #${cellIdx + 1} run failed` });
+      } else {
+        sendNotification({ variant: 'success', message: `Cell #${cellIdx + 1} run succeeded` });
+      }
     }
   }, []);
 

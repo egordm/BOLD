@@ -17,7 +17,9 @@ export const HistogramPlot = (props: {
   return (
     <Plot
       data={[
-        { type: 'bar', x, y },
+        {
+          type: 'bar', x, y,
+        },
       ]}
       style={{width: "100%"}}
       layout={{
