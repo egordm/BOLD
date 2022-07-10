@@ -15,7 +15,6 @@ services:
 
   stardog:
     image: stardog/stardog:latest
-#    entrypoint: /bin/bash
     userns_mode: host
     ports:
       - 5820:5820

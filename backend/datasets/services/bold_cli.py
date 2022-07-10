@@ -2,7 +2,8 @@ import json
 from pathlib import Path
 from typing import List, Iterator
 
-from shared.paths import ROOT_DIR, BIN_DIR
+from backend.settings import STORAGE_DIR
+from shared.paths import BIN_DIR
 from shared.shell import execute_command
 
 
@@ -11,7 +12,7 @@ class BoldCli:
     def cmd(command: List[str], **kwargs) -> Iterator[str]:
         yield from execute_command(
             [str(BIN_DIR / 'bold-cli'), *command],
-            cwd=ROOT_DIR,
+            cwd=STORAGE_DIR,
             **kwargs
         )
 

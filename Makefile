@@ -13,7 +13,7 @@ start_frontend:
 
 release-tools:
 	cd tools && cargo build --release
-	cp tools/target/release/bold-cli dev/bold-cli
+	cp tools/target/release/bold-cli backend/backend/bin/bold-cli
 
 release-frontend:
 	cd frontend && yarn build && yarn export

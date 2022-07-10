@@ -9,7 +9,7 @@ https://docs.djangoproject.com/en/4.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.0/ref/settings/
 """
-
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -81,26 +81,31 @@ TEMPLATES = [
     },
 ]
 
-
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
+
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_PORT = os.environ.get('DB_PORT', '5432')
+DB_NAME = os.environ.get('DB_NAME', 'develop')
+DB_USER = os.environ.get('DB_USER', 'root')
+DB_PASS = os.environ.get('DB_PASS', 'helloworld')
 
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'develop',
-        'USER': 'root',
-        'PASSWORD': 'helloworld',
-        'HOST': 'localhost',
-        'PORT': 5432,
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASS,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     },
     'channels_postgres': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'develop',
-        'USER': 'root',
-        'PASSWORD': 'helloworld',
-        'HOST': 'localhost',
-        'PORT': 5432,
+        'NAME': DB_NAME,
+        'USER': DB_USER,
+        'PASSWORD': DB_PASS,
+        'HOST': DB_HOST,
+        'PORT': DB_PORT,
     },
 }
 
@@ -119,7 +124,7 @@ CHANNEL_LAYERS = {
 }
 
 # Celery settings
-CELERY_BROKER_URL = 'sqla+postgresql://root:helloworld@localhost/develop'
+CELERY_BROKER_URL = f'sqla+postgresql://{DB_USER}:{DB_PASS}@{DB_HOST}/{DB_NAME}'
 CELERY_SEND_EVENTS = True
 CELERY_RESULT_BACKEND = 'rpc://localhost'
 CELERY_TASK_TRACK_STARTED = True
@@ -194,6 +199,12 @@ LOGGING = {
     },
 }
 
-STARDOG_ENDPOINT = 'http://localhost:5820'
-STARDOG_USER = 'admin'
-STARDOG_PASS = 'admin'
+STARDOG_HOST = os.getenv('STARDOG_HOST', 'localhost')
+STARDOG_PORT = os.getenv('STARDOG_PORT', '5820')
+STARDOG_ENDPOINT = f'http://{STARDOG_HOST}:{STARDOG_PORT}'
+STARDOG_USER = os.getenv('STARDOG_USER', 'admin')
+STARDOG_PASS = os.getenv('STARDOG_PASS', 'admin')
+
+ROOT_DIR = BASE_DIR.parent.absolute()
+
+STORAGE_DIR = Path(os.getenv('STORAGE_DIR', str(ROOT_DIR / 'storage')))

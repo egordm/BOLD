@@ -146,3 +146,13 @@ storage/import/*
 storage/downloads/*
 storage/export/*
 storage/data/*
+
+Dockerfile
+docker-compose.yml
+dev/docker-compose.yml
+tools/target
+frontend/node_modules
+frontend/.next
+frontend/.idea
+frontend/.yarn/cache
+frontend/.yarn/install-state.gz

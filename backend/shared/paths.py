@@ -1,13 +1,8 @@
-from pathlib import Path
+from backend import settings
 
-BIN_DIR = Path(__file__).parent.parent.absolute() / 'backend' / 'bin'
+BIN_DIR = settings.BASE_DIR / 'backend' / 'bin'
 
-ROOT_DIR = Path(__file__).parent.parent.parent.absolute()
-
-STORAGE_DIR = ROOT_DIR / 'storage'
-
-IMPORT_DIR = STORAGE_DIR / 'import'
-DOWNLOAD_DIR = STORAGE_DIR / 'downloads'
-EXPORT_DIR = STORAGE_DIR / 'export'
-DATA_DIR = STORAGE_DIR / 'data'
-
+IMPORT_DIR = settings.STORAGE_DIR / 'import'
+DOWNLOAD_DIR = settings.STORAGE_DIR / 'downloads'
+EXPORT_DIR = settings.STORAGE_DIR / 'export'
+DATA_DIR = settings.STORAGE_DIR / 'data'

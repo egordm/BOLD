@@ -26,7 +26,7 @@ def run_sparql(database: str, source: str, timeout: int = None, limit: int = Non
     outputs, error = [], False
     try:
         with StardogApi.connection(database) as conn:
-            output = conn.query(source, limit=limit, timeout=timeout)
+            output = conn.select(source, limit=limit, timeout=timeout)
         outputs.append({
             'output_type': 'execute_result',
             'execute_count': 1,
