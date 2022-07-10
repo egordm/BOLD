@@ -1,5 +1,7 @@
 from pathlib import Path
 
+BIN_DIR = Path(__file__).parent.parent.absolute() / 'backend' / 'bin'
+
 ROOT_DIR = Path(__file__).parent.parent.parent.absolute()
 
 STORAGE_DIR = ROOT_DIR / 'storage'

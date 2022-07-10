@@ -6,13 +6,13 @@ from typing import Optional, List
 from urllib.parse import urlparse
 from urllib.request import urlretrieve, urlopen
 
+import stardog
 from celery import shared_task
 
-from datasets.services.stardog_cli import StarDogCli
+from datasets.services.stardog_api import StardogApi
 from shared import get_logger
-from shared.paths import IMPORT_DIR, DOWNLOAD_DIR
+from shared.paths import DOWNLOAD_DIR
 from shared.random import random_string
-from shared.shell import consume_print
 
 logger = get_logger()
 
@@ -80,17 +80,14 @@ def import_files(files: List[Path], database: Optional[str] = None) -> str:
             files = [files]
 
     logger.info(f"Loading KG from {files}")
-    def remap_file(file: Path) -> Path:
-        if file.is_relative_to(IMPORT_DIR):
-            return Path('/var/data/import') / file.relative_to(IMPORT_DIR)
-        elif file.is_relative_to(DOWNLOAD_DIR):
-            return Path('/var/data/downloads') / file.relative_to(DOWNLOAD_DIR)
-        else:
-            raise ValueError(f"File {file} is not in {IMPORT_DIR} or {DOWNLOAD_DIR}")
-
-    remote_files = [remap_file(file) for file in files]
-
-    consume_print(StarDogCli.create_db(database, remote_files))
-    logger.info(f'Successfully loaded knowledge graph from {files}')
+    with StardogApi.admin() as admin:
+        admin.new_database(
+            database,
+            {'spatial.enabled': True},
+            *[
+                stardog.content.File(str(file.absolute()))
+                for file in files
+            ]
+        )
 
     return database

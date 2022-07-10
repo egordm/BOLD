@@ -17,13 +17,15 @@ def update_dataset_info(dataset_id: UUID):
         raise Exception("Dataset has no database")
 
     database = dataset.database
-    client = StardogApi.from_settings()
+    with StardogApi.admin() as admin:
+        database_api = admin.database(database)
 
-    logger.info('Retrieving namespace info')
-    namespaces = client.namespaces(database)
+        logger.info('Retrieving namespace info')
+        namespaces = database_api.namespaces()
 
-    logger.info('Getting number of triples')
-    triple_count = client.size(database)
+    with StardogApi.connection(database) as conn:
+        logger.info('Getting number of triples')
+        triple_count = conn.size(exact=False)
 
     # path = ['results', 'bindings', 0, 'count', 'value']
     # ATOM_QUERY = 'SELECT (COUNT(DISTINCT {}) as ?count) {{ ?s ?p ?o }}'

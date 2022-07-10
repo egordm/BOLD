@@ -6,7 +6,8 @@ import stardog
 from celery import shared_task
 
 from datasets.models import Dataset
-from datasets.services.stardog_sparql import StardogSparql
+
+from datasets.services.stardog_api import StardogApi
 from reports.models import Report, CellState
 from shared import get_logger
 from shared.dict import deepget
@@ -19,13 +20,13 @@ DEFAULT_TIMEOUT = 5000
 
 def run_sparql(database: str, source: str, timeout: int = None, limit: int = None):
     start_time = timer()
-    connection = StardogSparql.from_database(database)
     limit = (limit or DEFAULT_LIMIT) if ' LIMIT ' not in source.upper() else None
     timeout = timeout or DEFAULT_TIMEOUT
 
     outputs, error = [], False
     try:
-        output = connection.query(source, limit=limit, timeout=timeout)
+        with StardogApi.connection(database) as conn:
+            output = conn.query(source, limit=limit, timeout=timeout)
         outputs.append({
             'output_type': 'execute_result',
             'execute_count': 1,

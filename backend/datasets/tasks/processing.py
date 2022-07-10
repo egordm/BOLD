@@ -1,15 +1,16 @@
+import base64
 import shutil
 from pathlib import Path
 from uuid import UUID
+import requests
 
 from celery import shared_task
-
+from backend import settings
 from datasets.models import Dataset
 from datasets.services.bold_cli import BoldCli
 from datasets.services.stardog_api import StardogApi
-from datasets.services.stardog_cli import StarDogCli
 from shared import get_logger
-from shared.paths import EXPORT_DIR, DATA_DIR, DOWNLOAD_DIR
+from shared.paths import DATA_DIR, DOWNLOAD_DIR
 from shared.random import random_string
 from shared.shell import consume_print
 
@@ -41,9 +42,24 @@ SELECT
 
 # TODO: remove labels from main results
 
-def query_to_file(database: str, query: str, file: Path, timeout: int):
-    client = StardogApi.from_settings()
-    with client.query(database, query, format='text/tsv', timeout=timeout, stream=True) as r:
+
+def query_to_file(database: str, query: str, file: Path, timeout=5000, **kwargs):
+    endpoint = settings.STARDOG_ENDPOINT.rstrip('/')
+    credentials = base64.b64encode(f'{settings.STARDOG_USER}:{settings.STARDOG_PASS}'.encode('utf-8')).decode(
+        'utf-8')
+
+    headers = {
+        'Content-Type': 'application/sparql-query',
+        'Accept': 'text/tsv',
+        'Authorization': f'Basic {credentials}',
+    }
+
+    response = requests.post(f'{endpoint}/{database}/query', headers=headers, data=query, params={
+        **kwargs,
+        'timeout': timeout,
+    }, stream=True)
+
+    with response as r:
         r.raw.decode_content = True
         with file.open('wb') as f:
             # https://stackoverflow.com/a/49684845

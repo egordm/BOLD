@@ -78,7 +78,7 @@ def delete_dataset(dataset_id: UUID) -> str:
             shutil.rmtree(dataset.search_index_path)
 
         logger.info(f"Deleting database {dataset.database}")
-        client = StardogApi.from_settings()
-        client.drop(dataset.database)
+        with StardogApi.admin() as admin:
+            admin.database(dataset.database).drop()
 
     dataset.delete()
