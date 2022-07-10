@@ -8,6 +8,7 @@ import WarehouseIcon from '@mui/icons-material/Warehouse';
 import ArticleIcon from '@mui/icons-material/Article';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import CloudIcon from '@mui/icons-material/Cloud';
+import { Logo } from "../other/Logo";
 import { NavItem } from './nav-item';
 import StorageIcon from '@mui/icons-material/Storage';
 
@@ -58,39 +59,21 @@ export const Sidebar = (props) => {
     >
       <div>
         <Box sx={{
-          mt: 3, px: 2
+          mt: 3, px: 2,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
         }}>
           <Box
             sx={{
-              alignItems: 'center',
               backgroundColor: 'rgba(255, 255, 255, 0.04)',
               cursor: 'pointer',
-              display: 'flex',
-              justifyContent: 'space-between',
               px: 3,
               py: '11px',
               borderRadius: 1
             }}
           >
-            <div>
-              <Typography
-                color="inherit"
-                variant="subtitle1"
-              >
-                Report 1
-              </Typography>
-              <Typography
-                color="neutral.400"
-                variant="body2"
-              >
-                Dataset: yago
-              </Typography>
-            </div>
-            <SelectorIcon
-              sx={{
-                color: 'neutral.500', width: 14, height: 14
-              }}
-            />
+            <Logo/>
           </Box>
         </Box>
       </div>
