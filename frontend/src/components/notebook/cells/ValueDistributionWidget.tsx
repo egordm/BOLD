@@ -1,12 +1,14 @@
 import {
   Button,
-  CardHeader, Container,
+  CardHeader, Checkbox, Container, FormControlLabel, FormGroup,
   Grid,
   IconButton,
-  Stack,
+  Stack, Switch,
   TextField
 } from "@mui/material";
-import { SELECT } from "@tpluscode/sparql-builder";
+import { Variable } from "@rdfjs/types";
+import { Select, SELECT, sparql } from "@tpluscode/sparql-builder";
+import { WhereBuilder } from "@tpluscode/sparql-builder/lib/partials/WHERE";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useCellContext } from "../../../providers/CellProvider";
 import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
@@ -32,9 +34,16 @@ interface ValueDistributionWidgetData {
     predicate?: Term[];
     object?: Term[];
   }[];
+  temporal_predicate?: Term[] | null;
+  temporal_group_count?: number;
+  continuous?: boolean;
   group_count?: number;
   min_group_size?: number;
   output_mode?: 'plot' | 'table';
+  visualization_settings?: {
+    normalized?: boolean;
+    cumulative?: boolean;
+  }
 }
 
 const MAX_GROUP_COUNT = 101;
@@ -57,34 +66,91 @@ const termToSparql = (term: Term) => {
 const buildQuery = (data: ValueDistributionWidgetData) => {
   const groupPredicates = (data.group_predicate ?? []).map(termToSparql);
 
-  let query = SELECT`?o (COUNT(?o) as ?count)`
-    .WHERE`
+  const addPrimaryFilter = (query: WhereBuilder<any>) => {
+    return query.WHERE`
       VALUES ?p { ${groupPredicates} } 
       ?s ?p ?o
      `;
+  }
 
-  (data.filters ?? []).forEach((filter, index) => {
-    const predicate = filter.predicate?.map(termToSparql) ?? [];
-    const object = filter.object?.map(termToSparql) ?? [];
+  const addSecondaryFilters = (query: WhereBuilder<any>) => {
+    (data.filters ?? []).forEach((filter, index) => {
+      const predicate = filter.predicate?.map(termToSparql) ?? [];
+      const object = filter.object?.map(termToSparql) ?? [];
 
-    const predicateVar = variable(`p${index}`);
-    const objectVar = variable(`o${index}`);
+      const predicateVar = variable(`p${index}`);
+      const objectVar = variable(`o${index}`);
 
-    query = query.WHERE`
-      VALUES ${predicateVar} { ${predicate} }
-      VALUES ${objectVar} { ${object} }
-      ?s ${predicateVar} ${objectVar}
+      query = query.WHERE`
+        VALUES ${predicateVar} { ${predicate} }
+        VALUES ${objectVar} { ${object} }
+        ?s ${predicateVar} ${objectVar}
+      `
+    });
+
+    return query;
+  }
+
+  const addTemporalFilter = (query: WhereBuilder<any>) => {
+    const predicate = (data.temporal_predicate ?? []).map(termToSparql);
+
+    return query.WHERE`
+      VALUES ?tp { ${predicate} }
+      ?s ?tp ?tv
     `
-  });
+  }
+
+  const addRangeSubquery = (query: WhereBuilder<any>, variable: string | Variable, prefix: string, count: number) => {
+    let subquery = addSecondaryFilters(addPrimaryFilter(
+      SELECT`(MIN(${variable}) AS ?${prefix}_min)  (MAX(${variable}) AS ?${prefix}_max)`
+    ));
+    if (data.temporal_predicate) {
+      subquery = addTemporalFilter(subquery);
+    }
+
+    return query.WHERE`
+      { ${subquery} }
+      BIND (((?${prefix}_max - ?${prefix}_min) / ${count}) AS ?${prefix}_step)
+    `;
+  }
+
+  const discretizeValue = (v: Variable, prefix: string) => {
+    return sparql`(0.5 + xsd:integer((${v} - ?${prefix}_min) / ?${prefix}_step)) * ?${prefix}_step + ?${prefix}_min`
+  }
 
   const groupCount = data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20);
 
-  query = query
-    .GROUP().BY(variable('o')).HAVING`?count >= ${data.min_group_size ?? 1}`
+  let primaryQuery = SELECT`?g (COUNT(?g) as ?count) ${data.temporal_predicate ? '?t' : null}`
     .ORDER().BY(variable('count'), true)
-    .LIMIT(groupCount);
+    .LIMIT(groupCount) as any;
+  primaryQuery = addPrimaryFilter(primaryQuery);
+  primaryQuery = addSecondaryFilters(primaryQuery);
 
-  return query.build();
+  if (data.continuous) {
+    primaryQuery = addRangeSubquery(primaryQuery, '?o', 'o', groupCount);
+  }
+
+  if (data.continuous) {
+    primaryQuery = primaryQuery
+      .GROUP().BY(discretizeValue(variable('o'), 'o')).AS('g')
+      .HAVING`?count >= ${data.min_group_size ?? 1}`;
+  } else {
+    primaryQuery = primaryQuery
+      .WHERE`BIND (?o as ?g)`
+      .GROUP().BY('g')
+      .HAVING`?count >= ${data.min_group_size ?? 1}`;
+  }
+
+  if (data.temporal_predicate) {
+    primaryQuery = addTemporalFilter(primaryQuery);
+    primaryQuery = addRangeSubquery(primaryQuery, '?tv', 't', data.temporal_group_count ?? 20);
+    primaryQuery = primaryQuery
+      .GROUP().BY(discretizeValue(variable('tv'), 't')).AS('t')
+  }
+
+  primaryQuery = primaryQuery.build()
+
+  return primaryQuery;
 }
 
 const buildExamplesQuery = (data: ValueDistributionWidgetData) => {
@@ -172,7 +238,7 @@ export const ValueDistributionWidget = (props: {}) => {
         ...data.filters.slice(filterIndex + 1)
       ]
     })
-  }, [])
+  }, []);
 
   const Filters = useMemo(() => {
     return (data?.filters ?? []).map((filter, index) => (
@@ -208,6 +274,52 @@ export const ValueDistributionWidget = (props: {}) => {
     ));
   }, [ data.filters ]);
 
+  const TemporalGrouping = useMemo(() => typeof data.temporal_predicate?.length === 'number' ?
+    (
+      <>
+        <Grid item xs={2}/>
+        <Grid item xs={10}>
+          <Stack direction="row" spacing={2}>
+            <TermInput
+              sx={{ flex: 1 }}
+              datasetId={report?.dataset?.id}
+              pos={'PREDICATE'}
+              label="Temporally group by"
+              value={data.temporal_predicate ?? []}
+              onChange={(value) => setData({ temporal_predicate: value })}
+            />
+            <IconButton
+              aria-label="delete"
+              onClick={() => setData({ temporal_predicate: null })}>
+              <DeleteIcon/>
+            </IconButton>
+          </Stack>
+        </Grid>
+        <Grid item xs={12}>
+          <Container maxWidth="md">
+            <NumberedSlider
+              label={'Limit number of timestamps'}
+              value={data?.temporal_group_count ?? 20}
+              valueLabelFormat={(value) => value !== MAX_GROUP_COUNT ? value.toString() : 'Unlimited'}
+              onChange={(event, value) => setData({ temporal_group_count: value as number })}
+              min={1} max={MAX_GROUP_COUNT} step={1}
+            />
+          </Container>
+        </Grid>
+      </>
+    ) : (
+      <>
+        <Grid item xs={2}/>
+        <Grid item xs={10}>
+          <Button
+            variant="text"
+            startIcon={<AddIcon/>}
+            onClick={() => setData({ temporal_predicate: [] })}
+          > Add temporal grouping</Button>
+        </Grid>
+      </>
+    ), [ data.temporal_predicate, data.temporal_group_count ]);
+
   const Content = useMemo(() => (
     <>
       <Grid container spacing={2}>
@@ -226,7 +338,7 @@ export const ValueDistributionWidget = (props: {}) => {
         <Grid item xs={2}>
           <TextField label="For Subject" value="Any" variant="filled" disabled={true}/>
         </Grid>
-        <Grid item xs={10}>
+        <Grid item xs={8}>
           <TermInput
             datasetId={report?.dataset?.id}
             pos={'PREDICATE'}
@@ -234,6 +346,17 @@ export const ValueDistributionWidget = (props: {}) => {
             value={data?.group_predicate ?? []}
             onChange={(value) => setData({ group_predicate: value })}
           />
+        </Grid>
+        <Grid item xs={2}>
+          <FormGroup>
+            <FormControlLabel
+              control={<Checkbox
+                value={data?.continuous ?? false}
+                checked={data?.continuous ?? false}
+                onChange={(event) => setData({ continuous: event.target.checked })}
+              />}
+              label="Continuous"/>
+          </FormGroup>
         </Grid>
         {Filters}
         <Grid item xs={2}/>
@@ -261,6 +384,7 @@ export const ValueDistributionWidget = (props: {}) => {
             />
           </Container>
         </Grid>
+        {TemporalGrouping}
       </Grid>
     </>
   ), [ data ]);
@@ -270,9 +394,14 @@ export const ValueDistributionWidget = (props: {}) => {
       value={data.output_mode ?? 'plot'}
       tabs={OUTPUT_TABS}
       onChange={(event, value) => setData({ output_mode: value as any })}
-      renderTab={(tab) => <ResultTab mode={tab} outputs={outputs}/>}
+      renderTab={(tab) => <ResultTab
+        mode={tab} outputs={outputs}
+        settings={data.visualization_settings ?? {}}
+        setData={setData}
+      />
+      }
     />
-  ), [ data.output_mode, outputs ]);
+  ), [ data.output_mode, outputs, data.visualization_settings ]);
 
   return (
     <>
@@ -290,28 +419,66 @@ export const ValueDistributionWidget = (props: {}) => {
   )
 }
 
-const ResultTab = ({ outputs, mode }: { outputs: CellOutput[], mode: string }) => {
+const ResultTab = ({
+  outputs, mode, settings, setData
+}: {
+  outputs: CellOutput[],
+  mode: string,
+  settings: {
+    normalized?: boolean,
+    cumulative?: boolean,
+  },
+  setData: (data: Partial<ValueDistributionWidgetData>) => void,
+}) => {
   const prefixes = usePrefixes();
 
   if (mode === 'plot') {
     const output = outputs[0];
     if (output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
       const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
-      const x = data.results.bindings.map((row) => extractIriLabel(row['o'].value));
-      const y = data.results.bindings.map((row) => parseInt(row['count'].value));
+      const points = data.results.bindings.filter((row) => row['g']);
+      const x = points.map((row) => extractIriLabel(row['g'].value));
+      const y = points.map((row) => parseInt(row['count'].value));
+      const z = (data?.head?.vars ?? []).includes('t')
+        ? points.map((row) => parseInt(row['t'].value))
+        : undefined;
+      const { normalized, cumulative } = settings;
 
       return (
-        <HistogramPlot
-          x={x} y={y}
-          layout={{
-            xaxis: {
-              title: 'Value',
-            },
-            yaxis: {
-              title: 'Count',
-            }
-          }}
-        />
+        <Grid container>
+          <Grid item xs={12}>
+            <FormGroup>
+              <FormControlLabel control={<Switch
+                value={normalized ?? false}
+                onChange={(event) => setData({
+                  visualization_settings: {
+                    normalized: event.target.checked,
+                    cumulative,
+                  }
+                })}
+              />} label="Normalized"/>
+              <FormControlLabel control={<Switch
+                value={cumulative ?? false}
+                onChange={(event) => setData({ visualization_settings: { normalized, cumulative: event.target.checked } })}
+              />} label="Cumulative"/>
+            </FormGroup>
+          </Grid>
+          <Grid item xs={12}>
+            <HistogramPlot
+              x={x} y={y} z={z}
+              normalized={settings.normalized ?? false}
+              cumulative={settings.cumulative ?? false}
+              layout={{
+                xaxis: {
+                  title: 'Value',
+                },
+                yaxis: {
+                  title: 'Count',
+                }
+              }}
+            />
+          </Grid>
+        </Grid>
       )
     }
   } else if (mode === 'table') {

@@ -16,7 +16,8 @@ const style = {
   maxHeight: '100%',
   display: 'flex',
   flexDirection: 'column',
-  fontFamily: 'Monospace'
+  fontFamily: 'Monospace',
+  overflow: 'auto',
 };
 
 
@@ -34,7 +35,7 @@ export const SourceViewModal = (props: {
     >
       <Box sx={style}>
         <Stack spacing={2}>
-          {(Object.entries(source) ?? []).map(([ title, s ], index) => (
+          {(Object.entries(source) ?? []).filter(([_, s]) => s).map(([ title, s ], index) => (
             <Box>
               <Divider/>
               <Typography variant="h6">{title}</Typography>

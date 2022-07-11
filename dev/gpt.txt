@@ -15,3 +15,13 @@ WHERE {
 ?female a yago:Female109619168.
 }
 
+
+### Generate SPARQL that
+### Finds all properties that have numeric values
+SELECT ?property ?value
+WHERE {
+  ?s ?property ?value .
+  FILTER (isNumeric(?value))
+}
+LIMIT 10
+
