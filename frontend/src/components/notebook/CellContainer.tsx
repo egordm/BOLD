@@ -48,6 +48,7 @@ export const CellContainer = (props: {}) => {
       borderColor: focused ? theme.palette.grey["300"] : 'transparent',
       borderStyle: 'solid',
       borderRadius: '8px',
+      position: 'relative',
     }}>
       <Box>
         {ActionButton}

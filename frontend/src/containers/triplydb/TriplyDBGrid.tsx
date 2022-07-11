@@ -16,7 +16,7 @@ import {
   GridToolbar
 } from '@mui/x-data-grid';
 import { ExpandableCell } from "../../components/data/ServerDataGrid";
-import { ModalForm } from "../../components/layout/ModalForm";
+import { ModalContainer } from "../../components/layout/ModalContainer";
 import { LODCDataset } from "../../services/lodc";
 import { TDBDataset, useTDBDatasets } from "../../services/triplydb";
 import { formatDateTime, formatUUIDShort } from "../../utils/formatting";
@@ -136,13 +136,13 @@ export const TriplyDBGrid = (props: {}) => {
           },
         }}
       />
-      <ModalForm
+      <ModalContainer
         title="Import TriplyDB Dataset"
         open={!!openItem}
         onClose={() => setOpenItem(null)}
       >
         <TDBImportForm dataset={openItem} onComplete={() => setOpenItem(null)} />
-      </ModalForm>
+      </ModalContainer>
     </Box>
   )
 }

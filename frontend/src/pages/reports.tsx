@@ -2,7 +2,7 @@ import Head from 'next/head';
 import { Box, Button, Card, CardContent, CardHeader, Container, Modal } from '@mui/material';
 import React from "react";
 import { Layout } from '../components/layout/layout';
-import { ModalForm } from "../components/layout/ModalForm";
+import { ModalContainer } from "../components/layout/ModalContainer";
 import { ReportCreateForm } from "../containers/reports/ReportCreateFrom";
 import { ReportsGrid } from "../containers/reports/ReportsGrid";
 
@@ -32,7 +32,7 @@ const ReportsPage = () => {
           </Card>
         </Container>
       </Box>
-      <ModalForm
+      <ModalContainer
         title="Create Report"
         open={openCreateForm}
         onClose={() => setOpenCreateForm(false)}
@@ -40,7 +40,7 @@ const ReportsPage = () => {
         <ReportCreateForm onClose={(created) => {
           setOpenCreateForm(false);
         }}/>
-      </ModalForm>
+      </ModalContainer>
     </>
   );
 }

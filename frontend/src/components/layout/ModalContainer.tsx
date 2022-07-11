@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, Modal } from "@mui/material";
 import React from "react";
 
 
-export const ModalForm = (props: {
+export const ModalContainer = (props: {
   open: boolean;
   onClose: () => void;
   title: string;

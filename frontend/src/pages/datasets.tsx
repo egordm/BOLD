@@ -3,7 +3,7 @@ import { Box, Button, Card, CardContent, CardHeader, Container } from '@mui/mate
 import React from "react";
 import { useQueryClient } from "react-query";
 import { Layout } from '../components/layout/layout';
-import { ModalForm } from "../components/layout/ModalForm";
+import { ModalContainer } from "../components/layout/ModalContainer";
 import { DatasetCreateForm } from "../containers/datasets/DatasetCreateForm";
 import { DatasetsGrid } from "../containers/datasets/DatasetsGrid";
 
@@ -35,7 +35,7 @@ const DatasetsPage = () => {
           </Card>
         </Container>
       </Box>
-      <ModalForm
+      <ModalContainer
         title="Create Dataset"
         open={openCreateForm}
         onClose={() => setOpenCreateForm(false)}
@@ -46,7 +46,7 @@ const DatasetsPage = () => {
             await queryClient.invalidateQueries('/datasets/');
           }
         }}/>
-      </ModalForm>
+      </ModalContainer>
     </>
   );
 }
