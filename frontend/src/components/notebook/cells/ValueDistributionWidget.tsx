@@ -18,6 +18,7 @@ import { Term } from "../../../types/terms";
 import { extractIriLabel } from "../../../utils/formatting";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { HistogramPlot } from "../../data/HistogramPlot";
+import { PiePlot } from "../../data/PiePlot";
 import { SourceViewModal } from "../../data/SourceViewModal";
 import { Yasr } from "../../data/Yasr";
 import { NumberedSlider } from "../../input/NumberedSlider";
@@ -51,7 +52,8 @@ const MAX_GROUP_COUNT = 101;
 const OUTPUT_TABS = [
   { value: 'plot', label: 'Show Plot' },
   { value: 'table', label: 'Show Table' },
-  { value: 'examples', label: 'Show Example Matches' },
+  { value: 'examples', label: 'Show Examples' },
+  { value: 'completeness', label: 'Completeness Analysis' },
 ]
 
 const termToSparql = (term: Term) => {
@@ -63,7 +65,7 @@ const termToSparql = (term: Term) => {
 }
 
 
-const buildQuery = (data: ValueDistributionWidgetData) => {
+const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => {
   const groupPredicates = (data.group_predicate ?? []).map(termToSparql);
 
   const addPrimaryFilter = (query: WhereBuilder<any>) => {
@@ -148,38 +150,31 @@ const buildQuery = (data: ValueDistributionWidgetData) => {
       .GROUP().BY(discretizeValue(variable('tv'), 't')).AS('t')
   }
 
-  primaryQuery = primaryQuery.build()
+  primaryQuery = primaryQuery.build();
 
-  return primaryQuery;
-}
+  let exampleQuery = (data.temporal_predicate ? SELECT`?s ?p ?o ?tv` : SELECT`?s ?p ?o`);
+  exampleQuery = addPrimaryFilter(exampleQuery);
+  exampleQuery = addSecondaryFilters(exampleQuery) as any;
+  if (data.temporal_predicate) {
+    exampleQuery = addTemporalFilter(exampleQuery);
+  }
+  exampleQuery = exampleQuery.LIMIT(100);
+  exampleQuery = exampleQuery.build() as any;
 
-const buildExamplesQuery = (data: ValueDistributionWidgetData) => {
-  const groupPredicates = (data.group_predicate ?? []).map(termToSparql);
+  const completeQuery = addSecondaryFilters(addPrimaryFilter(SELECT`(COUNT(?s) AS ?complete_count)`))
+  const allQuery = data.filters?.length > 0
+    ? addSecondaryFilters(SELECT`(COUNT(?s) AS ?total_count)`.WHERE`?s ?p ?o`)
+    : SELECT`(${triple_count} AS ?total_count)`;
+  let completenessQuery = SELECT`*`.WHERE`
+    { ${completeQuery} }
+    { ${allQuery} }
+  `.build()
 
-  let query = SELECT`?s ?p ?o`
-    .WHERE`
-      VALUES ?p { ${groupPredicates} } 
-      ?s ?p ?o
-     `;
-
-  (data.filters ?? []).forEach((filter, index) => {
-    const predicate = filter.predicate?.map(termToSparql) ?? [];
-    const object = filter.object?.map(termToSparql) ?? [];
-
-    const predicateVar = variable(`p${index}`);
-    const objectVar = variable(`o${index}`);
-
-    query = query.WHERE`
-      VALUES ${predicateVar} { ${predicate} }
-      VALUES ${objectVar} { ${object} }
-      ?s ${predicateVar} ${objectVar}
-    `
-  });
-
-  query = query
-    .LIMIT(100);
-
-  return query.build();
+  return {
+    primaryQuery,
+    exampleQuery,
+    completenessQuery,
+  };
 }
 
 export const ValueDistributionWidget = (props: {}) => {
@@ -189,13 +184,14 @@ export const ValueDistributionWidget = (props: {}) => {
   const [ showSource, setShowSource ] = React.useState(false);
 
   useEffect(() => {
-    const query = buildQuery(data);
-    const examplesQuery = buildExamplesQuery(data);
+    const { primaryQuery, exampleQuery, completenessQuery } = buildQuery(data, report?.dataset?.statistics?.triple_count ?? 0);
+
     setCell({
       ...cell,
       source: [
-        query,
-        examplesQuery,
+        primaryQuery,
+        exampleQuery,
+        completenessQuery,
       ],
     } as any)
   }, [ data ]);
@@ -411,6 +407,7 @@ export const ValueDistributionWidget = (props: {}) => {
         source={{
           'Main Query': source[0],
           'Example Query': source[1],
+          'Completeness Query': source[2],
         }}
         open={showSource}
         onClose={() => setShowSource(false)}
@@ -449,6 +446,7 @@ const ResultTab = ({
           <Grid item xs={12}>
             <FormGroup>
               <FormControlLabel control={<Switch
+                checked={normalized ?? false}
                 value={normalized ?? false}
                 onChange={(event) => setData({
                   visualization_settings: {
@@ -458,6 +456,7 @@ const ResultTab = ({
                 })}
               />} label="Normalized"/>
               <FormControlLabel control={<Switch
+                checked={cumulative ?? false}
                 value={cumulative ?? false}
                 onChange={(event) => setData({ visualization_settings: { normalized, cumulative: event.target.checked } })}
               />} label="Cumulative"/>
@@ -497,6 +496,22 @@ const ResultTab = ({
         prefixes={prefixes}
       />
     )
+  } else if (mode === 'completeness') {
+    const output = outputs[2];
+    if (output && output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
+      const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
+      const completeCount = data.results.bindings.map((row) => parseInt(row['complete_count'].value))[0] ?? 0;
+      const totalCount = data.results.bindings.map((row) => parseInt(row['total_count'].value))[0] ?? 0;
+
+
+      return (
+        <PiePlot values={[
+          { label: 'Complete', value: completeCount },
+          { label: 'Incomplete', value: totalCount - completeCount },
+        ]} />
+      )
+    }
+
   }
 
   return null;
