@@ -83,7 +83,7 @@ def import_files(files: List[Path], database: Optional[str] = None) -> str:
     with StardogApi.admin() as admin:
         admin.new_database(
             database,
-            {'spatial.enabled': True},
+            {'strict.parsing': False},
             *[
                 stardog.content.File(str(file.absolute()))
                 for file in files
