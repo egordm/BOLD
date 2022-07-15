@@ -31,9 +31,10 @@ export const RunQueueProvider = (props: {
 
   const { sendNotification } = useNotification();
   const { socket, status } = useNotebookConnectionContext();
-  const { changed } = useNotebookContext();
+  const { changed, isSaving } = useNotebookContext();
   useEffect(() => {
-    if (!changed && queue.length > 0 && status === ConnectionStatus.CONNECTED) {
+    if (!changed && !isSaving && queue.length > 0 && status === ConnectionStatus.CONNECTED) {
+      console.debug('Dispatching run queue');
       for (const cellId of queue) {
         socket.send(JSON.stringify({
           type: 'CELL_RUN',
@@ -44,13 +45,12 @@ export const RunQueueProvider = (props: {
       sendNotification({ variant: 'info', message: `Running ${queue.length} cell(s)` })
       setRunQueue([]);
     }
-  }, [ changed, queue.length > 0 ]);
+  }, [ changed, isSaving, queue.length > 0 ]);
 
   const { focusRef } = useCellFocusContext();
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
       if (event.shiftKey && event.key === 'Enter') {
-        console.log('running cell')
         event.preventDefault();
         runCells([ focusRef.current ]);
       }
