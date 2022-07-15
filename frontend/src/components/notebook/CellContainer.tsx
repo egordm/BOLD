@@ -5,11 +5,13 @@ import { useMemo } from "react";
 import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useCellContext } from "../../providers/CellProvider";
 import { CodeCell } from "./cells/CodeCell";
+import { TripleMatchWidget } from "./cells/TripleMatchWidget";
 import { ValueDistributionWidget } from "./cells/ValueDistributionWidget";
 
 export const CELL_TYPES = {
   code: CodeCell,
   widget_valuedistribution: ValueDistributionWidget,
+  widget_triplematch: TripleMatchWidget,
 }
 
 export const CellContainer = (props: {}) => {

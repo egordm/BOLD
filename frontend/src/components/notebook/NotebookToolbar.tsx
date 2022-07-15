@@ -125,6 +125,7 @@ export const NotebookToolbar = (props: {}) => {
           <MenuItem value={'code'}>Code</MenuItem>
           <MenuItem value={'markdown'}>Markdown</MenuItem>
           <MenuItem value={'widget_valuedistribution'}>Histogram Widget</MenuItem>
+          <MenuItem value={'widget_triplematch'}>Triple Match Widget</MenuItem>
         </Select>
       </FormControl>
       <Autocomplete
