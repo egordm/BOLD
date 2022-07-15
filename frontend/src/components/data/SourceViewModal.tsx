@@ -36,14 +36,12 @@ export const SourceViewModal = (props: {
       <Box sx={style}>
         <Stack spacing={2}>
           {(Object.entries(source) ?? []).filter(([_, s]) => s).map(([ title, s ], index) => (
-            <Box>
+            <Box key={index}>
               <Divider/>
               <Typography variant="h6">{title}</Typography>
-              <Typography key={index}>
               <pre style={{ fontFamily: 'inherit' }}>
                 {s.replaceAll('\n\n', '\n')}
               </pre>
-              </Typography>
             </Box>
           ))}
         </Stack>

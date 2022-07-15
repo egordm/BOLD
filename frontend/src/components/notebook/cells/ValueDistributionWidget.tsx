@@ -38,6 +38,7 @@ interface ValueDistributionWidgetData {
   temporal_predicate?: Term[] | null;
   temporal_group_count?: number;
   continuous?: boolean;
+  temporal?: boolean;
   group_count?: number;
   min_group_size?: number;
   output_mode?: 'plot' | 'table';
@@ -122,7 +123,7 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
 
   const groupCount = data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20);
 
-  let primaryQuery = SELECT`?g (COUNT(?g) as ?count) ${data.temporal_predicate ? '?t' : null}`
+  let primaryQuery = SELECT`?g (COUNT(?g) as ?count) ${data.temporal_predicate ? '((?tu / 12) as ?t)' : null}`
     .ORDER().BY(variable('count'), true)
     .LIMIT(groupCount) as any;
   primaryQuery = addPrimaryFilter(primaryQuery);
@@ -144,10 +145,11 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
   }
 
   if (data.temporal_predicate) {
+    const tempoVar = sparql`(YEAR(xsd:dateTime(?tv)) * 12 + MONTH(xsd:dateTime(?tv)))`
     primaryQuery = addTemporalFilter(primaryQuery);
-    primaryQuery = addRangeSubquery(primaryQuery, '?tv', 't', data.temporal_group_count ?? 20);
+    primaryQuery = addRangeSubquery(primaryQuery, tempoVar as any, 't', data.temporal_group_count ?? 20);
     primaryQuery = primaryQuery
-      .GROUP().BY(discretizeValue(variable('tv'), 't')).AS('t')
+      .GROUP().BY(discretizeValue(tempoVar as any, 't')).AS('tu')
   }
 
   primaryQuery = primaryQuery.build();
@@ -435,9 +437,10 @@ const ResultTab = ({
       const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
       const points = data.results.bindings.filter((row) => row['g']);
       const x = points.map((row) => extractIriLabel(row['g'].value));
-      const y = points.map((row) => parseInt(row['count'].value));
+      const y = points.map((row) => row['count']?.value ? (Number(row['count'].value) || null) : null);
       const z = (data?.head?.vars ?? []).includes('t')
-        ? points.map((row) => parseInt(row['t'].value))
+        ? points.map((row) => row['t']?.value ? (Number(row['t'].value) || null) : null)
+        // ? points.map((row) => row['t']?.value)
         : undefined;
       const { normalized, cumulative } = settings;
 
