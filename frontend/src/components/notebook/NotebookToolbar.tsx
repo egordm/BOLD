@@ -22,6 +22,7 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FastForwardIcon from '@mui/icons-material/FastForward';
+import { ClassTreeWidget } from "./cells/ClassTreeWidget";
 
 export const NotebookToolbar = (props: {}) => {
   const { focus, focusRef, setFocus } = useCellFocusContext();
@@ -126,6 +127,7 @@ export const NotebookToolbar = (props: {}) => {
           <MenuItem value={'markdown'}>Markdown</MenuItem>
           <MenuItem value={'widget_valuedistribution'}>Histogram Widget</MenuItem>
           <MenuItem value={'widget_triplematch'}>Triple Match Widget</MenuItem>
+          <MenuItem value={'widget_classtree'}>Class Tree Widget</MenuItem>
         </Select>
       </FormControl>
       <Autocomplete

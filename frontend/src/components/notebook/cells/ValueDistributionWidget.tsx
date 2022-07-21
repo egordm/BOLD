@@ -38,7 +38,6 @@ interface ValueDistributionWidgetData {
   temporal_predicate?: Term[] | null;
   temporal_group_count?: number;
   continuous?: boolean;
-  temporal?: boolean;
   group_count?: number;
   min_group_size?: number;
   output_mode?: 'plot' | 'table';
@@ -484,7 +483,7 @@ const ResultTab = ({
       )
     }
   } else if (mode === 'table') {
-    const result = cellOutputToYasgui(outputs[0]);
+    const result = outputs[0] ? cellOutputToYasgui(outputs[0]) : null;
     return (
       <Yasr
         result={result}
@@ -492,7 +491,7 @@ const ResultTab = ({
       />
     )
   } else if (mode === 'examples') {
-    const result = cellOutputToYasgui(outputs[1]);
+    const result = outputs[1] ? cellOutputToYasgui(outputs[1]) : null;
     return (
       <Yasr
         result={result}

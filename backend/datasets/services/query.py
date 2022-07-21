@@ -25,6 +25,8 @@ class LocalQueryService(QueryService):
     def query(self, query: str, limit: int = 10, timeout: int = None, **options) -> dict:
         try:
             with StardogApi.connection(self.database) as conn:
+                if 'LIMIT' in query:
+                    limit=None
                 output = conn.select(query, limit=limit, timeout=timeout)
 
             return output
