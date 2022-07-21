@@ -70,8 +70,8 @@ def parse_int_or_none(value: str) -> int:
     openapi.Parameter('timeout', openapi.IN_QUERY, "Timeout", type=openapi.TYPE_INTEGER),
 ])
 @api_view(['GET'])
-def term_search(request: Request, dataset_id: UUID):
-    dataset = Dataset.objects.get(id=dataset_id)
+def term_search(request: Request, id: UUID):
+    dataset = Dataset.objects.get(id=id)
 
     q = request.GET.get('query', '')
     pos = TermPos(request.GET.get('pos', 'OBJECT'))
@@ -81,3 +81,22 @@ def term_search(request: Request, dataset_id: UUID):
 
     result = dataset.get_search_service().search(q, pos, limit, offset, timeout)
     return JsonResponse(result.to_dict())
+
+
+@swagger_auto_schema(methods=['post'], manual_parameters=[
+    openapi.Parameter('limit', openapi.IN_QUERY, "Limit", type=openapi.TYPE_INTEGER),
+    openapi.Parameter('timeout', openapi.IN_QUERY, "Timeout", type=openapi.TYPE_INTEGER),
+], request_body=openapi.Schema(
+    type=openapi.TYPE_STRING,
+    description='Query to be executed'
+))
+@api_view(['POST'])
+def dataset_query(request: Request, id: UUID):
+    dataset = Dataset.objects.get(id=id)
+
+    limit = int(request.GET.get('limit', 10))
+    timeout = int(request.GET.get('timeout', 5000))
+    query = request.body.decode('utf-8')
+
+    result = dataset.get_query_service().query(query, limit, timeout)
+    return JsonResponse(result)

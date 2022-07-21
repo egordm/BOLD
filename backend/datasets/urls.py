@@ -8,6 +8,7 @@ router.register(r'datasets', views.DatasetViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),
-    path('terms/<uuid:dataset_id>/search', views.term_search),
+    path('datasets/<uuid:id>/search', views.term_search),
+    path('datasets/<uuid:id>/query', views.dataset_query),
     path('lodc/datasets', views.proxy_lodc_api),
 ]

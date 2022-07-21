@@ -5,6 +5,7 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from datasets.services.query import QueryService, LocalQueryService, SPARQLQueryService
 from datasets.services.search import LocalSearchService, WikidataSearchService, SearchService
 from shared.models import TimeStampMixin
 from shared.paths import DATA_DIR
@@ -63,3 +64,14 @@ class Dataset(TaskMixin, TimeStampMixin):
                 return WikidataSearchService()
             case _:
                 raise ValueError(f'Unknown search mode {self.search_mode}')
+
+    def get_query_service(self) -> QueryService:
+        match self.mode:
+            case DatasetMode.LOCAL:
+                if not self.local_database:
+                    raise Exception('Dataset local database has not been imported yet')
+                return LocalQueryService(str(self.local_database))
+            case DatasetMode.SPARQL:
+                return SPARQLQueryService(str(self.sparql_endpoint))
+            case _:
+                raise ValueError(f'Unknown mode {self.mode}')

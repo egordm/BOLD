@@ -101,6 +101,16 @@ SELECT * {
  }
 LIMIT 100
 
+### WIKIdata 2
+POST https://query.wikidata.org/sparql?limit=10
+Content-Type: application/sparql-query
+Accept: application/sparql-results+json
+
+SELECT * {
+  ?s ?p ?o
+ }
+LIMIT 100
+
 
 ### Wikidata Search
 GET https://www.wikidata.org/w/api.php?action=wbsearchentities&search=gen&language=en&uselang=en&type=property&format=json&formatversion=2&errorformat=plaintext&origin=*&limit=12
