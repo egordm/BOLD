@@ -45,3 +45,21 @@ For development purposes, you need to have a working python and rust installatio
 * Run worker application: `make start_worker`
 * Run backend server: `make start_backend`
 * Open the BOLD web interface: [http://localhost:8000/](http://localhost:8000/)
+
+
+## System Requirements
+The server requirements are mostly bound by the Stardog database.
+
+You can choose to not use the Stardog database, but you will not be able to import the full datasets (only external SPARQL endpoints are allowed).
+
+* You must have twice the amount of storage your datasets require. (YAGO is 60Gb thus 120Gb)
+* You must allocate at least 2 cores for the server.
+* Memory requirements are found below:
+
+| Number of Triples | Total System Memory |
+|-------------------|---------------------|
+| 100 million       | 8G                  |
+| 1 billion         | 32G                 |
+| 10 billion        | 128G                |
+| 25 billion        | 256G                |
+| 50 billion        | 512G                |
