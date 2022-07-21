@@ -80,3 +80,31 @@ GET https://api.triplydb.com/datasets/?limit=200
 
 ###
 GET https://api.triplydb.com/datasets/academy/pokemon
+
+### WIKIdata 2
+POST https://query.wikidata.org/sparql
+Content-Type: application/sparql-query
+Accept: application/sparql-results+json
+
+SELECT * {
+  ?s ?p ?o
+ }
+LIMIT 10
+
+### WIKIdata 2
+POST https://query.wikidata.org/sparql?limit=10
+Content-Type: application/sparql-query
+Accept: application/sparql-results+json
+
+SELECT * {
+  ?s ?p ?o
+ }
+LIMIT 100
+
+
+### Wikidata Search
+GET https://www.wikidata.org/w/api.php?action=wbsearchentities&search=gen&language=en&uselang=en&type=property&format=json&formatversion=2&errorformat=plaintext&origin=*&limit=12
+
+
+### Wikidata Search2
+GET https://www.wikidata.org/w/api.php?action=wbsearchentities&search=Albert&language=en&uselang=en&type=item&format=json&formatversion=2&errorformat=plaintext&origin=*&limit=12

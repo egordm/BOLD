@@ -71,7 +71,7 @@ def create_search_index(dataset_id: UUID, min_term_count: int = 3, path: str = N
     dataset = Dataset.objects.get(id=dataset_id)
     logger.info(f"Creating search index for {dataset.name}")
 
-    database = dataset.database
+    database = dataset.local_database
     if database is None:
         raise Exception("Dataset has no database")
 

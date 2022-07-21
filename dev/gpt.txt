@@ -8,6 +8,18 @@ PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
 PREFIX dbp: <http://dbpedia.org/ontology/>
 PREFIX yago: <http://yago-knowledge.org/resource/>
 SELECT
+
+
+### Generate SPARQL that
+### Counts all the males and females separately
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#>
+PREFIX dbp: <http://dbpedia.org/ontology/>
+PREFIX yago: <http://yago-knowledge.org/resource/>
+SELECT
 (COUNT(?male) AS ?maleCount)
 (COUNT(?female) AS ?femaleCount)
 WHERE {
@@ -25,3 +37,41 @@ WHERE {
 }
 LIMIT 10
 
+
+
+
+# We need to drill down and see that they include.
+# Not here, though.
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+select ?class
+    (GROUP_CONCAT(distinct ?subOf;SEPARATOR=",") AS ?subsOf)
+    (GROUP_CONCAT(distinct ?equiv;SEPARATOR=",") AS ?equivs)
+    (GROUP_CONCAT(distinct ?key;SEPARATOR=",") AS ?keys) where {
+
+    ?class rdf:type owl:Class .
+    OPTIONAL { ?class rdfs:subClassOf ?subOf . } .
+    OPTIONAL { ?class owl:equivalentClass ?equiv . } .
+    OPTIONAL { ?class owl:hasKey ?keylist .
+               ?keylist rdf:rest*/rdf:first ?key . } .
+} group by ?class
+order by ?class
+
+
+
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+PREFIX owl: <http://www.w3.org/2002/07/owl#>
+
+select ?class ?prop ?range
+(GROUP_CONCAT(distinct ?propType;SEPARATOR=",") AS ?propTypes)  where {
+    ?class rdf:type owl:Class .
+    ?prop rdfs:domain ?class .
+    ?prop rdf:type ?propType .
+    OPTIONAL {?prop rdfs:range ?range } .
+}
+group by ?class ?prop ?range
+order by ?class ?prop

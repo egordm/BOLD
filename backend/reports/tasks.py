@@ -63,7 +63,7 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
         if cell is None:
             raise Exception(f'Cell {cell_id} not found in notebook {report_id}')
 
-        if dataset.database is None:
+        if dataset.local_database is None:
             raise Exception(f'Dataset {dataset.id} has no database')
 
         timeout = deepget(cell, ['metadata', 'timeout'], None)
@@ -73,10 +73,10 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
         cell_type = cell.get('cell_type', '')
         match cell_type:
             case 'code':
-                outputs, error = run_sparql(dataset.database, cell.get('source', ''), timeout, limit)
+                outputs, error = run_sparql(dataset.local_database, cell.get('source', ''), timeout, limit)
             case _ if cell_type.startswith('widget_'):
                 for source in cell.get('source', []):
-                    outputs_s, error = run_sparql(dataset.database, source, timeout, limit)
+                    outputs_s, error = run_sparql(dataset.local_database, source, timeout, limit)
                     outputs.extend(outputs_s)
                     if error:
                         break

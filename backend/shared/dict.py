@@ -7,3 +7,5 @@ def deepget(data, keys, default=None):
         return reduce(getitem, keys, data)
     except (KeyError, IndexError):
         return default
+
+

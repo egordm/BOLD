@@ -13,10 +13,10 @@ logger = get_logger()
 def update_dataset_info(dataset_id: UUID):
     dataset = Dataset.objects.get(id=dataset_id)
 
-    if dataset.database is None:
+    if dataset.local_database is None:
         raise Exception("Dataset has no database")
 
-    database = dataset.database
+    database = dataset.local_database
     with StardogApi.admin() as admin:
         database_api = admin.database(database)
 

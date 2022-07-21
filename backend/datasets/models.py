@@ -3,7 +3,9 @@ from enum import Enum
 
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
 
+from datasets.services.search import LocalSearchService, WikidataSearchService, SearchService
 from shared.models import TimeStampMixin
 from shared.paths import DATA_DIR
 from tasks.models import TaskMixin
@@ -16,16 +18,30 @@ class DatasetState(Enum):
     FAILED = 'FAILED'
 
 
+class DatasetMode(models.TextChoices):
+    LOCAL = 'LOCAL', _('Imported locally ')
+    SPARQL = 'SPARQL', _('From SPARQL endpoint')
+
+
+class SearchMode(models.TextChoices):
+    LOCAL = 'LOCAL', _('Imported locally ')
+    WIKIDATA = 'WIKIDATA', _('From Wikidata')
+
+
 class Dataset(TaskMixin, TimeStampMixin):
     STATES = ((state.value, state.value) for state in DatasetState)
 
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=255)
-    database = models.CharField(max_length=255, null=True)
     description = models.TextField(blank=True)
     source = models.JSONField()
-    sparql_endpoint = models.CharField(max_length=255, null=True)
+    mode = models.CharField(max_length=255, choices=DatasetMode.choices, default=DatasetMode.LOCAL)
+    search_mode = models.CharField(max_length=255, choices=SearchMode.choices, default=SearchMode.LOCAL)
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+
+    local_database = models.CharField(max_length=255, null=True)
+    sparql_endpoint = models.CharField(max_length=255, null=True)
+
     statistics = models.JSONField(null=True)
     namespaces = models.JSONField(null=True)
     state = models.CharField(choices=STATES, default=DatasetState.QUEUED.value, max_length=255)
@@ -35,4 +51,15 @@ class Dataset(TaskMixin, TimeStampMixin):
 
     @property
     def search_index_path(self):
-        return DATA_DIR / f'search_index_{self.database}' if self.database else None
+        return DATA_DIR / f'search_index_{self.local_database}' if self.local_database else None
+
+    def get_search_service(self) -> SearchService:
+        match self.search_mode:
+            case SearchMode.LOCAL:
+                if not self.search_index_path.exists():
+                    raise Exception('Dataset search index has not been created yet')
+                return LocalSearchService(self.search_index_path)
+            case SearchMode.WIKIDATA:
+                return WikidataSearchService()
+            case _:
+                raise ValueError(f'Unknown search mode {self.search_mode}')

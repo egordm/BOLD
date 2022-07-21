@@ -47,7 +47,7 @@ def import_dataset(dataset_id: UUID) -> str:
             raise Exception("Unknown source type")
 
         logger.info(f'Created database {database}')
-        dataset.database = database
+        dataset.local_database = database
         dataset.save()
 
         logger.info(f"Updating dataset info")
@@ -72,13 +72,13 @@ def delete_dataset(dataset_id: UUID) -> str:
     dataset = Dataset.objects.get(id=dataset_id)
     logger.info(f"Deleting dataset {dataset.name}")
 
-    if dataset.database:
+    if dataset.local_database:
         if dataset.search_index_path and dataset.search_index_path.exists():
             logger.info(f"Deleting search index {dataset.search_index_path}")
             shutil.rmtree(dataset.search_index_path)
 
-        logger.info(f"Deleting database {dataset.database}")
+        logger.info(f"Deleting database {dataset.local_database}")
         with StardogApi.admin() as admin:
-            admin.database(dataset.database).drop()
+            admin.database(dataset.local_database).drop()
 
     dataset.delete()
