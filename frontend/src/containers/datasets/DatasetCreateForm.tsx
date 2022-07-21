@@ -3,18 +3,18 @@ import {
   Backdrop,
   Box,
   Button,
-  CircularProgress,
-  Grid,
+  CircularProgress, FormControl,
+  Grid, InputLabel, MenuItem, Select,
   Tab,
   TextField
 } from "@mui/material"
-import { AxiosResponse } from "axios";
 import { useFormik } from "formik";
 import { useState } from "react";
 import useNotification from "../../hooks/useNotification";
 import { Dataset } from "../../types/datasets";
 import * as yup from 'yup';
 import { apiClient } from "../../utils/api";
+import { fieldProps } from "../../utils/forms";
 
 
 export const DatasetCreateForm = (props: {
@@ -37,6 +37,7 @@ export const DatasetCreateForm = (props: {
       database: '' as string,
       source: '' as string,
       sparql: '' as string,
+      search_mode: 'LOCAL' as string,
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
@@ -46,87 +47,76 @@ export const DatasetCreateForm = (props: {
         const source = mode === 'existing' ? {
           source_type: 'existing',
           database: values.database,
-        } : {
+        } : mode === 'urls' ? {
           source_type: 'urls',
           urls: values.source.split(/\r|\n/),
-          sparql: values.sparql ? [ values.sparql ] : [],
+        } : {
+          source_type: 'sparql',
+          sparql: values.sparql,
         };
 
         const result = await apiClient.post<Dataset>('/datasets/', {
           name: values.name,
           description: values.description,
           source,
-        })
+          search_mode: values.search_mode,
+          mode: mode === 'sparql' ? 'SPARQL' : 'LOCAL',
+        });
 
         if (result) {
           if (result.status === 201) {
-            sendNotification({ variant: "success", message: "Dataset scheduled for creation" })
+            sendNotification({ variant: "success", message: "Dataset scheduled for creation" });
             onClose(true);
           } else {
-            sendNotification({ variant: "error", message: "Error creating dataset" })
+            sendNotification({ variant: "error", message: "Error creating dataset" });
           }
         }
       } catch (e) {
         console.error(e);
+        sendNotification({ variant: "error", message: "Error creating dataset" });
       }
 
       setLoading(false);
     },
   });
 
-
   return (
     <form onSubmit={formik.handleSubmit}>
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <TextField
-            name="name"
             label="Name"
             variant="outlined"
             fullWidth
-            value={formik.values.name}
-            onChange={formik.handleChange}
-            error={formik.touched.name && Boolean(formik.errors.name)}
-            helperText={formik.touched.name && formik.errors.name}
+            {...fieldProps(formik, 'name')}
           />
         </Grid>
         <Grid item xs={12}>
           <TextField
-            name="description"
             label="Description"
             variant="outlined"
             multiline
             fullWidth
-            value={formik.values.description}
-            onChange={formik.handleChange}
-            error={formik.touched.description && Boolean(formik.errors.description)}
-            helperText={formik.touched.description && formik.errors.description}
+            {...fieldProps(formik, 'description')}
           />
         </Grid>
         <Grid item xs={12}>
           <TabContext value={mode}>
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-              <TabList
-                onChange={(e, v) => setMode(v)}
-                aria-label="basic tabs example"
-                centered
-              >
+              <TabList onChange={(e, v) => setMode(v)} centered>
                 <Tab label="Existing" value="existing"/>
-                <Tab label="From URL(s)" value="url"/>
+                <Tab label="Import URL(s)" value="url"/>
+                <Tab label="SPARQL Endpoint" value="sparql"/>
               </TabList>
             </Box>
             <TabPanel value="existing">
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <TextField
-                    name="database"
                     label="Database"
                     variant="outlined"
                     fullWidth
-                    value={formik.values.database}
-                    onChange={formik.handleChange}
-                    error={formik.touched.database && Boolean(formik.errors.database)}
-                    helperText={formik.touched.database && formik.errors.database}
+                    {...fieldProps(formik, 'database')}
                   />
                 </Grid>
               </Grid>
@@ -135,43 +125,40 @@ export const DatasetCreateForm = (props: {
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <TextField
-                    name="source"
-                    label="Url to dataset"
+                    label="URL(s) to dataset"
                     placeholder="Urls separated by newline"
                     variant="outlined"
                     multiline
                     rows={3}
                     fullWidth
-                    value={formik.values.source}
-                    onChange={formik.handleChange}
-                    error={formik.touched.source && Boolean(formik.errors.source)}
-                    helperText={formik.touched.source && formik.errors.source}
+                    {...fieldProps(formik, 'source')}
                   />
                 </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    name="sparql_endpoint"
-                    label="Sparql endpoint"
-                    variant="outlined"
-                    fullWidth
-                    value={formik.values.sparql}
-                    onChange={formik.handleChange}
-                    error={formik.touched.sparql && Boolean(formik.errors.sparql)}
-                    helperText={formik.touched.sparql && formik.errors.sparql}
-                  />
-                </Grid>
+
+              </Grid>
+            </TabPanel>
+            <TabPanel value="sparql">
+              <Grid item xs={12}>
+                <TextField
+                  label="SPARQL Endpoint URL"
+                  variant="outlined"
+                  fullWidth
+                  {...fieldProps(formik, 'sparql')}
+                />
               </Grid>
             </TabPanel>
           </TabContext>
         </Grid>
-        <Grid
-          item
-          xs={12}
-          sx={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-          }}
-        >
+        <Grid item xs={12}>
+          <FormControl fullWidth>
+            <InputLabel id="search_mode_label">Search Mode</InputLabel>
+            <Select  labelId="search_mode_label" label="Search Mode"  {...fieldProps(formik, 'search_mode')} >
+              <MenuItem value="LOCAL">Build Local Search Index</MenuItem>
+              <MenuItem value='WIKIDATA'>Use WikiData API</MenuItem>
+            </Select>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} container justifyContent="flex-end">
           <Button variant="contained" type="submit">Submit</Button>
         </Grid>
       </Grid>

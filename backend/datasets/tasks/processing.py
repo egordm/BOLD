@@ -2,13 +2,13 @@ import base64
 import shutil
 from pathlib import Path
 from uuid import UUID
-import requests
 
+import requests
 from celery import shared_task
+
 from backend import settings
 from datasets.models import Dataset
 from datasets.services.bold_cli import BoldCli
-from datasets.services.stardog_api import StardogApi
 from shared import get_logger
 from shared.paths import DATA_DIR, DOWNLOAD_DIR
 from shared.random import random_string

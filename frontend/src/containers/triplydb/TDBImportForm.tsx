@@ -4,7 +4,7 @@ import {
   Box,
   Button, Checkbox,
   CircularProgress, FormControl, FormControlLabel, FormGroup, FormHelperText, FormLabel,
-  Grid, Link, ListItem, ListItemText,
+  Grid, InputLabel, Link, ListItem, ListItemText, MenuItem, Select,
   Tab,
   TextField, Typography
 } from "@mui/material"
@@ -19,6 +19,7 @@ import { Dataset } from "../../types/datasets";
 import * as yup from 'yup';
 import { apiClient } from "../../utils/api";
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { fieldProps } from "../../utils/forms";
 
 export const DownloadSelection = (props: {
   formik: any;
@@ -88,7 +89,8 @@ export const TDBImportForm = (props: {
 
   const datasetURL = `https://triplydb.com/${dataset.owner.accountName}/${dataset.name}`;
   const downloadURL = `${datasetURL}/download.ttl.gz`;
-
+  const apiURL = `https://api.triplydb.com/datasets/${dataset.owner.accountName}/${dataset.name}`;
+  const sparqlURL = `${apiURL}/services/${dataset.name}/sparql`;
 
   const validationSchema = yup.object({});
   console.log(dataset);
@@ -97,19 +99,30 @@ export const TDBImportForm = (props: {
     initialValues: {
       name: dataset.displayName as string,
       description: (dataset.description ?? '') as string,
+      use_sparql: false,
+      search_mode: 'LOCAL' as string
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       setLoading(true);
 
       try {
+        const source = values.use_sparql ? {
+          source_type: 'sparql',
+          sparql: sparqlURL,
+        } : {
+          source_type: 'urls',
+          urls: [downloadURL],
+        };
+
         let result = await apiClient.post<Dataset>('/datasets/', {
           name: values.name,
           description: values.description,
+          mode: source.source_type === 'sparql' ? 'SPARQL' : 'LOCAL',
+          search_mode: values.search_mode,
           source: {
-            source_type: 'tdb',
             tdb_id: `${dataset.owner.accountName}/${dataset.name}`,
-            urls: [downloadURL],
+            ...source,
           },
         })
 
@@ -147,28 +160,20 @@ export const TDBImportForm = (props: {
         </Grid>
         <Grid item xs={12}>
           <TextField
-            name="name"
             label="Name"
             variant="outlined"
             fullWidth
-            value={formik.values.name}
-            onChange={formik.handleChange}
-            error={formik.touched.name && Boolean(formik.errors.name)}
-            helperText={formik.touched.name && formik.errors.name}
+            {...fieldProps(formik, 'name')}
           />
         </Grid>
         <Grid item xs={12}>
           <TextField
             maxRows={4}
-            name="description"
             label="Description"
             variant="outlined"
             multiline
             fullWidth
-            value={formik.values.description}
-            onChange={formik.handleChange}
-            error={formik.touched.description && Boolean(formik.errors.description)}
-            helperText={formik.touched.description && formik.errors.description}
+            {...fieldProps(formik, 'description')}
           />
         </Grid>
         <Grid item xs={12}>
@@ -176,7 +181,11 @@ export const TDBImportForm = (props: {
             <FormLabel component="legend">Downloads</FormLabel>
             <FormGroup>
               <FormControlLabel
-                control={<Checkbox checked={true}/>}
+                control={<Checkbox
+                  checked={!formik.values.use_sparql}
+                  value={!formik.values.use_sparql}
+                  onChange={(e) => formik.setFieldValue('use_sparql', !e.target.checked)}
+                />}
                 label={(
                   <ListItem alignItems="flex-start">
                     <ListItemText
@@ -189,6 +198,45 @@ export const TDBImportForm = (props: {
                 )}
               />
             </FormGroup>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12}>
+          <FormControl component="fieldset" variant="standard">
+            <FormLabel component="legend">SPARQL Endpoints</FormLabel>
+            <FormGroup>
+              <FormControlLabel
+                control={<Checkbox
+                  checked={formik.values.use_sparql}
+                  value={formik.values.use_sparql}
+                  onChange={(e) => {
+                    formik.setFieldValue('use_sparql', e.target.checked)
+                    if (e.target.checked) {
+                      formik.setFieldValue('search_mode', 'TRIPLYDB');
+                    }
+                  }}
+                />}
+                label={(
+                  <ListItem alignItems="flex-start">
+                    <ListItemText
+                      primary={
+                        <Link href={sparqlURL} target="_blank">
+                          SPAQRQL Service <OpenInNewIcon fontSize="small"/>
+                        </Link>}
+                    />
+                  </ListItem>
+                )}
+              />
+            </FormGroup>
+          </FormControl>
+        </Grid>
+        <Grid item xs={12}>
+          <FormControl fullWidth>
+            <InputLabel id="search_mode_label">Search Mode</InputLabel>
+            <Select labelId="search_mode_label" label="Search Mode"  {...fieldProps(formik, 'search_mode')} >
+              <MenuItem value="LOCAL">Build Local Search Index</MenuItem>
+              <MenuItem value='WIKIDATA'>Use WikiData API</MenuItem>
+              <MenuItem value='TRIPLYDB'>Use TriplyDB API</MenuItem>
+            </Select>
           </FormControl>
         </Grid>
         <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', }}>

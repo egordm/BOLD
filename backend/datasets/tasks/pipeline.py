@@ -28,33 +28,38 @@ def import_dataset(dataset_id: UUID) -> str:
 
     try:
         source_type = source.get('source_type', None)
-        if source_type == 'urls' or source_type == 'lodc' or source_type == 'tdb':
-            urls = source.get('urls', [])
-            if len(urls) == 0:
-                raise Exception("No URLs specified")
+        match (dataset.mode, source_type):
+            case (Dataset.Mode.LOCAL.value, 'urls'):
+                urls = source.get('urls', [])
+                if len(urls) == 0:
+                    raise Exception("No URLs specified")
 
-            logger.info(f"Downloading {len(urls)} files")
-            files = []
-            for url in set(urls):
-                file = download_url(url, str(tmp_dir))
-                files.append(file)
+                logger.info(f"Downloading {len(urls)} files")
+                files = []
+                for url in set(urls):
+                    file = download_url(url, str(tmp_dir))
+                    files.append(file)
 
-            logger.info(f"Importing {len(files)} files")
-            database = import_files(files)
-        elif source_type == 'existing':
-            database = source.get('database', None)
-        else:
-            raise Exception("Unknown source type")
+                logger.info(f"Importing {len(files)} files")
+                dataset.local_database = import_files(files)
+                logger.info(f'Created database {dataset.local_database}')
+            case (Dataset.Mode.LOCAL.value, 'existing'):
+                dataset.local_database = source.get('database', None)
+                logger.info(f'Using existing database {dataset.local_database}')
+            case (Dataset.Mode.SPARQL.value, 'sparql'):
+                dataset.sparql_endpoint = source.get('sparql', None)
+                logger.info(f'Using sparql endpoint {dataset.sparql_endpoint}')
+            case _:
+                raise Exception(f"Unsupported source type {source_type}")
 
-        logger.info(f'Created database {database}')
-        dataset.local_database = database
         dataset.save()
 
         logger.info(f"Updating dataset info")
         update_dataset_info(dataset_id)
 
-        logger.info(f"Creating search index")
-        create_search_index(dataset_id, path=str(tmp_dir))
+        if dataset.search_mode == Dataset.SearchMode.LOCAL.value:
+            logger.info(f"Creating search index")
+            create_search_index(dataset_id, path=str(tmp_dir))
 
         logger.info(f"Import finished")
         Dataset.objects.filter(id=dataset_id).update(state=DatasetState.IMPORTED.value)
@@ -72,11 +77,12 @@ def delete_dataset(dataset_id: UUID) -> str:
     dataset = Dataset.objects.get(id=dataset_id)
     logger.info(f"Deleting dataset {dataset.name}")
 
-    if dataset.local_database:
+    if dataset.search_mode == Dataset.SearchMode.LOCAL.value:
         if dataset.search_index_path and dataset.search_index_path.exists():
             logger.info(f"Deleting search index {dataset.search_index_path}")
             shutil.rmtree(dataset.search_index_path)
 
+    if dataset.mode == Dataset.Mode.LOCAL.value and dataset.local_database:
         logger.info(f"Deleting database {dataset.local_database}")
         with StardogApi.admin() as admin:
             admin.database(dataset.local_database).drop()

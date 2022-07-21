@@ -106,10 +106,8 @@ POST https://query.wikidata.org/sparql?limit=10
 Content-Type: application/sparql-query
 Accept: application/sparql-results+json
 
-SELECT * {
-  ?s ?p ?o
- }
-LIMIT 100
+SELECT (COUNT(*) AS ?count)
+WHERE { ?s ?p ?o }
 
 
 ### Wikidata Search
@@ -118,3 +116,42 @@ GET https://www.wikidata.org/w/api.php?action=wbsearchentities&search=gen&langua
 
 ### Wikidata Search2
 GET https://www.wikidata.org/w/api.php?action=wbsearchentities&search=Albert&language=en&uselang=en&type=item&format=json&formatversion=2&errorformat=plaintext&origin=*&limit=12
+
+
+### TriplyDB
+POST https://api.triplydb.com/datasets/academy/pokemon/services/pokemon/sparql?limit=10
+Content-Type: application/sparql-query
+Accept: application/sparql-results+json
+
+SELECT (COUNT(*) AS ?count)
+WHERE { ?s ?p ?o }
+
+### TriplyDB
+POST https://api.triplydb.com/datasets/LaurensRietveld/got/services/got/sparql?limit=10
+Content-Type: application/sparql-query
+Accept: application/sparql-results+json
+
+SELECT (COUNT(*) AS ?count)
+WHERE { ?s ?p ?o }
+
+
+### TriplyDB Search
+POST https://api.triplydb.com/datasets/academy/pokemon/services/search/search
+Content-Type: application/json
+Accept: application/json
+
+{
+  "query": {
+    "bool": {
+      "must": [
+        {"simple_query_string": {
+          "query": "rareness"
+        }},
+        {"match": {
+          "http://www w3 org/1999/02/22-rdf-syntax-ns#type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+        }}
+      ]
+    }
+  }
+}
+

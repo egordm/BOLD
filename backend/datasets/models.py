@@ -19,24 +19,23 @@ class DatasetState(Enum):
     FAILED = 'FAILED'
 
 
-class DatasetMode(models.TextChoices):
-    LOCAL = 'LOCAL', _('Imported locally ')
-    SPARQL = 'SPARQL', _('From SPARQL endpoint')
-
-
-class SearchMode(models.TextChoices):
-    LOCAL = 'LOCAL', _('Imported locally ')
-    WIKIDATA = 'WIKIDATA', _('From Wikidata')
-
-
 class Dataset(TaskMixin, TimeStampMixin):
     STATES = ((state.value, state.value) for state in DatasetState)
+
+    class Mode(models.TextChoices):
+        LOCAL = 'LOCAL', _('Imported locally ')
+        SPARQL = 'SPARQL', _('From SPARQL endpoint')
+
+    class SearchMode(models.TextChoices):
+        LOCAL = 'LOCAL', _('Imported locally ')
+        WIKIDATA = 'WIKIDATA', _('From Wikidata')
+        TRIPLYDB = 'TRIPLYDB', _('From TripyDB')
 
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     source = models.JSONField()
-    mode = models.CharField(max_length=255, choices=DatasetMode.choices, default=DatasetMode.LOCAL)
+    mode = models.CharField(max_length=255, choices=Mode.choices, default=Mode.LOCAL)
     search_mode = models.CharField(max_length=255, choices=SearchMode.choices, default=SearchMode.LOCAL)
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
 
@@ -56,22 +55,22 @@ class Dataset(TaskMixin, TimeStampMixin):
 
     def get_search_service(self) -> SearchService:
         match self.search_mode:
-            case SearchMode.LOCAL:
+            case self.SearchMode.LOCAL:
                 if not self.search_index_path.exists():
                     raise Exception('Dataset search index has not been created yet')
                 return LocalSearchService(self.search_index_path)
-            case SearchMode.WIKIDATA:
+            case self.SearchMode.WIKIDATA:
                 return WikidataSearchService()
             case _:
                 raise ValueError(f'Unknown search mode {self.search_mode}')
 
     def get_query_service(self) -> QueryService:
         match self.mode:
-            case DatasetMode.LOCAL:
+            case self.Mode.LOCAL:
                 if not self.local_database:
                     raise Exception('Dataset local database has not been imported yet')
                 return LocalQueryService(str(self.local_database))
-            case DatasetMode.SPARQL:
+            case self.Mode.SPARQL:
                 return SPARQLQueryService(str(self.sparql_endpoint))
             case _:
                 raise ValueError(f'Unknown mode {self.mode}')

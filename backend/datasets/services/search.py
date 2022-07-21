@@ -1,3 +1,4 @@
+import json
 import re
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
@@ -61,6 +62,7 @@ class TermDocument(Serializable):
     label: Optional[str] = None
     description: Optional[str] = None
     count: Optional[int] = None
+    range: Optional[str] = None
 
 
 class SearchService(ABC):
@@ -136,7 +138,7 @@ class WikidataSearchService(SearchService):
                 'type': type,
                 'format': 'json',
                 'formatversion': 2,
-                'errorformat': 'json',
+                'errorformat': 'plaintext',
                 'limit': limit,
                 'continue': offset,
             },
@@ -171,4 +173,72 @@ class WikidataSearchService(SearchService):
             description=doc.get('description', None),
             count=doc.get('count', None),
             search_text=doc.get('label', None),
+        )
+
+
+class TriplyDBSearchService(SearchService):
+    namespace: str
+
+    def search(self, query, pos: TermPos, limit: int = 100, offset: int = 0, timeout=5000, **options) -> SearchResult:
+        response = requests.post(
+            'https://api.triplydb.com/datasets/academy/pokemon/services/search/search',
+            data=json.dumps({
+                'size': limit,
+                'from': offset,
+                'query': {
+                    "bool": {
+                        "must": [
+                            {"simple_query_string": {
+                                "query": query
+                            }},
+                            {("match" if pos == TermPos.PREDICATE else "not_match"): {
+                                "http://www w3 org/1999/02/22-rdf-syntax-ns#type":
+                                    "http://www.w3.org/2002/07/owl#DatatypeProperty"
+                            }}
+                        ]
+                    }
+                }
+            }),
+            timeout=timeout,
+            headers={
+                'User-Agent': 'https://github.com/EgorDm/BOLD',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        )
+
+        if response.status_code != 200:
+            return SearchResult(error=response.text)
+
+        result_data = response.json()
+        return SearchResult(
+            count=result_data['hits']['total']['value'],
+            hits=[
+                SearchHit(
+                    score=hit['_score'],
+                    document=self._parse_doc(hit['_source'])
+                )
+                for hit in result_data['hits']['hits']
+            ],
+        )
+
+    def _parse_doc(self, doc: dict) -> TermDocument:
+        iri = doc['@id']
+        rdf_type = doc.get('http://www w3 org/1999/02/22-rdf-syntax-ns#type', None)
+        pos = TermPos.PREDICATE if rdf_type == 'http://www.w3.org/2002/07/owl#DatatypeProperty' \
+            else (TermPos.SUBJECT if 'http' in iri else TermPos.OBJECT)
+
+        label = doc.get('http://www w3 org/2000/01/rdf-schema#label', None)
+        search_text = label if label else re.sub(r'[-_#]', ' ', iri.split('/')[-1].split('#')[-1])
+
+        return TermDocument(
+            type='uri',
+            value=doc['@id'],
+            pos=pos,
+            rdf_type=rdf_type,
+            label=label,
+            description=doc.get('http://www w3 org/2000/01/rdf-schema#comment', None),
+            count=None,
+            search_text=search_text,
+            range=doc.get('http://www w3 org/2000/01/rdf-schema#range', None),
         )
