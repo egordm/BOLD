@@ -6,6 +6,7 @@ import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useCellContext } from "../../providers/CellProvider";
 import { ClassTreeWidget } from "./cells/ClassTreeWidget";
 import { CodeCell } from "./cells/CodeCell";
+import { PropertiesPreviewWidget } from "./cells/PropertiesPreviewWidget";
 import { TripleMatchWidget } from "./cells/TripleMatchWidget";
 import { ValueDistributionWidget } from "./cells/ValueDistributionWidget";
 
@@ -14,6 +15,7 @@ export const CELL_TYPES = {
   widget_valuedistribution: ValueDistributionWidget,
   widget_triplematch: TripleMatchWidget,
   widget_classtree: ClassTreeWidget,
+  widget_propertiespreview: PropertiesPreviewWidget,
 }
 
 export const CellContainer = (props: {}) => {
