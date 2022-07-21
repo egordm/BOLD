@@ -153,7 +153,7 @@ class WikidataSearchService(SearchService):
 
         result_data = response.json()
         return SearchResult(
-            count=999999 if result_data['search-continue'] else offset + len(result_data['search']),
+            count=999999 if 'search-continue' in result_data else offset + len(result_data['search']),
             hits=[
                 SearchHit(
                     score=1.0,
@@ -164,9 +164,13 @@ class WikidataSearchService(SearchService):
         )
 
     def _parse_doc(self, doc: dict, pos: TermPos) -> TermDocument:
+        iri = doc['concepturi']
+        if pos == TermPos.PREDICATE:
+            iri = f'http://www.wikidata.org/prop/direct/{doc["id"]}'
+
         return TermDocument(
             type='uri',
-            value=doc['concepturi'],
+            value=iri,
             pos=pos,
             rdf_type=None,
             label=doc.get('label', None),
@@ -179,9 +183,12 @@ class WikidataSearchService(SearchService):
 class TriplyDBSearchService(SearchService):
     namespace: str
 
+    def __init__(self, namespace: str):
+        self.namespace = namespace
+
     def search(self, query, pos: TermPos, limit: int = 100, offset: int = 0, timeout=5000, **options) -> SearchResult:
         response = requests.post(
-            'https://api.triplydb.com/datasets/academy/pokemon/services/search/search',
+            f'https://api.triplydb.com/datasets/{self.namespace}/services/search/search',
             data=json.dumps({
                 'size': limit,
                 'from': offset,
