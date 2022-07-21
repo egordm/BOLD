@@ -2,12 +2,15 @@ export type TermPos = 'SUBJECT' | 'PREDICATE' | 'OBJECT';
 
 export interface Term {
   type: 'uri' | 'literal';
+  search_text: string;
   value: string;
-  lang: string | null;
   pos: TermPos;
+  lang: string | null;
   rdf_type: string | null;
   label: string | null;
-  count: number;
+  description: string | null;
+  count: number| null;
+  range: number | null;
 }
 
 

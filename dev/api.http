@@ -134,6 +134,14 @@ Accept: application/sparql-results+json
 SELECT (COUNT(*) AS ?count)
 WHERE { ?s ?p ?o }
 
+### TriplyDB
+POST https://api.triplydb.com/datasets/LaurensRietveld/got/services/got/sparql?limit=10
+Content-Type: application/sparql-query
+Accept: text/csv
+
+SELECT *
+WHERE { ?s ?p ?o }
+LIMIT 10
 
 ### TriplyDB Search
 POST https://api.triplydb.com/datasets/academy/pokemon/services/search/search
@@ -155,3 +163,22 @@ Accept: application/json
   }
 }
 
+###
+POST https://api.triplydb.com/datasets/LaurensRietveld/got/services/search/search
+Content-Type: application/json
+Accept: application/json
+
+{
+  "query": {
+    "bool": {
+      "must": [
+        {"simple_query_string": {
+          "query": "rareness"
+        }},
+        {"match": {
+          "http://www w3 org/1999/02/22-rdf-syntax-ns#type": "http://www.w3.org/2002/07/owl#DatatypeProperty"
+        }}
+      ]
+    }
+  }
+}

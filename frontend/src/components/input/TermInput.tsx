@@ -1,29 +1,19 @@
+import styled from "@emotion/styled";
 import {
   Autocomplete,
-  Avatar,
-  Badge,
   Box, Chip,
   Divider,
   ListItem,
-  ListItemAvatar,
-  ListItemText, Table, TableBody, TableCell, TableRow,
-  TextField, Tooltip, Typography
+  ListItemText, Stack, TextField, Tooltip, Typography
 } from "@mui/material";
 import { AutocompleteProps } from "@mui/material/Autocomplete/Autocomplete";
 import _ from "lodash";
 import throttle from "lodash/throttle";
+import Link from "next/link";
 import React, { useMemo } from "react";
 import { Term, TermPos, SearchResult } from "../../types/terms";
 import { apiClient } from "../../utils/api";
-import BeachAccessIcon from '@mui/icons-material/BeachAccess';
 import { extractIriLabel, formatIri } from "../../utils/formatting";
-
-const POS_TO_ID = {
-  'SUBJECT': 0,
-  'PREDICATE': 1,
-  'OBJECT': 2,
-}
-
 
 export const TermInput = (props: {
   datasetId: string;
@@ -47,11 +37,11 @@ export const TermInput = (props: {
       request: { query: string },
       callback: (result?: SearchResult<Term>) => void,
     ) => {
-      const result = await apiClient.get(`/terms/${datasetId}/search`, {
+      const result = await apiClient.get(`/datasets/${datasetId}/search`, {
         params: {
           limit: limit ?? 50,
           query: request.query,
-          pos: POS_TO_ID[pos],
+          pos,
         }
       })
       callback(result.data)
@@ -88,7 +78,7 @@ export const TermInput = (props: {
       fullWidth
       label={label}
     />
-  ), [label]);
+  ), [ label ]);
 
   const renderOption = useMemo(() => (props, option: Term) => {
     const { className, ...rest } = props;
@@ -108,7 +98,7 @@ export const TermInput = (props: {
           <ListItemText
             primary={<>
               <Typography component="span" fontWeight={option.label ? 500 : 'normal'}>{primary} </Typography>
-              <Typography variant="caption" component="span">({option.count})</Typography>
+              {option.count && <Typography variant="caption" component="span">({option.count})</Typography>}
             </>}
             secondary={secondary}
           />
@@ -119,19 +109,13 @@ export const TermInput = (props: {
   }, [ prefixes ]);
 
   const renderTag = useMemo(() => (index, props, option: Term) => {
-    const iri = option.type === 'uri' ? formatIri(option.value, prefixes || {}) : option.value;
-    const primary = option.label ? option.label : extractIriLabel(option.value);
-
     return (
-      <Tooltip key={index} sx={{ maxWidth: 'none' }} arrow title={iri}>
-        <Chip
-          label={<>
-            <Typography variant="body2" component="span" fontWeight={option.label ? 500 : 'normal'}>{primary} </Typography>
-            <Typography variant="caption" component="span">({option.count})</Typography>
-          </>}
-          {...props}
+      <TermChip
+        key={index}
+        term={option}
+        chipProps={props}
+        prefixes={prefixes}
         />
-      </Tooltip>
     )
   }, [ prefixes ]);
 
@@ -160,5 +144,63 @@ export const TermInput = (props: {
       {...rest}
     />
   )
+}
 
+const PropsTable = styled.table`
+  td, td * {
+    vertical-align: top;
+  }
+  
+  td:first-child {
+    padding-right: 8px;
+  }
+
+`
+
+const TermChip = ({term, prefixes, chipProps, ...rest}: {
+  term: Term;
+  prefixes?: Record<string, string>;
+  chipProps?: any;
+}) => {
+  const iri = term.type === 'uri' ? formatIri(term.value, prefixes || {}) : term.value;
+  const primary = term.label ? term.label : extractIriLabel(term.value);
+
+  return (
+    <Tooltip sx={{ maxWidth: 'none' }} arrow title={
+      <Stack>
+        <PropsTable>
+          <tr>
+            <td>IRI</td>
+            <td><Link href={iri}>{iri}</Link></td>
+          </tr>
+          {term.description && <tr>
+              <td>Description</td>
+              <td>{term.description}</td>
+          </tr>}
+          {term.range && <tr>
+              <td>Range</td>
+              <td>{term.range}</td>
+          </tr>}
+          {term.lang && <tr>
+              <td>Lang</td>
+              <td>{term.lang}</td>
+          </tr>}
+          {term.rdf_type && <tr>
+              <td>RDF Type</td>
+              <td>{term.rdf_type}</td>
+          </tr>}
+        </PropsTable>
+      </Stack>
+    } {...rest}>
+      <Chip
+        label={<>
+          <Typography variant="body2" component="span"
+                      fontWeight={term.label ? 500 : 'normal'}>{primary} </Typography>
+          {term.count &&
+              <Typography variant="caption" component="span">({term.count})</Typography>}
+        </>}
+        {...chipProps}
+      />
+    </Tooltip>
+  )
 }

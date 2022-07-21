@@ -6,7 +6,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from datasets.services.query import QueryService, LocalQueryService, SPARQLQueryService
-from datasets.services.search import LocalSearchService, WikidataSearchService, SearchService
+from datasets.services.search import LocalSearchService, WikidataSearchService, SearchService, TriplyDBSearchService
 from shared.models import TimeStampMixin
 from shared.paths import DATA_DIR
 from tasks.models import TaskMixin
@@ -61,6 +61,10 @@ class Dataset(TaskMixin, TimeStampMixin):
                 return LocalSearchService(self.search_index_path)
             case self.SearchMode.WIKIDATA:
                 return WikidataSearchService()
+            case self.SearchMode.TRIPLYDB:
+                if 'tdb_id' not in self.source:
+                    raise Exception('Dataset is not a TriplyDB dataset')
+                return TriplyDBSearchService(self.source['tdb_id'])
             case _:
                 raise ValueError(f'Unknown search mode {self.search_mode}')
 
