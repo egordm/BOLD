@@ -1,4 +1,5 @@
-import { Card, CardContent, CardHeader, Modal} from "@mui/material";
+import { Card, CardContent, CardHeader, IconButton, Modal } from "@mui/material";
+import CloseIcon from '@mui/icons-material/Close';
 import React from "react";
 
 
@@ -28,7 +29,15 @@ export const ModalContainer = (props: {
         display: 'flex',
         flexDirection: 'column',
       }}>
-        {header ? header : <CardHeader title={title}/>}
+        {header
+          ? header
+          : <CardHeader
+            title={title}
+            action={
+              <IconButton aria-label="close" onClick={onClose}><CloseIcon /> </IconButton>
+            }
+          />
+        }
         <CardContent sx={{ overflow: 'auto', flex: 1 }}>
           {children}
         </CardContent>
