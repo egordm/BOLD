@@ -5,7 +5,7 @@ import {
   CircularProgress,
   Fab,
   Grid,
-  InputAdornment,
+  InputAdornment, Stack,
   TextField,
   Typography
 } from "@mui/material";
@@ -19,9 +19,11 @@ import { usePrefixes, useReportContext } from "../../../providers/ReportProvider
 import { CodeCellType, createNotebook } from "../../../types/notebooks";
 import { GPTOutput, Report } from "../../../types/reports";
 import { apiClient } from "../../../utils/api";
+import { fieldProps } from "../../../utils/forms";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { Yasr } from "../../data/Yasr";
 import { Yasqe } from "../../input/Yasqe";
+import { FormContainer } from "../../layout/FormContainer";
 import { ModalContainer } from "../../layout/ModalContainer";
 import LightbulbIcon from '@mui/icons-material/Lightbulb';
 
@@ -80,45 +82,32 @@ const GPTPromptModal = ({
       title={'GPT Text to SPARQL query'}
       open={open}
       onClose={onClose}>
-      <form onSubmit={formik.handleSubmit}>
-        <Grid container spacing={3}>
-          <Grid item xs={12}>
-            <TextField
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Typography>Query must </Typography>
-                  </InputAdornment>
-                ),
-              }}
-              name="prompt"
-              value={formik.values.prompt}
-              onChange={formik.handleChange}
-              error={formik.touched.prompt && Boolean(formik.errors.prompt)}
-              helperText={formik.touched.prompt && formik.errors.prompt}
-              multiline
-              fullWidth
-              rows={4}
-              variant="standard"
-              sx={{ alignItems: 'start' }}
-              inputProps={{
-                style: {
-                  alignItems: 'start'
-                }
-              }}
-            />
-          </Grid>
-          <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', }}>
-            <Button variant="contained" type="submit">Submit</Button>
-          </Grid>
-        </Grid>
-      </form>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
+      <FormContainer
+        form={formik}
+        actions={<>
+          <Button variant="contained" type="submit">Submit</Button>
+        </>}
+        loading={loading}
       >
-        <CircularProgress color="inherit"/>
-      </Backdrop>
+        <TextField
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <Typography>Query must </Typography>
+              </InputAdornment>
+            ),
+          }}
+          {...fieldProps(formik, 'prompt')}
+          placeholder="calculate a while returning b and c"
+          multiline fullWidth
+          rows={4}
+          variant="standard"
+          sx={{ alignItems: 'start' }}
+          inputProps={{
+            style: { alignItems: 'start' }
+          }}
+        />
+      </FormContainer>
     </ModalContainer>
   )
 }

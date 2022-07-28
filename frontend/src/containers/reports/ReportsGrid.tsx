@@ -1,4 +1,5 @@
 import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import {
   Box
 } from "@mui/material";
@@ -53,24 +54,17 @@ export const ReportsGrid = (props: {}) => {
     await router.push(`report/${report.id}`);
   }
 
-  const columns = [
-    ...COLUMNS,
-    {
-      field: 'actions',
-      type: 'actions',
-      getActions: (params: GridRowParams) => [
-        <GridActionsCellItem icon={<EditIcon/>} onClick={async () => await onReportEdit(params.row)} label="Edit"/>,
-      ]
-    }
-  ]
-
   return (
     <Box sx={{ width: '100%', height: 600 }}>
       <ServerDataGrid
         endpoint="/reports/"
-        columns={columns}
+        columns={COLUMNS}
         initialState={INITIAL_STATE}
         initialSorting={INITIAL_SORTING}
+        actions={(params, actions) => [
+          ...actions,
+          <GridActionsCellItem icon={<EditIcon/>} onClick={async () => await onReportEdit(params.row)} label="Edit"/>,
+        ]}
       />
     </Box>
   )

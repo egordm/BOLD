@@ -10,6 +10,7 @@ import {
 } from "@mui/material"
 import { useFormik } from "formik";
 import { useState } from "react";
+import { FormContainer } from "../../components/layout/FormContainer";
 import useNotification from "../../hooks/useNotification";
 import { Dataset } from "../../types/datasets";
 import * as yup from 'yup';
@@ -81,7 +82,13 @@ export const DatasetCreateForm = (props: {
   });
 
   return (
-    <form onSubmit={formik.handleSubmit}>
+    <FormContainer
+      form={formik}
+      loading={loading}
+      actions={<>
+        <Button variant="contained" type="submit">Submit</Button>
+      </>}
+    >
       <Grid container spacing={3}>
         <Grid item xs={12}>
           <TextField
@@ -158,16 +165,7 @@ export const DatasetCreateForm = (props: {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} container justifyContent="flex-end">
-          <Button variant="contained" type="submit">Submit</Button>
-        </Grid>
       </Grid>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
-      >
-        <CircularProgress color="inherit"/>
-      </Backdrop>
-    </form>
+    </FormContainer>
   )
 }

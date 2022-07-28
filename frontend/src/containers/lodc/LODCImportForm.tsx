@@ -12,6 +12,7 @@ import OpenInNewIcon from '@mui/icons-material/OpenInNew';
 import { AxiosResponse } from "axios";
 import { useFormik } from "formik";
 import React, { useCallback, useState } from "react";
+import { FormContainer } from "../../components/layout/FormContainer";
 import useNotification from "../../hooks/useNotification";
 import { LODCDataset, LODCDownload } from "../../services/lodc";
 import { Dataset } from "../../types/datasets";
@@ -150,11 +151,14 @@ export const LODCImportForm = (props: {
   }, [ dataset ]);
 
   return (
-    <form onSubmit={formik.handleSubmit}>
-      <Grid
-        container
-        spacing={3}
-      >
+    <FormContainer
+      form={formik}
+      loading={loading}
+      actions={<>
+        <Button variant="contained" type="submit">Submit</Button>
+      </>}
+    >
+      <Grid container spacing={3} >
         <Grid item xs={12}>
           <Link href={`https://lod-cloud.net/dataset/${dataset.identifier}`} target="_blank">
             <Typography variant="body2">Open on Linked Open Data Cloud <OpenInNewIcon fontSize="small"/></Typography>
@@ -215,16 +219,7 @@ export const LODCImportForm = (props: {
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} sx={{ display: 'flex', justifyContent: 'flex-end', }}>
-          <Button variant="contained" type="submit">Submit</Button>
-        </Grid>
       </Grid>
-      <Backdrop
-        sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}
-        open={loading}
-      >
-        <CircularProgress color="inherit"/>
-      </Backdrop>
-    </form>
+    </FormContainer>
   )
 }

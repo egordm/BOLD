@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, Modal } from "@mui/material";
+import { Card, CardContent, CardHeader, Modal} from "@mui/material";
 import React from "react";
 
 
@@ -7,7 +7,7 @@ export const ModalContainer = (props: {
   onClose: () => void;
   title: string;
   header?: React.ReactNode;
-  children: React.ReactNode;
+  children?: React.ReactNode;
 }) => {
   const { open, onClose, title, header, children } = props;
 
