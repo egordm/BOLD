@@ -20,8 +20,6 @@ import { SourceViewModal } from "../../data/SourceViewModal";
 import { Yasr } from "../../data/Yasr";
 import { NumberedSlider } from "../../input/NumberedSlider";
 import { TermInput } from "../../input/TermInput";
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
 import CodeIcon from '@mui/icons-material/Code';
 import { VirtualizedTabs } from "../../layout/VirtualizedTabs";
 
@@ -86,6 +84,7 @@ export const TripleMatchWidget = (props: {}) => {
   const { cell, cellRef, outputs, setCell } = useCellContext();
   const { data, source } = cell as WidgetCellType<TripleMatchWidgetData>;
   const [ showSource, setShowSource ] = React.useState(false);
+  const prefixes = usePrefixes();
 
   useEffect(() => {
     const { primaryQuery } = buildQuery(data);
@@ -152,6 +151,7 @@ export const TripleMatchWidget = (props: {}) => {
                 label="Subject must match"
                 value={data.subject ?? []}
                 onChange={(value) => setData({ subject: value })}
+                prefixes={prefixes}
               />
             )}
           </Grid>
@@ -165,6 +165,7 @@ export const TripleMatchWidget = (props: {}) => {
                 label="Predicate must match"
                 value={data.predicate ?? []}
                 onChange={(value) => setData({ predicate: value })}
+                prefixes={prefixes}
               />
             )}
           </Grid>
@@ -181,6 +182,7 @@ export const TripleMatchWidget = (props: {}) => {
                   label="Object must match"
                   value={data.object ?? []}
                   onChange={(value) => setData({ object: value })}
+                  prefixes={prefixes}
                 />
               )}
             </Stack>
@@ -199,7 +201,7 @@ export const TripleMatchWidget = (props: {}) => {
         </Grid>
       </Grid>
     </>
-  ), [ data ]);
+  ), [ data, prefixes ]);
 
   const Result = useMemo(() => !!outputs?.length && (
     <VirtualizedTabs

@@ -183,6 +183,7 @@ export const ValueDistributionWidget = (props: {}) => {
   const { cell, cellRef, outputs, setCell } = useCellContext();
   const { data, source } = cell as WidgetCellType<ValueDistributionWidgetData>;
   const [ showSource, setShowSource ] = React.useState(false);
+  const prefixes = usePrefixes();
 
   useEffect(() => {
     const { primaryQuery, exampleQuery, completenessQuery } = buildQuery(data, report?.dataset?.statistics?.triple_count ?? 0);
@@ -248,6 +249,7 @@ export const ValueDistributionWidget = (props: {}) => {
             label="Filter values of"
             value={filter.predicate ?? []}
             onChange={(value) => onUpdateFilter(index, { predicate: value })}
+            prefixes={prefixes}
           />
         </Grid>
         <Grid item xs={5}>
@@ -259,6 +261,7 @@ export const ValueDistributionWidget = (props: {}) => {
               label="Matching values"
               value={filter.object ?? []}
               onChange={(value) => onUpdateFilter(index, { object: value })}
+              prefixes={prefixes}
             />
             <IconButton
               aria-label="delete"
@@ -269,7 +272,7 @@ export const ValueDistributionWidget = (props: {}) => {
         </Grid>
       </Grid>
     ));
-  }, [ data.filters ]);
+  }, [ data.filters, prefixes ]);
 
   const TemporalGrouping = useMemo(() => typeof data.temporal_predicate?.length === 'number' ?
     (
@@ -284,6 +287,7 @@ export const ValueDistributionWidget = (props: {}) => {
               label="Temporally group by"
               value={data.temporal_predicate ?? []}
               onChange={(value) => setData({ temporal_predicate: value })}
+              prefixes={prefixes}
             />
             <IconButton
               aria-label="delete"
@@ -342,6 +346,7 @@ export const ValueDistributionWidget = (props: {}) => {
             label="Group values of"
             value={data?.group_predicate ?? []}
             onChange={(value) => setData({ group_predicate: value })}
+            prefixes={prefixes}
           />
         </Grid>
         <Grid item xs={2}>
@@ -384,7 +389,7 @@ export const ValueDistributionWidget = (props: {}) => {
         {TemporalGrouping}
       </Grid>
     </>
-  ), [ data ]);
+  ), [ data, prefixes ]);
 
   const Result = useMemo(() => !!outputs?.length && (
     <VirtualizedTabs

@@ -1,6 +1,7 @@
-import { CardHeader, Input, Skeleton} from "@mui/material";
+import { CardHeader, IconButton, Input, Skeleton, Tooltip } from "@mui/material";
 import { useCallback, useMemo } from "react";
 import { useNotebookContext } from "../../providers/NotebookProvider";
+import AbcIcon from '@mui/icons-material/Abc';
 
 
 export const NotebookHeader = (props: {}) => {
@@ -20,7 +21,7 @@ export const NotebookHeader = (props: {}) => {
         name,
       }
     })
-  }, [notebookRef]);
+  }, [ notebookRef ]);
 
   return useMemo(() => (
     <CardHeader
@@ -43,5 +44,5 @@ export const NotebookHeader = (props: {}) => {
               : 'Changed'
       }
     />
-  ), [notebook?.metadata?.name, isSaving, changed]);
+  ), [ notebook?.metadata?.name, isSaving, changed ]);
 }

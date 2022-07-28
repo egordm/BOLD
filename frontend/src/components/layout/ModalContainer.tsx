@@ -9,18 +9,17 @@ export const ModalContainer = (props: {
   title: string;
   header?: React.ReactNode;
   children?: React.ReactNode;
+  width?: number;
 }) => {
-  const { open, onClose, title, header, children } = props;
+  const { open, onClose, title, header, children, width = 600 } = props;
 
   return (
     <Modal
       open={open}
       onClose={onClose}
-      aria-labelledby="modal-modal-title"
-      aria-describedby="modal-modal-description"
     >
       <Card sx={{
-        width: 600,
+        width,
         position: 'absolute' as 'absolute',
         top: '50%',
         left: '50%',
@@ -34,7 +33,7 @@ export const ModalContainer = (props: {
           : <CardHeader
             title={title}
             action={
-              <IconButton aria-label="close" onClick={onClose}><CloseIcon /> </IconButton>
+              <IconButton aria-label="close" onClick={onClose}><CloseIcon/> </IconButton>
             }
           />
         }

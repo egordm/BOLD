@@ -3,7 +3,6 @@ import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import useNotification from "../hooks/useNotification";
 import {
   Cell,
-  CellId,
   createNotebook,
   Notebook,
   setCellContent,
@@ -58,7 +57,11 @@ export const NotebookProvider = (props: {
   useEffect(() => {
     if (!isFetching) {
       if (report?.notebook) {
-        setNotebook(report.notebook);
+        console.log('Updating notebook', report.notebook);
+        if (!notebookRef.current) {
+          setNotebook(report.notebook);
+        }
+        // setNotebook(report.notebook);
       } else {
         setNotebook(createNotebook('Untitled notebook'));
       }

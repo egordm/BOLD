@@ -2,14 +2,13 @@ import styled from "@emotion/styled";
 import {
   Autocomplete,
   Box, Chip,
-  Divider,
+  Divider, Link,
   ListItem,
   ListItemText, Stack, TextField, Tooltip, Typography
 } from "@mui/material";
 import { AutocompleteProps } from "@mui/material/Autocomplete/Autocomplete";
 import _ from "lodash";
 import throttle from "lodash/throttle";
-import Link from "next/link";
 import React, { useMemo } from "react";
 import { Term, TermPos, SearchResult } from "../../types/terms";
 import { apiClient } from "../../utils/api";
@@ -19,12 +18,12 @@ export const TermInput = (props: {
   datasetId: string;
   pos: TermPos,
   label?: string;
-  prefixes?: Record<string, string>
+  prefixes: Record<string, string> | null
   value?: Term[];
   onChange?: (terms: Term[]) => void;
   limit?: number;
 } & Partial<Omit<AutocompleteProps<Term, true, false, undefined>, 'onChange'>>) => {
-  const { datasetId, pos, prefixes, label, onChange, limit, value: propValue, ...rest } = props;
+  const { datasetId, pos, label, onChange, prefixes, limit, value: propValue, ...rest } = props;
 
   const [ valueInternal, setValue ] = React.useState<Term[]>([]);
   const [ inputValue, setInputValue ] = React.useState('');
@@ -115,7 +114,7 @@ export const TermInput = (props: {
         term={option}
         chipProps={props}
         prefixes={prefixes}
-        />
+      />
     )
   }, [ prefixes ]);
 
@@ -150,14 +149,14 @@ const PropsTable = styled.table`
   td, td * {
     vertical-align: top;
   }
-  
-  td:first-child {
+
+  td:first-of-type {
     padding-right: 8px;
   }
 
 `
 
-const TermChip = ({term, prefixes, chipProps, ...rest}: {
+const TermChip = ({ term, prefixes, chipProps, ...rest }: {
   term: Term;
   prefixes?: Record<string, string>;
   chipProps?: any;
@@ -169,26 +168,30 @@ const TermChip = ({term, prefixes, chipProps, ...rest}: {
     <Tooltip sx={{ maxWidth: 'none' }} arrow title={
       <Stack>
         <PropsTable>
-          <tr>
-            <td>IRI</td>
-            <td><Link href={iri}>{iri}</Link></td>
-          </tr>
-          {term.description && <tr>
-              <td>Description</td>
-              <td>{term.description}</td>
-          </tr>}
-          {term.range && <tr>
-              <td>Range</td>
-              <td>{term.range}</td>
-          </tr>}
-          {term.lang && <tr>
-              <td>Lang</td>
-              <td>{term.lang}</td>
-          </tr>}
-          {term.rdf_type && <tr>
-              <td>RDF Type</td>
-              <td>{term.rdf_type}</td>
-          </tr>}
+          <tbody>
+            <tr>
+              <td>IRI</td>
+              <td><Link href={term.value} style={{
+                color: 'white'
+              }} target="_blank">{iri}</Link></td>
+            </tr>
+            {term.description && <tr>
+                <td>Description</td>
+                <td>{term.description}</td>
+            </tr>}
+            {term.range && <tr>
+                <td>Range</td>
+                <td>{term.range}</td>
+            </tr>}
+            {term.lang && <tr>
+                <td>Lang</td>
+                <td>{term.lang}</td>
+            </tr>}
+            {term.rdf_type && <tr>
+                <td>RDF Type</td>
+                <td>{term.rdf_type}</td>
+            </tr>}
+          </tbody>
         </PropsTable>
       </Stack>
     } {...rest}>

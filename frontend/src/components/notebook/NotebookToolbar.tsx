@@ -1,18 +1,20 @@
+import AbcIcon from "@mui/icons-material/Abc";
 import {
   Autocomplete,
-  Box,
+  Box, Button,
   Divider,
-  FormControl,
-  IconButton,
+  FormControl, InputAdornment,
   InputLabel,
   MenuItem,
-  Select, TextField
+  Select, TextField, Tooltip, Typography
 } from "@mui/material";
 import { Add } from '@mui/icons-material';
-import { useCallback, useEffect, useMemo } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { NamespaceEditForm } from "../../containers/datasets/NamespaceEditForm";
 import useNotification from "../../hooks/useNotification";
 import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useNotebookContext } from "../../providers/NotebookProvider";
+import { useReportContext } from "../../providers/ReportProvider";
 import { useRunQueueContext } from "../../providers/RunQueueProvider";
 import { addCell, createCell, removeCell, setCellContent, setCellMeta } from "../../types/notebooks";
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -21,8 +23,13 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FastForwardIcon from '@mui/icons-material/FastForward';
+import { fieldProps } from "../../utils/forms";
+import { IconButton } from "../input/IconButton";
+import { FormContainer } from "../layout/FormContainer";
+import { ModalContainer } from "../layout/ModalContainer";
 
 export const NotebookToolbar = (props: {}) => {
+  const { report, refetch } = useReportContext();
   const { focus, focusRef, setFocus } = useCellFocusContext();
   const { notebook, notebookRef, setNotebook } = useNotebookContext();
   const { runCells } = useRunQueueContext();
@@ -32,6 +39,8 @@ export const NotebookToolbar = (props: {}) => {
   const focusCell = focus ? notebook.content.cells[focus] : null;
   const focusCellType = focusCell?.cell_type ?? 'code';
   const focusCellTimeout = focusCell?.metadata?.timeout ?? 5000;
+
+  const [ editNamespaces, setEditNamespaces ] = useState<boolean>(false);
 
   useEffect(() => {
     if (!focus && notebookRef.current && notebookRef.current.content.cell_order.length > 0) {
@@ -67,14 +76,29 @@ export const NotebookToolbar = (props: {}) => {
   }, []);
 
   const onRunCell = useCallback(() => {
-    runCells([focusRef.current]);
+    runCells([ focusRef.current ]);
   }, []);
 
   const onRunAll = useCallback(() => {
     runCells(notebookRef.current.content.cell_order);
   }, []);
 
-  return useMemo(() => (
+  const NamespaceModal = useMemo(() => (
+    <ModalContainer
+      width={720}
+      title={'Edit Namespaces'}
+      open={editNamespaces}
+      onClose={() => setEditNamespaces(false)}>
+      <NamespaceEditForm dataset={report?.dataset} onClose={(updated) => {
+        setEditNamespaces(false)
+        if (updated) {
+          refetch();
+        }
+      }}/>
+    </ModalContainer>
+  ), [ editNamespaces, report?.dataset ]);
+
+  const Actions = useMemo(() => (
     <Box
       sx={{
         display: 'flex',
@@ -89,29 +113,16 @@ export const NotebookToolbar = (props: {}) => {
         pl: 2,
       }}
     >
-      <IconButton aria-label="add" size="large" onClick={onAddCell}>
-        <Add fontSize="inherit"/>
-      </IconButton>
-      <IconButton aria-label="delete" size="large" onClick={onDeleteCell}>
-        <DeleteIcon fontSize="inherit"/>
-      </IconButton>
+      <IconButton size="large" onClick={onAddCell} label="Add cell" icon={<Add fontSize="inherit"/>}/>
+      <IconButton size="large" onClick={onDeleteCell} label="Delete cell" icon={<DeleteIcon fontSize="inherit"/>}/>
       <Divider orientation="vertical" flexItem/>
-      <IconButton aria-label="cut" size="large">
-        <ContentCutIcon fontSize="inherit"/>
-      </IconButton>
-      <IconButton aria-label="copy" size="large">
-        <ContentCopyIcon fontSize="inherit"/>
-      </IconButton>
-      <IconButton aria-label="paste" size="large">
-        <ContentPasteIcon fontSize="inherit"/>
-      </IconButton>
+      <IconButton size="large" label="Cut cell" icon={<ContentCutIcon fontSize="inherit"/>}/>
+      <IconButton size="large" label="Copy cell" icon={<ContentCopyIcon fontSize="inherit"/>}/>
+      <IconButton size="large" label="Paste cell" icon={<ContentPasteIcon fontSize="inherit"/>}/>
       <Divider orientation="vertical" flexItem/>
-      <IconButton aria-label="run" size="large" onClick={onRunCell}>
-        <PlayArrowIcon fontSize="inherit"/>
-      </IconButton>
-      <IconButton aria-label="runAll" size="large" onClick={onRunAll}>
-        <FastForwardIcon fontSize="inherit"/>
-      </IconButton>
+      <IconButton size="large" onClick={onRunCell} label="Run cell" icon={<PlayArrowIcon fontSize="inherit"/>}/>
+      <IconButton size="large" onClick={onRunAll} label="Run all" icon={<FastForwardIcon fontSize="inherit"/>}/>
+      <IconButton size="large" label="Edit Namespaces" icon={<AbcIcon/>} onClick={() => setEditNamespaces(true)}/>
       <Divider orientation="vertical" flexItem/>
       <FormControl variant="filled" sx={{ minWidth: 120 }}>
         <InputLabel>Cell Type</InputLabel>
@@ -139,6 +150,13 @@ export const NotebookToolbar = (props: {}) => {
         value={focusCellTimeout / 1000}
         onChange={(event, newValue) => newValue && onChangeTimeout(newValue as number * 1000)}
       />
+
+
     </Box>
   ), [ focus, focusCellType, focusCellTimeout ]);
+
+  return (<>
+    {Actions}
+    {NamespaceModal}
+  </>)
 }

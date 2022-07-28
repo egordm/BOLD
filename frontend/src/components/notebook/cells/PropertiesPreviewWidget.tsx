@@ -50,6 +50,7 @@ export const PropertiesPreviewWidget = (props: {}) => {
   const { cell } = useCellContext();
   const { data, source } = cell as WidgetCellType<PropertiesPreviewWidgetData>;
   const [ showSource, setShowSource ] = React.useState(false);
+  const prefixes = usePrefixes();
 
   const { setData } = useCellWidgetData(buildQuery);
 
@@ -75,6 +76,7 @@ export const PropertiesPreviewWidget = (props: {}) => {
             label="Subject must match"
             value={data.subject ?? []}
             onChange={(value) => setData({ subject: value })}
+            prefixes={prefixes}
           />
         </Grid>
         <Grid item xs={12}>
@@ -90,7 +92,7 @@ export const PropertiesPreviewWidget = (props: {}) => {
         </Grid>
       </Grid>
     </>
-  ), [ data ]);
+  ), [ data, prefixes ]);
 
   return (
     <>
