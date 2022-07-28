@@ -7,6 +7,7 @@ import { useCellContext } from "../../providers/CellProvider";
 import { ClassTreeWidget } from "./cells/ClassTreeWidget";
 import { CodeCell } from "./cells/CodeCell";
 import { PropertiesPreviewWidget } from "./cells/PropertiesPreviewWidget";
+import { SubgraphWidget } from "./cells/SubgraphWidget";
 import { TripleMatchWidget } from "./cells/TripleMatchWidget";
 import { ValueDistributionWidget } from "./cells/ValueDistributionWidget";
 
@@ -16,6 +17,7 @@ export const CELL_TYPES = {
   widget_triplematch: TripleMatchWidget,
   widget_classtree: ClassTreeWidget,
   widget_propertiespreview: PropertiesPreviewWidget,
+  widget_subgraph: SubgraphWidget,
 }
 
 export const CellContainer = (props: {}) => {

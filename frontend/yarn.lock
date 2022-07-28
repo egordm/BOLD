@@ -8666,6 +8666,7 @@ __metadata:
     react-plotly.js: ^2.5.1
     react-query: ^3.39.0
     react-scripts: 5.0.1
+    react-vis-network-graph: ^3.0.1
     typescript: ^4.7.2
     uuid: ^8.3.2
     web-vitals: ^2.1.4
@@ -13604,7 +13605,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prop-types@npm:^15.6.1, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
+"prop-types@npm:^15.5.10, prop-types@npm:^15.6.1, prop-types@npm:^15.6.2, prop-types@npm:^15.7.2, prop-types@npm:^15.8.1":
   version: 15.8.1
   resolution: "prop-types@npm:15.8.1"
   dependencies:
@@ -14020,6 +14021,31 @@ __metadata:
     react: ">=16.6.0"
     react-dom: ">=16.6.0"
   checksum: b67bf5b3e86dbab72d658b9a52a3589e5960583ab28c7c66272427d8fe30d4c7de422d5046ae96bd2683cdf80cc3264b2516f5ce80cae1dbe6cf3ca6dda392c5
+  languageName: node
+  linkType: hard
+
+"react-vis-network-graph@npm:^3.0.1":
+  version: 3.0.1
+  resolution: "react-vis-network-graph@npm:3.0.1"
+  dependencies:
+    lodash: ^4.17.15
+    prop-types: ^15.5.10
+    react: 16.x.x
+    uuid: ^2.0.1
+    vis-data: ^6.5.1
+    vis-network: ^7.6.4
+  checksum: c8657fce43b1ea9bff17dc0dffdee9644f2cd2fefec8282f4fd5c68f610cc20055bd1540b4a03e310870d73ee05a7df6c5409a5f8365eedc8ca4d6dbc250f3f4
+  languageName: node
+  linkType: hard
+
+"react@npm:16.x.x":
+  version: 16.14.0
+  resolution: "react@npm:16.14.0"
+  dependencies:
+    loose-envify: ^1.1.0
+    object-assign: ^4.1.1
+    prop-types: ^15.6.2
+  checksum: 8484f3ecb13414526f2a7412190575fc134da785c02695eb92bb6028c930bfe1c238d7be2a125088fec663cc7cda0a3623373c46807cf2c281f49c34b79881ac
   languageName: node
   linkType: hard
 
@@ -16315,6 +16341,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"uuid@npm:^2.0.1":
+  version: 2.0.3
+  resolution: "uuid@npm:2.0.3"
+  checksum: 44adb0e235a683005fda9a869ddf2e88decbea082ea6b938e6f21b83147fda494fdc25ed8eba56196c4d5794ffc1c3efa4e3fef3e6205be2ee4084497f434e0f
+  languageName: node
+  linkType: hard
+
 "uuid@npm:^8.3.2":
   version: 8.3.2
   resolution: "uuid@npm:8.3.2"
@@ -16441,6 +16474,33 @@ __metadata:
   version: 1.1.2
   resolution: "vary@npm:1.1.2"
   checksum: ae0123222c6df65b437669d63dfa8c36cee20a504101b2fcd97b8bf76f91259c17f9f2b4d70a1e3c6bbcee7f51b28392833adb6b2770b23b01abec84e369660b
+  languageName: node
+  linkType: hard
+
+"vis-data@npm:^6.5.1":
+  version: 6.6.1
+  resolution: "vis-data@npm:6.6.1"
+  peerDependencies:
+    moment: ^2.24.0
+    uuid: ^7.0.0 || ^8.0.0
+    vis-util: ^4.0.0
+  checksum: 1c0c19899dc09c9d9ce48a2b178b30bb06fce867f6b593ce4c7216650773bfdaa58f129ec69ee39839ce73e7aa9f922121718bf601fb0f8a86cc7cf0a527c087
+  languageName: node
+  linkType: hard
+
+"vis-network@npm:^7.6.4":
+  version: 7.10.2
+  resolution: "vis-network@npm:7.10.2"
+  peerDependencies:
+    "@egjs/hammerjs": ^2.0.0
+    component-emitter: ^1.3.0
+    keycharm: ^0.2.0 || ^0.3.0
+    moment: ^2.24.0
+    timsort: ^0.3.0
+    uuid: ^3.4.0 || ^7.0.0 || ^8.0.0
+    vis-data: ^6.2.1
+    vis-util: ^3.0.0 || ^4.0.0
+  checksum: 6393463b9bb91b7c19e4c00e71b41f4b7cf09b797b29ba6b7084fbac94244d526bfa18bb1c725c6403c875d7943243f46bf7d5f0499feac49a102e85c9135ea3
   languageName: node
   linkType: hard
 

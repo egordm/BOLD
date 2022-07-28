@@ -138,6 +138,7 @@ export const NotebookToolbar = (props: {}) => {
           <MenuItem value={'widget_triplematch'}>Triple Match Widget</MenuItem>
           <MenuItem value={'widget_classtree'}>Class Tree Widget</MenuItem>
           <MenuItem value={'widget_propertiespreview'}>Properties Preview Widget</MenuItem>
+          <MenuItem value={'widget_subgraph'}>Subgraph Widget</MenuItem>
         </Select>
       </FormControl>
       <Autocomplete
