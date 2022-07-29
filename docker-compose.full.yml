@@ -1,0 +1,66 @@
+version: '3'
+services:
+  bold:
+    image: egordm/ankc:latest
+    ports:
+      - 8000:8000
+    volumes:
+      - ./storage:/storage
+    networks:
+      - bold-net
+    links:
+      - postgres
+      - stardog
+    depends_on:
+      - postgres
+      - stardog
+
+  postgres:
+    build: ./dev/postgres
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: helloworld
+      POSTGRES_MULTIPLE_DATABASES: test,develop,production
+    ports:
+      - 5432:5432
+    volumes:
+      - data-postgres:/var/lib/postgresql/data
+    networks:
+      - bold-net
+
+  stardog:
+    image: stardog/stardog:latest
+    userns_mode: host
+    ports:
+      - 5820:5820
+    volumes:
+      - data-stardog:/var/opt/stardog
+      - ./dev/stardog/stardog-license-key.bin:/var/opt/stardog/stardog-license-key.bin
+      - ./storage/import:/var/data/import
+      - ./storage/downloads:/var/data/downloads
+      - ./storage/export:/var/data/export
+    environment:
+      STARDOG_SERVER_JAVA_ARGS: "-Xmx8g -Xms8g -XX:MaxDirectMemorySize=12g"
+    networks:
+      - bold-net
+
+  stardog-studio:
+    image: stardog/stardog-studio:current
+    ports:
+      - 8888:8080
+    networks:
+      - bold-net
+    links:
+      - stardog
+    depends_on:
+      - stardog
+
+volumes:
+  data-stardog:
+  data-rabbitmq:
+  data-redis:
+  data-postgres:
+  data-elastic:
+
+networks:
+  bold-net:

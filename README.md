@@ -31,8 +31,8 @@ In this step we discuss their setup as docker containers.
 If you want to install BOLD for development purposes, we refer you to the [next section](#development-setup).
 In this step we describe steps on how to run BOLD as a docker container.'
 
-* Build docker images: `dc -f docker-compose.yml -f docker-compose.standalone.yml build`
-* Start BOLD and the relevant services: `dc -f docker-compose.yml -f docker-compose.standalone.yml up`
+* Build docker images: `docker-compose -f docker-compose.full.yml build`
+* Start BOLD and the relevant services: `docker-compose -f docker-compose.full.yml up`
 * Open the BOLD web interface: [http://127.0.0.1:8000/](http://localhost:8000/)
 
 ### Development setup

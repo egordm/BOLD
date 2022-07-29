@@ -1,7 +1,7 @@
 FROM rust:1.62.0-slim AS builder-tools
 
 WORKDIR /code
-COPY tools/* .
+COPY tools/ /code
 
 RUN cargo build --release --locked
 
@@ -11,11 +11,11 @@ FROM node:16-slim AS builder-frontend
 RUN #yarn set version berry
 
 WORKDIR /code
-COPY frontend/package.json frontend/yarn.lock frontend/.yarnrc.yml .
+COPY frontend/package.json frontend/yarn.lock frontend/.yarnrc.yml /code/
 COPY frontend/.yarn .yarn
 RUN yarn install --immutable
 
-COPY frontend/* .
+COPY frontend/ /code
 RUN yarn build && yarn export
 
 FROM python:3.10-slim AS base
