@@ -3,7 +3,7 @@ FROM rust:1.62.0-slim AS builder-tools
 WORKDIR /code
 COPY tools/ /code
 
-RUN cargo build --release --locked
+RUN cargo build --release
 
 
 FROM node:16-slim AS builder-frontend
