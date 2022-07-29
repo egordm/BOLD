@@ -29,7 +29,7 @@ services:
       - bold-net
 
   stardog:
-    image: stardog/stardog:latest
+    image: stardog/stardog:7.9.1-java11-preview
     userns_mode: host
     ports:
       - 5820:5820
