@@ -1,5 +1,6 @@
 import React, { useCallback } from "react";
 import useNotification from "../hooks/useNotification";
+import { WS_ENDPOINT } from "../utils/api";
 import { createWebsocketProvider, Packet } from "./WebsocketProvider";
 
 
@@ -27,7 +28,7 @@ export const NotebookConnectionProvider = (props: {
 
   return (
     <Provider
-      endpoint={`${process.env.WS_ENDPOINT}/ws/notebook/${reportId}/`}
+      endpoint={`${WS_ENDPOINT}/ws/notebook/${reportId}/`}
       state={state}
       setState={setState}
       onSocketOpen={onConnected}

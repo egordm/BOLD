@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
 import { Task } from "../types/tasks";
-import { apiClient, PaginatedResult } from "../utils/api";
+import { apiClient, PaginatedResult, WS_ENDPOINT } from "../utils/api";
 import { createWebsocketProvider } from "./WebsocketProvider";
 
 type PacketType = 'TASK_UPDATED';
@@ -57,7 +57,7 @@ export const TasksProvider = (props: {
 
   return (
     <Provider
-      endpoint={`${process.env.WS_ENDPOINT}/ws/tasks/`}
+      endpoint={`${WS_ENDPOINT}/ws/tasks/`}
       state={tasks}
       setState={setTasks}
       onMessage={onMessage}

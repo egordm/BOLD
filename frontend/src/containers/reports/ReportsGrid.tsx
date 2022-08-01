@@ -1,17 +1,16 @@
 import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
 import {
   Box
 } from "@mui/material";
-import { GridActionsCellItem, GridColDef, GridRowParams } from "@mui/x-data-grid";
+import { GridActionsCellItem, GridColDef} from "@mui/x-data-grid";
 import { GridSortModel } from "@mui/x-data-grid/models/gridSortModel";
 import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateCommunity";
 import dayjs from "dayjs";
-import { useRouter } from "next/router";
 import React from "react";
 import { ServerDataGrid } from "../../components/data/ServerDataGrid";
 import { Report } from "../../types/reports";
 import { formatDateTime, formatUUIDShort } from "../../utils/formatting";
+import { useNavigate } from "react-router-dom";
 
 const COLUMNS: GridColDef[] = [
   {
@@ -48,10 +47,10 @@ const INITIAL_SORTING: GridSortModel = [
 
 
 export const ReportsGrid = (props: {}) => {
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const onReportEdit = async (report: Report) => {
-    await router.push(`report/${report.id}`);
+    await navigate(`/report/${report.id}`);
   }
 
   return (

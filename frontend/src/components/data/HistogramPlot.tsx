@@ -1,9 +1,6 @@
 import _ from "lodash";
-import dynamic from "next/dynamic";
 import React from "react";
-
-
-const Plot = dynamic(() => import('react-plotly.js'), { ssr: false });
+import Plot from 'react-plotly.js';
 
 
 export const HistogramPlot = (props: {

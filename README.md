@@ -46,6 +46,14 @@ For development purposes, you need to have a working python and rust installatio
 * Run backend server: `make start_backend`
 * Open the BOLD web interface: [http://localhost:8000/](http://localhost:8000/)
 
+### Hybrid Setup
+Use hybrid set up if you wnat to build the newest docker image of BOLD yourself.
+In this step we describe steps on how to run BOLD as a docker container.'
+
+* Build docker images: `docker-compose -f docker-compose.yml -f docker-compose.standalone.yml build`
+* Start BOLD and the relevant services: `docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up`
+* Open the BOLD web interface: [http://127.0.0.1:8000/](http://localhost:8000/)
+
 
 ## System Requirements
 The server requirements are mostly bound by the Stardog database.

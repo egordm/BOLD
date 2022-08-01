@@ -16,6 +16,6 @@ release-tools:
 	cp tools/target/release/bold-cli backend/backend/bin/bold-cli
 
 release-frontend:
-	cd frontend && yarn build && yarn export
+	cd frontend && yarn build
 	rm -rf backend/frontend/static
-	cp -r frontend/out backend/frontend/static
+	cp -r frontend/build backend/frontend/static

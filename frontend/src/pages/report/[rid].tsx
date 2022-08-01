@@ -1,6 +1,6 @@
-import Head from 'next/head';
-import { Box, Container } from '@mui/material';
-import { useRouter } from "next/router";
+import { Box} from '@mui/material';
+import { useMatch } from "react-router";
+// import { useRouter } from "next/router";
 import { Layout } from '../../components/layout/layout';
 import { Notebook } from "../../components/notebook/Notebook";
 import { CellFocusProvider } from "../../providers/CellFocusProvider";
@@ -10,18 +10,20 @@ import { ReportProvider } from "../../providers/ReportProvider";
 import { RunQueueProvider } from "../../providers/RunQueueProvider";
 
 
-const NotebookPage = () => {
-  const router = useRouter()
-  const { rid } = router.query
+const NotebookPage = (props) => {
+  const match = useMatch('/report/:rid');
+  const rid = match.params.rid;
+  // const router = useRouter()
+  // const { rid } = router.query
   console.log(rid)
 
   return (
     <>
-      <Head>
+     {/* <Head>
         <title>
           BOLD Profiler
         </title>
-      </Head>
+      </Head>*/}
       <Box component="main">
         {rid && (
           <ReportProvider reportId={rid as string}>

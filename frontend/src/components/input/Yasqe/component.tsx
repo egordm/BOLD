@@ -13,7 +13,7 @@ export class Yasqe extends React.Component<{
   defaultValue?: string;
   value?: string;
   preserveScrollPosition?: boolean;
-  options: Partial<YasqeConfig>
+  options?: Partial<YasqeConfig>
   onChange?: (value: string, change: boolean) => void;
   onFocusChange?: (focused: boolean) => void;
   onCursorActivity?: (cursor) => void;

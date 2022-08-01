@@ -1,15 +1,11 @@
 import {
-  Box,
-  LinearProgress
+  Box
 } from "@mui/material";
-import { DataGrid, GridColDef, GridToolbar } from "@mui/x-data-grid";
-import { GridFilterModel } from "@mui/x-data-grid/models/gridFilterModel";
+import { GridColDef} from "@mui/x-data-grid";
 import { GridSortModel } from "@mui/x-data-grid/models/gridSortModel";
 import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateCommunity";
-import React, { useEffect } from "react";
+import React from "react";
 import { ServerDataGrid } from "../../components/data/ServerDataGrid";
-import { Report } from "../../types/reports";
-import { useFetchList } from "../../utils/api";
 import { formatDateTime, formatUUIDShort } from "../../utils/formatting";
 
 

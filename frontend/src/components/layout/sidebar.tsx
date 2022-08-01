@@ -1,9 +1,6 @@
 import { Theme } from "@mui/system";
-import { useEffect } from 'react';
-import { useRouter } from 'next/router';
 import PropTypes from 'prop-types';
-import { Box, Divider, Drawer, Typography, useMediaQuery } from '@mui/material';
-import { Selector as SelectorIcon } from '../../icons/selector';
+import { Box, Divider, Drawer, useMediaQuery } from '@mui/material';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import ArticleIcon from '@mui/icons-material/Article';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
@@ -35,21 +32,9 @@ const items = [
 
 export const Sidebar = (props) => {
   const { open, onClose } = props;
-  const router = useRouter();
   const lgUp = useMediaQuery((theme: Theme) => theme.breakpoints.up('lg'), {
     defaultMatches: true, noSsr: false
   });
-
-  useEffect(() => {
-      if (!router.isReady) {
-        return;
-      }
-
-      if (open) {
-        onClose?.();
-      }
-    }, // eslint-disable-next-line react-hooks/exhaustive-deps
-    [ router.asPath ]);
 
   const content = (<>
     <Box

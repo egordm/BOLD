@@ -1,12 +1,9 @@
 import {
-  Backdrop,
   Box,
   Button,
-  CircularProgress,
   Fab,
   Grid,
-  InputAdornment, Stack,
-  TextField,
+  InputAdornment, TextField,
   Typography
 } from "@mui/material";
 import { AxiosResponse } from "axios";
@@ -16,8 +13,8 @@ import * as yup from "yup";
 import useNotification from "../../../hooks/useNotification";
 import { useCellContext } from "../../../providers/CellProvider";
 import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
-import { CodeCellType, createNotebook } from "../../../types/notebooks";
-import { GPTOutput, Report } from "../../../types/reports";
+import { CodeCellType} from "../../../types/notebooks";
+import { GPTOutput} from "../../../types/reports";
 import { apiClient } from "../../../utils/api";
 import { fieldProps } from "../../../utils/forms";
 import { cellOutputToYasgui } from "../../../utils/yasgui";

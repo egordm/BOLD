@@ -16,7 +16,7 @@ COPY frontend/.yarn .yarn
 RUN yarn install --immutable
 
 COPY frontend/ /code
-RUN yarn build && yarn export
+RUN yarn build
 
 FROM python:3.10-slim AS base
 
@@ -39,7 +39,7 @@ COPY backend /app
 
 COPY --from=builder-tools /code/target/release/bold-cli /app/backend/bin/bold-cli
 RUN rm -rf /app/frontend/static
-COPY --from=builder-frontend /code/out /app/frontend/static
+COPY --from=builder-frontend /code/build /app/frontend/static
 
 RUN mkdir /storage
 ENV STORAGE_DIR=/storage \

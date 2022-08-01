@@ -1,15 +1,15 @@
-import Head from 'next/head';
-import NextLink from 'next/link';
-import { Box, Button, Container, Typography } from '@mui/material';
+// import Head from 'next/head';
+// import NextLink from 'next/link';
+import { Box, Button, Container, Link, Typography } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 
 const NotFound = () => (
   <>
-    <Head>
+    {/* <Head>
       <title>
         404 | Material Kit
       </title>
-    </Head>
+    </Head>*/}
     <Box
       component="main"
       sx={{
@@ -54,19 +54,16 @@ const NotFound = () => (
               }}
             />
           </Box>
-          <NextLink
-            href="/"
-            passHref
-          >
+          <Link href="/">
             <Button
               component="a"
-              startIcon={(<ArrowBackIcon fontSize="small" />)}
+              startIcon={(<ArrowBackIcon fontSize="small"/>)}
               sx={{ mt: 3 }}
               variant="contained"
             >
               Go back to dashboard
             </Button>
-          </NextLink>
+          </Link>
         </Box>
       </Container>
     </Box>

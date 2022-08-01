@@ -1,13 +1,10 @@
 import {
-  Backdrop,
-  Button,
-  CircularProgress,
-  Grid
+  Button
 } from "@mui/material"
 import { AxiosResponse } from "axios";
 import { useFormik } from "formik";
-import { useRouter } from "next/router";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { DatasetSelectInput } from "../../components/input/DatasetSelectInput";
 import { FormContainer } from "../../components/layout/FormContainer";
 import useNotification from "../../hooks/useNotification";
@@ -20,7 +17,7 @@ import { apiClient } from "../../utils/api";
 export const ReportCreateForm = (props: {
   onClose: (created: boolean) => void;
 }) => {
-  const router = useRouter()
+  const navigate = useNavigate();
   const [ loading, setLoading ] = useState(false);
   const { sendNotification } = useNotification();
   const {
@@ -50,7 +47,7 @@ export const ReportCreateForm = (props: {
               variant: "success"
             })
             onClose(true);
-            await router.push(`report/${result.data.id}`);
+            await navigate(`/report/${result.data.id}`);
           } else {
             sendNotification({
               message: "Error creating report",

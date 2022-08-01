@@ -1,4 +1,4 @@
-import Head from 'next/head';
+// import Head from 'next/head';
 import { Box, Button, Card, CardContent, CardHeader, Container } from '@mui/material';
 import React from "react";
 import { useQueryClient } from "react-query";
@@ -12,14 +12,13 @@ const DatasetsPage = () => {
   const queryClient = useQueryClient()
   const [ openCreateForm, setOpenCreateForm ] = React.useState(false);
 
-
   return (
     <>
-      <Head>
+{/*      <Head>
         <title>
           BOLD Datasets
         </title>
-      </Head>
+      </Head>*/}
       <Box component="main" sx={{ flexGrow: 1, py: 8 }}>
         <Container maxWidth={false}>
           <Card>

@@ -1,5 +1,5 @@
 import {
-  Box, Card, CardContent, CardHeader, LinearProgress, Modal
+  Box, Card, CardContent, CardHeader, LinearProgress, Link, Modal
 } from "@mui/material";
 import React from "react";
 import { useQuery } from "react-query";
@@ -15,7 +15,7 @@ import {
   GridRowParams,
   GridToolbar
 } from '@mui/x-data-grid';
-import Link from "next/link";
+
 import { LODCImportForm } from "./LODCImportForm";
 
 const COLUMNS: GridColDef[] = [

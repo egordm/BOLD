@@ -1,4 +1,3 @@
-import Head from 'next/head';
 import { Box, Button, Card, CardContent, CardHeader, Container, Modal } from '@mui/material';
 import React from "react";
 import { Layout } from '../components/layout/layout';
@@ -12,11 +11,11 @@ const ReportsPage = () => {
 
   return (
     <>
-      <Head>
+{/*      <Head>
         <title>
           BOLD Reports
         </title>
-      </Head>
+      </Head>*/}
       <Box component="main" sx={{ flexGrow: 1, py: 8 }}>
         <Container maxWidth={false}>
           <Card>

@@ -5,7 +5,6 @@ import {
 import { variable } from "@rdfjs/data-model";
 import { SELECT} from "@tpluscode/sparql-builder";
 import _ from "lodash";
-import dynamic from "next/dynamic";
 import React, { useMemo } from "react";
 import { useCellWidgetData } from "../../../hooks/useCellWidgetData";
 import { useCellContext } from "../../../providers/CellProvider";
@@ -22,8 +21,7 @@ import { NumberedSlider } from "../../input/NumberedSlider";
 import CodeIcon from '@mui/icons-material/Code';
 import { TermInput } from "../../input/TermInput";
 import { CellOutputTabs } from "../outputs/CellOutputTabs";
-
-const Graph = dynamic(() => import('react-vis-network-graph'), { ssr: false });
+import Graph from 'react-vis-network-graph';
 
 
 interface SubgraphWidgetData {

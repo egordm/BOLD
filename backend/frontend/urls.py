@@ -11,6 +11,5 @@ urlpatterns = [
     path('tasks', views.tasks),
     path('lodc', views.lodc),
     path('triplydb', views.triplydb),
-    *static('_next', document_root=settings.BASE_DIR / 'frontend' / 'static' / '_next'),
     *static('static', document_root=settings.BASE_DIR / 'frontend' / 'static' / 'static'),
 ]

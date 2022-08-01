@@ -1,10 +1,14 @@
 import axios from "axios";
-import React, { useState } from "react";
+import { useState } from "react";
 import { useQuery, UseQueryOptions } from "react-query";
 
+// @ts-ignore
+export const API_ENDPOINT= `${window.location.protocol}//${window.location.hostname}:8000/api`;
+// @ts-ignore
+export const WS_ENDPOINT= `ws://${window.location.hostname}:8000`;
 
 export const apiClient = axios.create({
-  baseURL: process.env.API_ENDPOINT,
+  baseURL: API_ENDPOINT,
 })
 
 export interface PaginatedResult<T> {
