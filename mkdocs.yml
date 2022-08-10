@@ -67,10 +67,11 @@ extra:
 nav:
   - Home: index.md
   - Getting Started:
-    - Installation: INSTALL.md
-    - User Manual: USER_MANUAL.md
-    - Deployment: DEPLOYMENT.md
+    - Installation: installation.md
+    - User Manual: user_manual.md
+    - Deployment: deployment.md
   - Developer Guide:
     - Contributing: CONTRIBUTING.md
-    - Architecture: ARCHITECTURE.md
+    - Architecture: architecture.md
+    - Structure: structure.md
   - Reference: reference/
