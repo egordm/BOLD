@@ -65,6 +65,12 @@ extra:
       link: https://github.com/EgorDm/BOLD
 
 nav:
-  - Home:
-    - Overview: index.md
+  - Home: index.md
+  - Getting Started:
+    - Installation: INSTALL.md
+    - User Manual: USER_MANUAL.md
+    - Deployment: DEPLOYMENT.md
+  - Developer Guide:
+    - Contributing: CONTRIBUTING.md
+    - Architecture: ARCHITECTURE.md
   - Reference: reference/
