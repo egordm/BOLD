@@ -13,4 +13,4 @@ jobs:
         with:
           python-version: 3.x
       - run: pip install mkdocs-material mkdocstrings mkdocstrings-python mkdocs-gen-files mkdocs-literate-nav mkdocs-section-index
-      - run: mkdocs gh-deploy --force
+      - run: PYTHONPATH="$PYTHONPATH:$(pwd)/backend" mkdocs gh-deploy --force

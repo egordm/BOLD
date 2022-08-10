@@ -20,7 +20,7 @@ for path in sorted(Path("backend").rglob("*.py")):  #
     elif parts[-1] == "__main__":
         continue
 
-    if set(parts).intersection({'urls', 'migrations', 'routing', 'manage', 'asgi', 'celery', 'wsgi'}):
+    if set(parts).intersection({'urls', 'migrations', 'routing', 'manage', 'asgi', 'celery', 'wsgi', 'backend', 'frontend'}):
         continue
 
     nav[parts] = doc_path.as_posix()
