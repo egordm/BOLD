@@ -5,7 +5,7 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 
 from reports.models import Report, CellState, PacketType
-from shared import get_logger
+from shared.logging import get_logger
 from shared.websocket import Packet
 from .tasks import run_cell
 

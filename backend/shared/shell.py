@@ -4,13 +4,21 @@ from dataclasses import dataclass
 from threading import Timer
 from typing import List, Union, Iterator
 
-from shared import get_logger
+from shared.logging import get_logger
 
 logger = get_logger()
 
 
 @contextmanager
 def with_timeout(p: subprocess.Popen, timeout: int):
+    """
+    It runs a function in a separate thread, and if the function doesn't return before the timeout, it kills the process
+
+    :param p: subprocess.Popen
+    :type p: subprocess.Popen
+    :param timeout: The maximum time to wait for the process to finish
+    :type timeout: int
+    """
     def timerout(p: subprocess.Popen):
         p.kill()
         raise TimeoutError
@@ -32,6 +40,16 @@ def execute_command(
     ignore_errors: bool = False,
     **kwargs,
 ) -> Iterator[str]:
+    """
+    It runs a command and yields the output line by line
+
+    :param cmd: The command to execute
+    :type cmd: Union[List[str], str]
+    :param timeout: The maximum time to wait for the command to finish
+    :type timeout: int
+    :param ignore_errors: If True, don't raise an exception if the command fails, defaults to False
+    :type ignore_errors: bool (optional)
+    """
     p = subprocess.Popen(
         cmd,
         shell=False,
@@ -57,5 +75,11 @@ def execute_command(
 
 
 def consume_print(it: Iterator[str]):
+    """
+    It takes an iterator of strings and prints each line to the log
+
+    :param it: Iterator[str]
+    :type it: Iterator[str]
+    """
     for line in it:
         logger.info(line)

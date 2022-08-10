@@ -13,6 +13,9 @@ from tasks.models import TaskMixin
 
 
 class DatasetState(Enum):
+    """
+    The DatasetState class is an enumeration of the possible states of a dataset
+    """
     QUEUED = 'QUEUED'
     IMPORTING = 'IMPORTING'
     IMPORTED = 'IMPORTED'
@@ -20,40 +23,69 @@ class DatasetState(Enum):
 
 
 class Dataset(TaskMixin, TimeStampMixin):
+    """
+    The internal dataset model.
+    """
     STATES = ((state.value, state.value) for state in DatasetState)
 
     class Mode(models.TextChoices):
+        """
+        The Mode class is an enumeration of the possible modes of a dataset
+        """
         LOCAL = 'LOCAL', _('Imported locally ')
         SPARQL = 'SPARQL', _('From SPARQL endpoint')
 
     class SearchMode(models.TextChoices):
+        """
+        The SearchMode class is an enumeration of the possible search modes of a dataset
+        """
         LOCAL = 'LOCAL', _('Imported locally ')
         WIKIDATA = 'WIKIDATA', _('From Wikidata')
         TRIPLYDB = 'TRIPLYDB', _('From TripyDB')
 
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    """The identifier of the dataset."""
     name = models.CharField(max_length=255)
+    """The name of the dataset."""
     description = models.TextField(blank=True)
+    """The description of the dataset."""
     source = models.JSONField()
+    """The source of the dataset."""
     mode = models.CharField(max_length=255, choices=Mode.choices, default=Mode.LOCAL)
+    """The mode of the dataset."""
     search_mode = models.CharField(max_length=255, choices=SearchMode.choices, default=SearchMode.LOCAL)
+    """The search mode of the dataset."""
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    """The user who created the dataset."""
 
     local_database = models.CharField(max_length=255, null=True)
+    """The local stardog database identifier of the dataset."""
     sparql_endpoint = models.CharField(max_length=255, null=True)
+    """The SPARQL endpoint of the dataset."""
 
     statistics = models.JSONField(null=True)
+    """The statistics of the dataset."""
     namespaces = models.JSONField(null=True)
+    """The list of sparql namespaces/prefixes in the dataset."""
     state = models.CharField(choices=STATES, default=DatasetState.QUEUED.value, max_length=255)
+    """The import state of the dataset."""
     import_task = models.OneToOneField('tasks.Task', on_delete=models.SET_NULL, null=True)
+    """The import task of the dataset."""
 
     objects = models.Manager()
 
     @property
     def search_index_path(self):
+        """
+        The path to the search index of the dataset.
+        :return:
+        """
         return DATA_DIR / f'search_index_{self.local_database}' if self.local_database else None
 
     def get_search_service(self) -> SearchService:
+        """
+        Return appropriate search service depending on the search mode
+        """
         match self.search_mode:
             case self.SearchMode.LOCAL:
                 if not self.search_index_path.exists():
@@ -69,6 +101,9 @@ class Dataset(TaskMixin, TimeStampMixin):
                 raise ValueError(f'Unknown search mode {self.search_mode}')
 
     def get_query_service(self) -> QueryService:
+        """
+        If the mode is local, return a local query service, otherwise return a SPARQL query service
+        """
         match self.mode:
             case self.Mode.LOCAL:
                 if not self.local_database:

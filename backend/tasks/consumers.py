@@ -4,7 +4,7 @@ from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
 from django.forms.models import model_to_dict
 
-from shared import get_logger
+from shared.logging import get_logger
 from shared.websocket import Packet
 from tasks.models import Task
 from tasks.serializers import TaskSerializer

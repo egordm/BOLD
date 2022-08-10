@@ -10,7 +10,7 @@ import stardog
 from celery import shared_task
 
 from datasets.services.stardog_api import StardogApi
-from shared import get_logger
+from shared.logging import get_logger
 from shared.paths import DOWNLOAD_DIR
 from shared.random import random_string
 

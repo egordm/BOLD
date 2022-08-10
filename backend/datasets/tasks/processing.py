@@ -9,7 +9,7 @@ from celery import shared_task
 from backend import settings
 from datasets.models import Dataset
 from datasets.services.bold_cli import BoldCli
-from shared import get_logger
+from shared.logging import get_logger
 from shared.paths import DATA_DIR, DOWNLOAD_DIR
 from shared.random import random_string
 from shared.shell import consume_print

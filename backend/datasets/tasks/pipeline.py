@@ -6,7 +6,7 @@ from celery import shared_task
 from datasets.models import Dataset, DatasetState
 from datasets.services.stardog_api import StardogApi
 from datasets.tasks import download_url, import_files, update_dataset_info, create_search_index
-from shared import get_logger
+from shared.logging import get_logger
 from shared.paths import DOWNLOAD_DIR
 from shared.random import random_string
 

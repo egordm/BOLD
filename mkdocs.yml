@@ -1,0 +1,70 @@
+# yaml-language-server: $schema=https://squidfunk.github.io/mkdocs-material/schema.json
+site_name: BOLD
+
+theme:
+  name: material
+  navigation_depth: 4
+  features:
+    - content.code.annotate
+    - content.tabs.link
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.tracking
+    - search.highlight
+    - search.share
+    - search.suggest
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      accent: blue
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: blue
+      toggle:
+        icon: material/lightbulb
+        name: Switch to light mode
+
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+        - docs/generate.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - section-index
+  - mkdocstrings:
+      watch:
+        - backend
+      handlers:
+        python:
+          rendering:
+            show_if_no_docstring: true
+          setup_commands:
+            - import sys
+            - sys.path.append('./backend')
+          selection:
+            new_path_syntax: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.snippets:
+      check_paths: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/EgorDm/BOLD
+
+nav:
+  - Home:
+    - Overview: index.md
+  - Reference: reference/

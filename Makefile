@@ -11,6 +11,10 @@ start_frontend:
 	@echo "Starting frontend"
 	cd frontend && yarn start
 
+start_docs:
+	@echo "Starting docs"
+	mkdocs serve --dev-addr localhost:8001
+
 release-tools:
 	cd tools && cargo build --release
 	cp tools/target/release/bold-cli backend/backend/bin/bold-cli

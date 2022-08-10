@@ -7,7 +7,7 @@ from celery import shared_task
 from datasets.models import Dataset, DatasetState
 from datasets.services.query import QueryExecutionException
 from reports.models import Report, CellState
-from shared import get_logger
+from shared.logging import get_logger
 from shared.dict import deepget
 
 logger = get_logger()
