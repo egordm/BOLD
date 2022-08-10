@@ -18,6 +18,8 @@ Similarly, the import logic does not work with third party services, but with rd
 
 The data is either stored in a self-hosted local data cluster or is accessed in a read-only fashion from a external data clusters using SPARQL and elasticsearch endpoints.
 
+State of the workers is decoupled from the backend server and vice-versa for fault tolerance.
+
 ## Import Flow
 While the import flow varies depending on the dataset and configuration, the general flow can be seen in the figure below.
 
