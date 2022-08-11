@@ -95,7 +95,7 @@ def proxy_lodc_api(request: Request):
     datasets = cache.get('lodc_datasets')
 
     if datasets is None:
-        response = requests.get('https://lod-cloud.net/lod-data.json', stream=True)
+        response = requests.get('https://lod-cloud.net/lod-data.json', stream=True, verify=False)
         datasets = response.json()
         for k, v in datasets.items():
             try:
