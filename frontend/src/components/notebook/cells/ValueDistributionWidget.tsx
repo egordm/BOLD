@@ -155,11 +155,13 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
 
   primaryQuery = primaryQuery.build();
 
-  let exampleQuery = (data.temporal_predicate ? SELECT`?s ?p ?o ?tv` : SELECT`?s ?p ?o`);
+  let exampleQuery = (data.temporal_predicate ? SELECT`(SAMPLE(?s) AS ?s) (SAMPLE(?p) AS ?p) ?o ?tv` : SELECT`(SAMPLE(?s) AS ?s) (SAMPLE(?p) AS ?p) ?o`);
   exampleQuery = addPrimaryFilter(exampleQuery);
   exampleQuery = addSecondaryFilters(exampleQuery) as any;
+  exampleQuery = exampleQuery.GROUP().BY('o')
   if (data.temporal_predicate) {
     exampleQuery = addTemporalFilter(exampleQuery);
+    exampleQuery = exampleQuery.GROUP().BY('tv')
   }
   exampleQuery = exampleQuery.LIMIT(100);
   exampleQuery = exampleQuery.build() as any;
