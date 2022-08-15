@@ -72,9 +72,9 @@ class Task(TimeStampMixin):
 
     task_id = models.UUIDField(primary_key=True)
     state = models.CharField(choices=STATES, default=TaskState.PENDING, max_length=255)
-    object_id = models.UUIDField()
+    object_id = models.UUIDField(null=True)
     content_object = GenericForeignKey()
-    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, null=True, on_delete=models.SET_NULL)
     name = models.CharField(max_length=255)
 
     objects = TaskManager()
@@ -89,6 +89,9 @@ class Task(TimeStampMixin):
     @property
     def short_id(self):
         return str(self.task_id)[:6]
+
+    def delete(self, using=None, keep_parents=False):
+        return super().delete(using, keep_parents)
 
 
 class ModelAsyncResult(AsyncResult):
@@ -166,8 +169,14 @@ class TaskMetaManager(TaskMetaFilterMixin, models.Manager):
         return TaskMetaQuerySet(self.model, using=self._db)
 
 
+class CustomGenericRelation(GenericRelation):
+    def bulk_related_objects(self, objs, using="default"):
+        return []
+        # return super().bulk_related_objects(objs, using)
+
+
 class TaskMixin(models.Model):
-    tasks = GenericRelation(Task)
+    tasks = CustomGenericRelation(Task)
 
     objects = TaskMetaManager()
 

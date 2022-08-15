@@ -7,7 +7,7 @@ import {
   TextField
 } from "@mui/material";
 import { Variable } from "@rdfjs/types";
-import { Select, SELECT, sparql } from "@tpluscode/sparql-builder";
+import { SELECT, sparql } from "@tpluscode/sparql-builder";
 import { WhereBuilder } from "@tpluscode/sparql-builder/lib/partials/WHERE";
 import React, { useCallback, useEffect, useMemo } from "react";
 import { useCellContext } from "../../../providers/CellProvider";
@@ -146,7 +146,7 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
   }
 
   if (data.temporal_predicate) {
-    const tempoVar = sparql`(YEAR(xsd:dateTime(?tv)) * 12 + MONTH(xsd:dateTime(?tv)))`
+    const tempoVar = sparql`(YEAR(${xsd.dateTime}(?tv)) * 12 + MONTH(${xsd.dateTime}(?tv)))`
     primaryQuery = addTemporalFilter(primaryQuery);
     primaryQuery = addRangeSubquery(primaryQuery, tempoVar as any, 't', data.temporal_group_count ?? 20);
     primaryQuery = primaryQuery

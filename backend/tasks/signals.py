@@ -1,12 +1,13 @@
-from asgiref.sync import async_to_sync
 from celery import signals
-from channels.layers import get_channel_layer
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.exceptions import ObjectDoesNotExist
 
+from shared.logging import get_logger
 from tasks.models import Task, TaskState
 from tasks.utils import send_to_group_sync
+
+logger = get_logger()
 
 
 @signals.after_task_publish.connect
@@ -40,8 +41,8 @@ def handle_task_postrun(sender=None, task_id=None, state=None, **kwargs):
             instance = Task.objects.get(task_id=task_id)
             instance.state = TaskState.lookup(state)
             instance.save()
-        except ObjectDoesNotExist:
-            pass
+        except ObjectDoesNotExist as e:
+            logger.exception(e)
 
 
 @signals.task_failure.connect
