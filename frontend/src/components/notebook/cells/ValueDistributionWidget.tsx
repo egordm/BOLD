@@ -16,6 +16,7 @@ import { CellOutput, WidgetCellType } from "../../../types/notebooks";
 import { SparQLResult } from "../../../types/sparql";
 import { Term } from "../../../types/terms";
 import { extractIriLabel } from "../../../utils/formatting";
+import { PREFIXES } from "../../../utils/sparql";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { HistogramPlot } from "../../data/HistogramPlot";
 import { PiePlot } from "../../data/PiePlot";
@@ -64,8 +65,9 @@ const termToSparql = (term: Term) => {
   }
 }
 
-
 const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => {
+  const { xsd } = PREFIXES;
+
   const groupPredicates = (data.group_predicate ?? []).map(termToSparql);
 
   const addPrimaryFilter = (query: WhereBuilder<any>) => {
@@ -117,7 +119,7 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
   }
 
   const discretizeValue = (v: Variable, prefix: string) => {
-    return sparql`(0.5 + xsd:integer((${v} - ?${prefix}_min) / ?${prefix}_step)) * ?${prefix}_step + ?${prefix}_min`
+    return sparql`(0.5 + ${xsd.integer}((${v} - ?${prefix}_min) / ?${prefix}_step)) * ?${prefix}_step + ?${prefix}_min`
   }
 
   const groupCount = data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20);
@@ -135,12 +137,12 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
   if (data.continuous) {
     primaryQuery = primaryQuery
       .GROUP().BY(discretizeValue(variable('o'), 'o')).AS('g')
-      .HAVING`?count >= ${data.min_group_size ?? 1}`;
+      .HAVING`COUNT(?g) >= ${data.min_group_size ?? 1}`;
   } else {
     primaryQuery = primaryQuery
       .WHERE`BIND (?o as ?g)`
       .GROUP().BY('g')
-      .HAVING`?count >= ${data.min_group_size ?? 1}`;
+      .HAVING`COUNT(?g) >= ${data.min_group_size ?? 1}`;
   }
 
   if (data.temporal_predicate) {
@@ -186,7 +188,11 @@ export const ValueDistributionWidget = (props: {}) => {
   const prefixes = usePrefixes();
 
   useEffect(() => {
-    const { primaryQuery, exampleQuery, completenessQuery } = buildQuery(data, report?.dataset?.statistics?.triple_count ?? 0);
+    const {
+      primaryQuery,
+      exampleQuery,
+      completenessQuery
+    } = buildQuery(data, report?.dataset?.statistics?.triple_count ?? 0);
 
     setCell({
       ...cell,
@@ -465,7 +471,12 @@ const ResultTab = ({
               <FormControlLabel control={<Switch
                 checked={cumulative ?? false}
                 value={cumulative ?? false}
-                onChange={(event) => setData({ visualization_settings: { normalized, cumulative: event.target.checked } })}
+                onChange={(event) => setData({
+                  visualization_settings: {
+                    normalized,
+                    cumulative: event.target.checked
+                  }
+                })}
               />} label="Cumulative"/>
             </FormGroup>
           </Grid>
@@ -515,7 +526,7 @@ const ResultTab = ({
         <PiePlot values={[
           { label: 'Complete', value: completeCount },
           { label: 'Incomplete', value: totalCount - completeCount },
-        ]} />
+        ]}/>
       )
     }
 
