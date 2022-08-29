@@ -26,8 +26,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor
 
-COPY dev/docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-
 WORKDIR /app
 RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
 ENV PATH="/root/.poetry/bin:/root/.poetry/env:$PATH"
@@ -45,6 +43,8 @@ RUN mkdir /storage
 ENV STORAGE_DIR=/storage \
     STARDOG_HOST=stardog \
     DB_HOST=postgres
+
+COPY dev/docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 8000
 
