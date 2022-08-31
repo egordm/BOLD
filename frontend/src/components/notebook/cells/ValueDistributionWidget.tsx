@@ -16,7 +16,7 @@ import { CellOutput, WidgetCellType } from "../../../types/notebooks";
 import { SparQLResult } from "../../../types/sparql";
 import { Term } from "../../../types/terms";
 import { extractIriLabel } from "../../../utils/formatting";
-import { PREFIXES } from "../../../utils/sparql";
+import { PREFIXES, querySparqlLabel } from "../../../utils/sparql";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { HistogramPlot } from "../../data/HistogramPlot";
 import { PiePlot } from "../../data/PiePlot";
@@ -66,7 +66,7 @@ const termToSparql = (term: Term) => {
 }
 
 const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => {
-  const { xsd } = PREFIXES;
+  const { xsd, rdfs } = PREFIXES;
 
   const groupPredicates = (data.group_predicate ?? []).map(termToSparql);
 
@@ -124,7 +124,10 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
 
   const groupCount = data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20);
 
-  let primaryQuery = SELECT`?g (COUNT(?g) as ?count) ${data.temporal_predicate ? '((?tu / 12) as ?t)' : null}`
+  let primaryQuery = SELECT`
+    ?g (SAMPLE(?gLabel) AS ?gLabel) 
+    (COUNT(?g) as ?count) 
+    ${data.temporal_predicate ? '((?tu / 12) as ?t)' : null}`
     .ORDER().BY(variable('count'), true)
     .LIMIT(groupCount) as any;
   primaryQuery = addPrimaryFilter(primaryQuery);
@@ -140,7 +143,10 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
       .HAVING`COUNT(?g) >= ${data.min_group_size ?? 1}`;
   } else {
     primaryQuery = primaryQuery
-      .WHERE`BIND (?o as ?g)`
+      .WHERE`
+        BIND (?o as ?g)
+        ${querySparqlLabel('g')}
+      `
       .GROUP().BY('g')
       .HAVING`COUNT(?g) >= ${data.min_group_size ?? 1}`;
   }
@@ -155,8 +161,17 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
 
   primaryQuery = primaryQuery.build();
 
-  let exampleQuery = (data.temporal_predicate ? SELECT`(SAMPLE(?s) AS ?s) (SAMPLE(?p) AS ?p) ?o ?tv` : SELECT`(SAMPLE(?s) AS ?s) (SAMPLE(?p) AS ?p) ?o`);
+  let exampleQuery = SELECT`
+    (SAMPLE(?s) AS ?s) (SAMPLE(?sLabel) AS ?sLabel) 
+    (SAMPLE(?p) AS ?p) (SAMPLE(?pLabel) AS ?pLabel) 
+    ?o (SAMPLE(?oLabel) AS ?oLabel) 
+    ${data.temporal_predicate ? '?tv' : null}`;
   exampleQuery = addPrimaryFilter(exampleQuery);
+  exampleQuery = exampleQuery.WHERE`
+    ${querySparqlLabel('s')}
+    ${querySparqlLabel('p')}
+    ${querySparqlLabel('o')}
+  `;
   exampleQuery = addSecondaryFilters(exampleQuery) as any;
   exampleQuery = exampleQuery.GROUP().BY('o')
   if (data.temporal_predicate) {
@@ -448,7 +463,7 @@ const ResultTab = ({
     if (output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
       const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
       const points = data.results.bindings.filter((row) => row['g']);
-      const x = points.map((row) => extractIriLabel(row['g'].value));
+      const x = points.map((row) => extractIriLabel(row['gLabel']?.value ?? row['g'].value));
       const y = points.map((row) => row['count']?.value ? (Number(row['count'].value) || null) : null);
       const z = (data?.head?.vars ?? []).includes('t')
         ? points.map((row) => row['t']?.value ? (Number(row['t'].value) || null) : null)

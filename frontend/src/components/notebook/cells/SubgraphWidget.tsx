@@ -222,7 +222,7 @@ const ResultTab = ({
       const target = i > 0 ? `s${i - 1}` : 'o';
 
       outputIn.results.bindings.forEach((row) => {
-        if (row[`s${i}`]) {
+        if (row[`s${i}`] && row[`p${i}`]) {
           let dst = addNode(row[target]);
           let src = addNode(row[`s${i}`]);
           edges.push({
@@ -235,7 +235,7 @@ const ResultTab = ({
       })
 
       outputOut.results.bindings.forEach((row) => {
-        if (row[`s${i}`]) {
+        if (row[`s${i}`] && row[`p${i}`]) {
           let src = addNode(row[target]);
           let dst = addNode(row[`s${i}`]);
           edges.push({

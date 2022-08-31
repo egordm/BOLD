@@ -1,5 +1,6 @@
 import { literal, namedNode } from "@rdfjs/data-model";
 import namespace from "@rdfjs/namespace";
+import { sparql } from "@tpluscode/sparql-builder";
 import { CellErrorOutput, CellOutput } from "../types/notebooks";
 import { Term } from "../types/terms";
 
@@ -29,4 +30,10 @@ export const extractSparqlResult = (output: CellErrorOutput | CellOutput) => {
   }
 
   return null;
+}
+
+export const querySparqlLabel = (variable: string) => {
+  const { rdfs } = PREFIXES;
+
+  return sparql`OPTIONAL { ?${variable} ${rdfs.label} ?${variable}Label filter (lang(?${variable}Label) = "en"). }`
 }

@@ -11,7 +11,7 @@ import { useCellContext } from "../../../providers/CellProvider";
 import { usePrefixes } from "../../../providers/ReportProvider";
 import { Cell, CellOutput, CellTypeWidget, WidgetCellType } from "../../../types/notebooks";
 import { formatBinding, formatIri } from "../../../utils/formatting";
-import { extractSparqlResult, PREFIXES } from "../../../utils/sparql";
+import { extractSparqlResult, PREFIXES, querySparqlLabel } from "../../../utils/sparql";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { SourceViewModal } from "../../data/SourceViewModal";
 import { Yasr } from "../../data/Yasr";
@@ -47,7 +47,7 @@ const buildQuery = (data: ClassTreeWidgetData) => {
   const { rdf, rdfs, owl } = PREFIXES;
 
   let primaryQuery = SELECT`
-    ?class
+    ?class (SAMPLE(?classLabel) AS ?classLabel) 
     ${data.withSubs ? sparql`(GROUP_CONCAT(distinct ?subOf;SEPARATOR=",") AS ?subsOf)` : ''}
     ${data.withEquivs ? sparql`(GROUP_CONCAT(distinct ?equiv;SEPARATOR=",") AS ?equivs)` : ''}
     ${data.withKeys ? sparql`(GROUP_CONCAT(distinct ?key;SEPARATOR=",") AS ?keys)` : ''}
@@ -56,6 +56,7 @@ const buildQuery = (data: ClassTreeWidgetData) => {
   `.WHERE`
     ?class ${rdf.type} ?ty .
     ?s ?p ?class .
+    ${querySparqlLabel('class')}
     ${data.withSubs ? sparql`OPTIONAL { ?class ${rdfs.subClassOf} ?subOf . } .` : ''}
     ${data.withEquivs ? sparql`OPTIONAL { ?class ${owl.equivalentClass} ?equiv . } .` : ''}
     ${data.withKeys ? sparql`OPTIONAL { ?class ${owl.hasKey} ?keylist . ?keylist ${rdf.rest}*/${rdf.first} ?key . } .` : ''}
@@ -214,6 +215,7 @@ const ResultTab = ({
     let nodeId = 0;
     const tree = output.results.bindings.map((row, i) => {
       const classIri = row['class']?.value;
+      const classLabel = row['classLabel']?.value;
       const formattedIri = row['class']?.type === 'uri' ? formatIri(classIri, prefixes || {}) : classIri;
 
       const formatSplit = (value: string): string[] => value?.split(',')?.filter((x) => !!x)?.map(formatIri as any) || [];
@@ -234,7 +236,7 @@ const ResultTab = ({
 
       return {
         id: nodeId++,
-        name: `${formattedIri} ${count ? `(${count})` : ''}`,
+        name: `${classLabel ? classLabel + ' ' : ''}${formattedIri} ${count ? `(${count})` : ''}`,
         children
       }
     });
