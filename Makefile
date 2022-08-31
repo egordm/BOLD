@@ -13,7 +13,7 @@ start_frontend:
 
 start_docs:
 	@echo "Starting docs"
-	mkdocs serve --dev-addr localhost:8001
+	PYTHONPATH=$$(pwd)/backend poetry run mkdocs serve --dev-addr localhost:8001
 
 release-tools:
 	cd tools && cargo build --release
