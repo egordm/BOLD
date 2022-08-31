@@ -36,5 +36,9 @@ The BOLD frontend follows standard react and typescript conventions for code org
 - `utils`: Contains utility functions.
 - `App.tsx`: The main entry point for the application.
 
+## Models
+![UML](resources/uml.png)
 
-TODO: UML of models
+- *Dataset* - The dataset model is used to manage the data sources and local datasets. It stores handles to local and remote resources.
+- *Report* - The report model is used to manage the reports. It stores the cells and the results of the cells in the notebook json field.
+- *Task* - The task model represents a scheduled task. It stores a handle to the celery task and the information about the task status.

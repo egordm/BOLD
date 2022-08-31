@@ -139,7 +139,7 @@ export const ClassTreeWidget = (props: {}) => {
                 onChange={(e) => setData({ withKeys: e.target.checked })}
                 label="With Keys"/>
               <Checkbox
-                value={data.withProps}
+                value={data.withProps ?? true}
                 onChange={(e) => setData({ withProps: e.target.checked })}
                 label="With Properties"/>
             </FormGroup>
