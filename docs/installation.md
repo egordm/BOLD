@@ -32,3 +32,11 @@ In this step we describe steps on how to run BOLD as a docker container.'
 * Build docker images: `docker-compose -f docker-compose.yml -f docker-compose.standalone.yml build`
 * Start BOLD and the relevant services: `docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up`
 * Open the BOLD web interface: [http://127.0.0.1:8000/](http://localhost:8000/)
+
+### Enabling GPT code completion
+To enable code completion with GPT you need an OpenAI API key. If you don't have one, you can request one at [openai.com](https://openai.com/api/).
+Once you have a key, create file `backend/.env` and add the following line:
+
+```
+OPENAPI_KEY=<your-key>
+```

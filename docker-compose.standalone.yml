@@ -7,6 +7,7 @@ services:
       - 8000:8000
     volumes:
       - ./storage:/storage
+      - ./backend/.env:/app/.env
     networks:
       - bold-net
     links:

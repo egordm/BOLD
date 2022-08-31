@@ -156,3 +156,4 @@ frontend/.next
 frontend/.idea
 frontend/.yarn/cache
 frontend/.yarn/install-state.gz
+backend/.env
