@@ -49,10 +49,10 @@ export const TermInput = (props: {
   React.useEffect(() => {
     let active = true;
 
-    if (inputValue === '') {
-      setOptions(value ? value : []);
-      return undefined;
-    }
+    // if (inputValue === '') {
+    //   setOptions(value ? value : []);
+    //   return undefined;
+    // }
 
     fetchOptions({ query: inputValue }, (results?: SearchResult<Term>) => {
       if (active) {

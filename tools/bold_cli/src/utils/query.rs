@@ -7,7 +7,7 @@ use clap::{Args};
 use tantivy::tokenizer::{LowerCaser, NgramTokenizer, RemoveLongFilter, SimpleTokenizer, TextAnalyzer, Tokenizer};
 
 pub fn register_tokenizers(index: &Index) {
-    let ngram_tokenizer = TextAnalyzer::from(NgramTokenizer::new(3, 3, false))
+    let ngram_tokenizer = TextAnalyzer::from(NgramTokenizer::new(3, 5, false))
         .filter(RemoveLongFilter::limit(40))
         .filter(LowerCaser);
     index
@@ -115,18 +115,20 @@ pub fn build_query(
         Ok(Box::new(BooleanQuery::new(subqueries)))
     };
 
-    let mut word_queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
-    let tokenizer = SimpleTokenizer;
-    let mut token_stream = tokenizer.token_stream(&query);
-    while let Some(token) = token_stream.next() {
-        word_queries.push((Occur::Should, word_query(&token.text)?));
+    if !query.is_empty() {
+        let mut word_queries: Vec<(Occur, Box<dyn Query>)> = Vec::new();
+        let tokenizer = SimpleTokenizer;
+        let mut token_stream = tokenizer.token_stream(&query);
+        while let Some(token) = token_stream.next() {
+            word_queries.push((Occur::Should, word_query(&token.text)?));
+        }
+        queries.push((
+            Occur::Must,
+            Box::new(BooleanQuery::new(word_queries))
+        ));
     }
-    queries.push((
-        Occur::Must,
-        Box::new(BooleanQuery::new(word_queries))
-    ));
 
-
+    // println!("{:?}", &queries);
     Ok(Box::new(BooleanQuery::new(queries)))
 }
 
