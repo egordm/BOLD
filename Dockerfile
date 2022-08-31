@@ -28,7 +28,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 RUN curl -sSL https://install.python-poetry.org | python3 -
-ENV PATH="/root/.poetry/bin:/root/.poetry/env:$PATH"
+ENV PATH="/root/.local/bin:/root/.local/env:$PATH"
 
 COPY pyproject.toml poetry.lock ./
 RUN poetry install --no-dev --no-interaction --no-ansi
