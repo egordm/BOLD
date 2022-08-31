@@ -266,7 +266,7 @@ const formatCategory = (name: string, children: string[]) => {
     id: name,
     name: `${name} (${children.length})`,
     children: children.map((child) => ({
-      id: child,
+      id: `${name} ${child}-`,
       name: child,
     })),
   }

@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     supervisor
 
 WORKDIR /app
-RUN curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python -
+RUN curl -sSL https://install.python-poetry.org | python3 -
 ENV PATH="/root/.poetry/bin:/root/.poetry/env:$PATH"
 
 COPY pyproject.toml poetry.lock ./
