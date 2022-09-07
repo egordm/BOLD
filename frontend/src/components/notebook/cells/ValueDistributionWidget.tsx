@@ -101,12 +101,13 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
     return query.WHERE`
       VALUES ?tp { ${predicate} }
       ?s ?tp ?tv
+      FILTER(YEAR(xsd:dateTime(?tv)) > -99999)
     `
   }
 
   const addRangeSubquery = (query: WhereBuilder<any>, variable: string | Variable, prefix: string, count: number) => {
     let subquery = addSecondaryFilters(addPrimaryFilter(
-      SELECT`(MIN(${variable}) AS ?${prefix}_min)  (MAX(${variable}) AS ?${prefix}_max)`
+      SELECT`(COALESCE(MIN(${variable}), 0) AS ?${prefix}_min)  (COALESCE(MAX(${variable}), 0) AS ?${prefix}_max)`
     ));
     if (data.temporal_predicate) {
       subquery = addTemporalFilter(subquery);
@@ -122,7 +123,9 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
     return sparql`(0.5 + ${xsd.integer}((${v} - ?${prefix}_min) / ?${prefix}_step)) * ?${prefix}_step + ?${prefix}_min`
   }
 
-  const groupCount = data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20);
+  const groupCount =  data.temporal_predicate
+      ? (data.temporal_group_count === MAX_GROUP_COUNT ? 1000 : (data.temporal_group_count ?? 20))
+      : (data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20));
 
   let primaryQuery = SELECT`
     ?g (SAMPLE(?gLabel) AS ?gLabel) 
