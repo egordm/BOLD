@@ -1,6 +1,6 @@
 import {
   Button,
-  CardHeader, Checkbox, Container, FormControlLabel, FormGroup,
+  CardHeader, Container, FormControlLabel, FormGroup,
   Grid,
   IconButton,
   Stack, Switch,
@@ -22,6 +22,7 @@ import { HistogramPlot } from "../../data/HistogramPlot";
 import { PiePlot } from "../../data/PiePlot";
 import { SourceViewModal } from "../../data/SourceViewModal";
 import { Yasr } from "../../data/Yasr";
+import { Checkbox } from "../../input/Checkbox";
 import { NumberedSlider } from "../../input/NumberedSlider";
 import { TermInput } from "../../input/TermInput";
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -30,12 +31,15 @@ import { variable, literal, namedNode } from '@rdfjs/data-model'
 import CodeIcon from '@mui/icons-material/Code';
 import { VirtualizedTabs } from "../../layout/VirtualizedTabs";
 
+interface Filter {
+  predicate?: Term[];
+  object?: Term[];
+  negate?: boolean;
+}
+
 interface ValueDistributionWidgetData {
   group_predicate?: Term[];
-  filters?: {
-    predicate?: Term[];
-    object?: Term[];
-  }[];
+  filters?: Filter[];
   temporal_predicate?: Term[] | null;
   temporal_group_count?: number;
   continuous?: boolean;
@@ -85,10 +89,14 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
       const predicateVar = variable(`p${index}`);
       const objectVar = variable(`o${index}`);
 
+      const selector = filter.negate
+        ? sparql`FILTER NOT EXISTS { ?s ${predicateVar} ${objectVar} }`
+        : sparql`?s ${predicateVar} ${objectVar}`;
+
       query = query.WHERE`
         VALUES ${predicateVar} { ${predicate} }
         VALUES ${objectVar} { ${object} }
-        ?s ${predicateVar} ${objectVar}
+        ${selector}
       `
     });
 
@@ -267,7 +275,12 @@ export const ValueDistributionWidget = (props: {}) => {
   const Filters = useMemo(() => {
     return (data?.filters ?? []).map((filter, index) => (
       <Grid container item xs={12} key={index}>
-        <Grid item xs={2}/>
+        <Grid item xs={2}>
+          <Checkbox
+            value={filter.negate ?? false}
+            onChange={(e) => onUpdateFilter(index, { negate: e.target.checked })}
+            label="Negate"/>
+        </Grid>
         <Grid item xs={5}>
           <TermInput
             datasetId={report?.dataset?.id}
@@ -284,7 +297,7 @@ export const ValueDistributionWidget = (props: {}) => {
               sx={{ flex: 1 }}
               datasetId={report?.dataset?.id}
               pos={'OBJECT'}
-              label="Matching values"
+              label={filter.negate ? "Not matching values" : "Matching values"}
               value={filter.object ?? []}
               onChange={(value) => onUpdateFilter(index, { object: value })}
               prefixes={prefixes}
@@ -376,15 +389,10 @@ export const ValueDistributionWidget = (props: {}) => {
           />
         </Grid>
         <Grid item xs={2}>
-          <FormGroup>
-            <FormControlLabel
-              control={<Checkbox
-                value={data?.continuous ?? false}
-                checked={data?.continuous ?? false}
-                onChange={(event) => setData({ continuous: event.target.checked })}
-              />}
-              label="Continuous"/>
-          </FormGroup>
+          <Checkbox
+            value={data?.continuous ?? false}
+            onChange={(e) => setData({ continuous: e.target.checked })}
+            label="Continuous"/>
         </Grid>
         {Filters}
         <Grid item xs={2}/>
