@@ -12,7 +12,7 @@ import { usePrefixes, useReportContext } from "../../../providers/ReportProvider
 import { Cell, CellOutput, WidgetCellType } from "../../../types/notebooks";
 import { Term } from "../../../types/terms";
 import { extractIriLabel, formatIri } from "../../../utils/formatting";
-import { extractSparqlResult, termToSparql } from "../../../utils/sparql";
+import { extractSparqlResult, querySparqlLabel, termToSparql } from "../../../utils/sparql";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { SourceViewModal } from "../../data/SourceViewModal";
 import { Yasr } from "../../data/Yasr";
@@ -42,19 +42,24 @@ const OUTPUT_TABS = [
 
 const buildQuery = (data: SubgraphWidgetData) => {
   const buildDirectedQuery = (inwards: boolean, depth: number, limit: number) => {
-    const selectCols = [ variable('o') ];
+    const selectCols = [ variable('o'), variable('oLabel') ];
     _.range(depth).forEach((i) => {
       selectCols.push(variable(`p${i}`));
+      selectCols.push(variable(`p${i}Label`));
       selectCols.push(variable(`s${i}`));
+      selectCols.push(variable(`s${i}Label`));
     });
 
     const object = data.entity?.map(termToSparql) ?? [];
     let query = SELECT`${selectCols}`
-      .WHERE`VALUES ?o { ${object} }`
+      .WHERE`
+        VALUES ?o { ${object} }
+        ${querySparqlLabel(`o`)}
+      `
       .LIMIT(Math.ceil(limit / depth));
 
     _.range(depth).forEach((i) => {
-      if (!data.anyPredicate) {
+      if (!(data?.anyPredicate ?? true)) {
         const predicates = data.predicates?.map(termToSparql) ?? [];
         query = query.WHERE`VALUES ?p${i} { ${predicates} }`;
       }
@@ -72,7 +77,11 @@ const buildQuery = (data: SubgraphWidgetData) => {
           query = query.WHERE`OPTIONAL { ?s${i - 1} ?p${i} ?s${i} }`;
         }
       }
-      query.WHERE`FILTER(!isLiteral(s${i}) || langMatches(lang(s${i}), "en"))`
+      query = query.WHERE`FILTER(!isLiteral(?s${i}) || langMatches(lang(?s${i}), "en"))`
+      query = query.WHERE`
+        ${querySparqlLabel(`s${i}`)}
+        ${querySparqlLabel(`p${i}`)}
+      `
     });
 
     return query;
@@ -201,13 +210,13 @@ const ResultTab = ({
     const edges = [];
     let nodeCounter = 0;
 
-    const addNode = (term: { type: string, value: string }) => {
+    const addNode = (term: { type: string, value: string }, labelTerm?: { value: string }) => {
       if (nodes[term.value]) {
         return nodes[term.value].id;
       }
 
       const iri = term.type === 'uri' ? formatIri(term.value, prefixes || {}) : term.value;
-      const label = term.type === 'uri' ? extractIriLabel(term.value) : term.value;
+      const label = labelTerm?.value ?? (term.type === 'uri' ? extractIriLabel(term.value) : term.value);
       const id = nodeCounter++;
       nodes[term.value] = {
         id: id,
@@ -223,8 +232,8 @@ const ResultTab = ({
 
       outputIn.results.bindings.forEach((row) => {
         if (row[`s${i}`] && row[`p${i}`]) {
-          let dst = addNode(row[target]);
-          let src = addNode(row[`s${i}`]);
+          let dst = addNode(row[target], row[`${target}Label`]);
+          let src = addNode(row[`s${i}`], row[`s${i}Label`]);
           edges.push({
             from: src,
             to: dst,
@@ -236,8 +245,8 @@ const ResultTab = ({
 
       outputOut.results.bindings.forEach((row) => {
         if (row[`s${i}`] && row[`p${i}`]) {
-          let src = addNode(row[target]);
-          let dst = addNode(row[`s${i}`]);
+          let src = addNode(row[target], row[`${target}Label`]);
+          let dst = addNode(row[`s${i}`], row[`s${i}Label`]);
           edges.push({
             from: src,
             to: dst,
@@ -263,8 +272,8 @@ const ResultTab = ({
         }}
       />
     );
-  } else if (mode === 'tableIn') {
-    const result = cellOutputToYasgui(outputs[0]);
+  } else if (outputs?.length > 1 && mode === 'tableOut') {
+    const result = cellOutputToYasgui(outputs[1]);
     return (
       <Yasr
         result={result}
@@ -272,7 +281,7 @@ const ResultTab = ({
       />
     )
   } else {
-    const result = cellOutputToYasgui(outputs[1]);
+    const result = cellOutputToYasgui(outputs[0]);
     return (
       <Yasr
         result={result}

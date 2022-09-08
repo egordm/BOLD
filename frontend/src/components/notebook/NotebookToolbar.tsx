@@ -16,16 +16,14 @@ import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useNotebookContext } from "../../providers/NotebookProvider";
 import { useReportContext } from "../../providers/ReportProvider";
 import { useRunQueueContext } from "../../providers/RunQueueProvider";
-import { addCell, createCell, removeCell, setCellContent, setCellMeta } from "../../types/notebooks";
+import { addCell, createCell, removeCell, setCellContent, setCellMeta, setCellOutputs } from "../../types/notebooks";
 import DeleteIcon from '@mui/icons-material/Delete';
 import ContentCutIcon from '@mui/icons-material/ContentCut';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FastForwardIcon from '@mui/icons-material/FastForward';
-import { fieldProps } from "../../utils/forms";
 import { IconButton } from "../input/IconButton";
-import { FormContainer } from "../layout/FormContainer";
 import { ModalContainer } from "../layout/ModalContainer";
 
 export const NotebookToolbar = (props: {}) => {
@@ -67,7 +65,15 @@ export const NotebookToolbar = (props: {}) => {
     const focusIdx = notebookRef.current?.content?.cell_order?.findIndex(id => id === focusRef.current) ?? -1;
     const cell = notebookRef.current.content.cells[focusRef.current];
     const newCell = createCell(newType, cell.metadata);
-    setNotebook(setCellContent(notebookRef.current, focusRef.current, newCell));
+
+    // Change cell type and clear outputs
+    setNotebook(
+      setCellOutputs(
+        setCellContent(notebookRef.current, focusRef.current, newCell),
+        focusRef.current,
+      []
+      )
+    );
     sendNotification({ variant: 'success', message: `Cell #${focusIdx + 1} type changed to ${newType}` });
   }, []);
 

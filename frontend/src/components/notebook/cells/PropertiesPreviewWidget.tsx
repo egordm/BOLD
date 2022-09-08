@@ -9,7 +9,7 @@ import { useCellContext } from "../../../providers/CellProvider";
 import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
 import { Cell, CellOutput, WidgetCellType } from "../../../types/notebooks";
 import { Term } from "../../../types/terms";
-import { termToSparql } from "../../../utils/sparql";
+import { querySparqlLabel, termToSparql } from "../../../utils/sparql";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { SourceViewModal } from "../../data/SourceViewModal";
 import { Yasr } from "../../data/Yasr";
@@ -34,10 +34,12 @@ const buildQuery = (data: PropertiesPreviewWidgetData) => {
 
   const subject = data.subject?.map(termToSparql) ?? [];
 
-  let primaryQuery = SELECT`?p ?o`.WHERE`
+  let primaryQuery = SELECT`?p ?pLabel ?o ?oLabel`.WHERE`
     VALUES ?s { ${subject} }
     ?s ?p ?o .
     FILTER(!isLiteral(?o) || langMatches(lang(?o), "en"))
+    ${querySparqlLabel('p')}
+    ${querySparqlLabel('o')}
   `.LIMIT(data.limit ?? 20);
 
   return {

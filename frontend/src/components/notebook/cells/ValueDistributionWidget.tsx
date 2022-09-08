@@ -199,7 +199,7 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
   let completenessQuery = SELECT`*`.WHERE`
     { ${completeQuery} }
     { ${allQuery} }
-  `.build()
+  `.LIMIT(data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20)).build()
 
   return {
     primaryQuery,
@@ -544,6 +544,7 @@ const ResultTab = ({
     )
   } else if (mode === 'completeness') {
     const output = outputs[2];
+    console.log(output)
     if (output && output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
       const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
       const completeCount = data.results.bindings.map((row) => parseInt(row['complete_count'].value))[0] ?? 0;
@@ -555,6 +556,14 @@ const ResultTab = ({
           { label: 'Complete', value: completeCount },
           { label: 'Incomplete', value: totalCount - completeCount },
         ]}/>
+      )
+    } else {
+      const result = outputs[2] ? cellOutputToYasgui(outputs[2]) : null;
+      return (
+        <Yasr
+          result={result}
+          prefixes={prefixes}
+        />
       )
     }
 
