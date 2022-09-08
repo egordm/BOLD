@@ -24,6 +24,7 @@ export const cellOutputToYasgui = (output: CellErrorOutput | CellOutput) => {
       error: {
         status: 400,
         text: error.join('\n\n'),
+        statusText: errorToStatusText(output)
       }
     }
   } else {
@@ -33,7 +34,25 @@ export const cellOutputToYasgui = (output: CellErrorOutput | CellOutput) => {
       error: {
         status: 400,
         text: `Cant render output`,
+        statusText: 'Cant render output'
       }
     }
   }
+}
+
+export const errorToStatusText = (error: CellErrorOutput) => {
+  if (/Timeout/.test(`${error.ename} ${error.evalue}`)) {
+    return 'Query timed out';
+  }
+  if (/Unbound/.test(`${error.ename} ${error.evalue}`)) {
+    return 'Query references undefined variable';
+  }
+  if (/Malformed/.test(`${error.ename} ${error.evalue}`)) {
+    return 'Malformed query';
+  }
+  if (/Syntax/.test(`${error.ename} ${error.evalue}`)) {
+    return 'Query syntax error';
+  }
+
+  return 'Query failed';
 }
