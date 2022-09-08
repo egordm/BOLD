@@ -15,7 +15,7 @@ export const RunQueueContext = React.createContext<{
 export const RunQueueProvider = (props: {
   children: React.ReactNode,
 }) => {
-  const { save } = useNotebookContext();
+  const { save, notebookRef } = useNotebookContext();
   const [ queue, setQueueInternal ] = React.useState<CellId[]>([]);
   const runQueueRef = React.useRef<CellId[]>([]);
 
@@ -26,8 +26,12 @@ export const RunQueueProvider = (props: {
 
   const runCells = useCallback((cellsIds: CellId[]) => {
     save();
-    setRunQueue(_.uniq(runQueueRef.current.concat(cellsIds)));
-  }, []);
+    setRunQueue(_.uniq(
+      runQueueRef.current.concat(
+        cellsIds.filter(id => notebookRef.current?.results?.states[id]?.status !== 'RUNNING')
+      )
+    ));
+  }, [notebookRef]);
 
   const { sendNotification } = useNotification();
   const { socket, status } = useNotebookConnectionContext();

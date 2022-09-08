@@ -544,7 +544,6 @@ const ResultTab = ({
     )
   } else if (mode === 'completeness') {
     const output = outputs[2];
-    console.log(output)
     if (output && output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
       const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
       const completeCount = data.results.bindings.map((row) => parseInt(row['complete_count'].value))[0] ?? 0;
