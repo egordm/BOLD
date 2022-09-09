@@ -18,6 +18,11 @@ DEFAULT_TIMEOUT = 5000
 
 @shared_task()
 def run_cell(report_id: UUID, cell_id: UUID) -> str:
+    report: Report = Report.objects.get(id=report_id)
+    state = report.get_cell_state(cell_id)
+    if state and state['status'] == CellState.RUNNING.value:
+        raise Exception(f'Cell {cell_id} is already running')
+
     logger.info(f'Running cell {cell_id} in notebook {report_id}')
     Report.update_cell_state(report_id, cell_id, CellState.RUNNING)
 

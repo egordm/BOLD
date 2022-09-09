@@ -43,6 +43,10 @@ class Report(TaskMixin, TimeStampMixin):
 
         return cell
 
+    def get_cell_state(self, cell_id: uuid.UUID):
+        state = deepget(self.notebook, ['results', 'states', str(cell_id)])
+        return state
+
     @staticmethod
     def update_cell_state(report_id: uuid.UUID, cell_id: uuid.UUID, state: CellState):
         Report.objects.filter(id=report_id).update(
