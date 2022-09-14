@@ -40,8 +40,8 @@ class SPARQLQueryService(QueryService):
     def __init__(self, endpoint: str):
         self.endpoint = endpoint
 
-    def query(self, query: str, limit: int = 10, timeout: int = None, **options) -> dict:
-        if 'LIMIT' not in query:
+    def query(self, query: str, limit: int = 10, timeout: int = None, ignore_limit=False, **options) -> dict:
+        if 'LIMIT' not in query and not ignore_limit:
             raise QueryExecutionException(f'SPARQL queries must specify a LIMIT')
 
         response = requests.post(

@@ -36,7 +36,7 @@ def update_dataset_info(dataset_id: UUID):
             triple_count = int(dataset.get_query_service().query('''
                 SELECT (COUNT(*) AS ?count)
                 WHERE { ?s ?p ?o }
-            ''', limit=1).get('results').get('bindings')[0].get('count').get('value'))
+            ''', limit=1, ignore_limit=True).get('results').get('bindings')[0].get('count').get('value'))
         case _:
             raise Exception(f"Unsupported mode {dataset.mode}")
 
