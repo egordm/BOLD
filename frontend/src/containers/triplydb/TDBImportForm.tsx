@@ -20,6 +20,7 @@ import { TDBDataset } from "../../services/triplydb";
 import { Dataset } from "../../types/datasets";
 import * as yup from 'yup';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import { extractErrorMessage } from "../../utils/errors";
 import { fieldProps } from "../../utils/forms";
 
 export const DownloadSelection = (props: {
@@ -137,6 +138,10 @@ export const TDBImportForm = (props: {
           }
         }
       } catch (e) {
+        sendNotification({
+          variant: "error",
+          message: extractErrorMessage(e, "Error importing the dataset. Try again later.")
+        })
         console.error(e);
       }
 

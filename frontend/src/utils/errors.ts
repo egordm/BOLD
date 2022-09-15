@@ -2,7 +2,9 @@ export const extractErrorMessage = (
   error: any,
   alt = 'Unknown error, please try again later'
 ) => {
-  return error?.response?.data?.detail
-    ? `Error: ${error?.response?.data?.detail}`
+  const message = error?.response?.data?.detail ?? error?.response?.data[0];
+
+  return message
+    ? `Error: ${message}`
     : alt;
 }

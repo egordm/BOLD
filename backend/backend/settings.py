@@ -218,6 +218,7 @@ STARDOG_PORT = env('STARDOG_PORT', default='5820')
 STARDOG_ENDPOINT = f'http://{STARDOG_HOST}:{STARDOG_PORT}'
 STARDOG_USER = env('STARDOG_USER', default='admin')
 STARDOG_PASS = env('STARDOG_PASS', default='admin')
+STARDOG_ENABLE = env.bool('STARDOG_ENABLE', default=True)
 
 ROOT_DIR = BASE_DIR.parent.absolute()
 

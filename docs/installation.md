@@ -40,3 +40,12 @@ Once you have a key, create file `backend/.env` and add the following line:
 ```
 OPENAPI_KEY=<your-key>
 ```
+
+### Configuration
+You can configure your bold installation by creating `backend/.env` file and setting following variables:
+
+* `DEBUG`: Set to `False` to disable debug mode.
+* `STARDOG_ENABLE`: Set to `False` to disable local dataset downloads and search indexing. This is useful if you don't have a stardog instance running.
+* `DJANGO_SUPERUSER_USERNAME`: Set to the username of the superuser. (default: `admin`)
+* `DJANGO_SUPERUSER_PASSWORD`: Set to the password of the superuser. (default: `admin`)
+* `DJANGO_SUPERUSER_EMAIL`: Set to the email of the superuser.

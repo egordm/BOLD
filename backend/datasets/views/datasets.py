@@ -5,12 +5,14 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 
+from django.conf import settings
 from django.http import JsonResponse
 from rest_framework import filters
 from rest_framework import viewsets
 from rest_framework.decorators import api_view
 from rest_framework.request import Request
 from rest_framework.pagination import LimitOffsetPagination
+from rest_framework.serializers import ValidationError
 
 from datasets.models import Dataset
 from datasets.serializers import DatasetSerializer
@@ -37,6 +39,12 @@ class DatasetViewSet(viewsets.ModelViewSet):
         if serializer.validated_data.get('search_mode', None) == Dataset.SearchMode.TRIPLYDB.value and \
                 'tdb_id' not in serializer.validated_data.get('source', {}):
             raise Exception('TriplyDB dataset must be a TriplyDB dataset')
+
+        if not settings.STARDOG_ENABLE and (
+            serializer.validated_data.get('mode') != Dataset.Mode.SPARQL.value or
+            serializer.validated_data.get('search_mode') == Dataset.SearchMode.LOCAL.value
+        ):
+            raise ValidationError('Local datasets are not enabled on this server')
 
         super().perform_create(serializer)
 
