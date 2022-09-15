@@ -3,6 +3,8 @@ from enum import Enum
 
 from django.conf import settings
 from django.db import models
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import User
 
 from datasets.models import Dataset
 from shared.dict import deepget
@@ -29,10 +31,18 @@ class PacketType(Enum):
 
 
 class Report(TaskMixin, TimeStampMixin):
+    class ShareModes(models.TextChoices):
+        PRIVATE = 'PRIVATE', _('Private')
+        PUBLIC_READONLY = 'PUBLIC_READONLY', _('Public (read-only)')
+        PUBLIC_READWRITE = 'PUBLIC_READWRITE', _('Public (read-write)')
+
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE)
     notebook = models.JSONField()
+
+    share_mode = models.CharField(max_length=255, choices=ShareModes.choices, default=ShareModes.PRIVATE)
+    discoverable = models.BooleanField(default=False)
 
     objects = models.Manager()
 
@@ -78,3 +88,17 @@ class Report(TaskMixin, TimeStampMixin):
                 'outputs': result,
             }).dumps()
         })
+
+    def can_edit(self, user: User):
+        return user and (
+            user.is_superuser or
+            self.creator == user or
+            self.share_mode == self.ShareModes.PUBLIC_READWRITE
+        )
+
+    def can_view(self, user: User):
+        return user and (
+            user.is_superuser or
+            self.creator == user or
+            self.share_mode != self.ShareModes.PRIVATE
+        )

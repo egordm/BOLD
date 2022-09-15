@@ -1,7 +1,8 @@
-import { CardHeader, IconButton, Input, Skeleton, Tooltip } from "@mui/material";
-import { useCallback, useMemo } from "react";
+import { Button, CardHeader, IconButton, Input, Skeleton, Tooltip } from "@mui/material";
+import { useCallback, useMemo, useState } from "react";
 import { useNotebookContext } from "../../providers/NotebookProvider";
-import AbcIcon from '@mui/icons-material/Abc';
+import ShareIcon from '@mui/icons-material/Share';
+import { ShareOptionsModal } from "./ShareOptionsModal";
 
 
 export const NotebookHeader = (props: {}) => {
@@ -23,7 +24,9 @@ export const NotebookHeader = (props: {}) => {
     })
   }, [ notebookRef ]);
 
-  return useMemo(() => (
+  const [ openShareOptions, setOpenShareOptions ] = useState(false);
+
+  const header = useMemo(() => (
     <CardHeader
       title={
         notebook === null
@@ -43,6 +46,19 @@ export const NotebookHeader = (props: {}) => {
               ? 'Draft saved'
               : 'Changed'
       }
+      action={
+        <Button
+          sx={{ ml: 2 }} variant="contained" startIcon={<ShareIcon/>}
+          onClick={() => setOpenShareOptions(true)}
+        >Share</Button>
+      }
     />
   ), [ notebook?.metadata?.name, isSaving, changed ]);
+
+  return (
+    <>
+      {header}
+      <ShareOptionsModal open={openShareOptions} onClose={() => setOpenShareOptions(false)}/>
+    </>
+  )
 }

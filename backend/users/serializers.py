@@ -8,6 +8,13 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ['username', 'email']
 
+
+class ShortUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['username', 'id']
+
+
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     @classmethod
     def get_token(cls, user):
@@ -17,5 +24,6 @@ class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
         token['name'] = f'{user.first_name} {user.last_name}' if user.first_name else user.username
         token['group'] = user.groups.first().name if user.groups.first() else 'Researcher'
+        token['user_id'] = user.id
 
         return token

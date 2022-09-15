@@ -3,6 +3,7 @@ from uuid import UUID
 
 from asgiref.sync import async_to_sync
 from channels.generic.websocket import WebsocketConsumer
+from django.contrib.auth.models import User
 
 from reports.models import Report, CellState, PacketType
 from shared.logging import get_logger
@@ -14,9 +15,15 @@ logger = get_logger()
 
 class NotebookConsumer(WebsocketConsumer):
     report_id: UUID
+    user: User
 
     def connect(self):
         self.report_id = self.scope['url_route']['kwargs']['notebook_id']
+        self.user = self.scope["user"]
+
+        if not self.report.can_view(self.user):
+            self.close()
+            return
 
         async_to_sync(self.channel_layer.group_add)(
             str(self.report_id), self.channel_name
@@ -34,6 +41,9 @@ class NotebookConsumer(WebsocketConsumer):
 
         match PacketType(packet.type):
             case PacketType.CELL_RUN:
+                if not self.report.can_edit(self.user):
+                    return
+
                 report = self.report
                 cell_id = UUID(packet.data)
                 cell_index = report.notebook.get('content', {}).get('cell_order', []).index(str(cell_id))
@@ -67,3 +77,6 @@ class NotebookConsumer(WebsocketConsumer):
         )
 
         return report
+
+    def check_permissions(self):
+        pass

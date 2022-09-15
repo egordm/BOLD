@@ -2,6 +2,7 @@ import openai
 
 from django.http import JsonResponse
 from django_filters.rest_framework import DjangoFilterBackend
+from django.db.models import Q
 from rest_framework import filters
 from rest_framework import viewsets
 from rest_framework.pagination import LimitOffsetPagination
@@ -12,7 +13,9 @@ from drf_yasg.utils import swagger_auto_schema
 
 from backend.settings import OPENAPI_KEY
 from reports.models import Report
+from reports.permissions import CanEditReport, CanViewReport
 from reports.serializers import ReportSerializer
+from users.permissions import IsOwner
 
 
 class ReportViewSet(viewsets.ModelViewSet):
@@ -27,6 +30,32 @@ class ReportViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(dataset_id=self.request.data['dataset'])
+
+        instance: Report = serializer.instance
+        instance.creator = self.request.user
+        instance.save()
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return super().get_queryset()
+
+        return super().get_queryset().filter(
+            Q(creator=self.request.user) | (Q(discoverable=True) & ~Q(share_mode=Report.ShareModes.PRIVATE))
+        )
+
+    def get_permissions(self):
+        permissions = super().get_permissions()
+
+        if self.action in ['update', 'partial_update']:
+            permissions.append(CanEditReport())
+
+        if self.action in ['destroy']:
+            permissions.append(IsOwner())
+
+        if self.action in ['retrieve']:
+            permissions.append(CanViewReport())
+
+        return permissions
 
 
 @swagger_auto_schema(methods=['post'], request_body=openapi.Schema(

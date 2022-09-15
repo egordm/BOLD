@@ -16,6 +16,7 @@ from datasets.models import Dataset
 from datasets.serializers import DatasetSerializer
 from datasets.services.search import TermPos
 from datasets.tasks.pipeline import import_dataset, delete_dataset
+from users.permissions import IsOwner
 
 
 class DatasetViewSet(viewsets.ModelViewSet):
@@ -38,7 +39,11 @@ class DatasetViewSet(viewsets.ModelViewSet):
             raise Exception('TriplyDB dataset must be a TriplyDB dataset')
 
         super().perform_create(serializer)
+
         instance: Dataset = serializer.instance
+        instance.creator = self.request.user
+        instance.save()
+
         instance.apply_async(
             import_dataset,
             (instance.id,),
@@ -53,15 +58,15 @@ class DatasetViewSet(viewsets.ModelViewSet):
         )
 
     def perform_update(self, serializer):
-        # old_ns, new_ns = (
-        #     json.dumps(serializer.validated_data.get('namespaces'), sort_keys=True),
-        #     json.dumps(serializer.instance.namespaces, sort_keys=True),
-        # )
-        # print(old_ns==new_ns)
-        # print('aaa')
-
-        # if serializer.validated_data.get('namespaces') == 'deleted':
         super().perform_update(serializer)
+
+    def get_permissions(self):
+        permissions = super().get_permissions()
+
+        if self.action in ['destroy']:
+            permissions.append(IsOwner())
+
+        return permissions
 
 
 def parse_int_or_none(value: str) -> int:

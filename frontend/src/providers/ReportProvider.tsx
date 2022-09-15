@@ -4,6 +4,7 @@ import { useApi } from "../hooks/useApi";
 import useNotification from "../hooks/useNotification";
 import { namespacesToPrefixes } from "../types/datasets";
 import { Report } from "../types/reports";
+import { extractErrorMessage } from "../utils/errors";
 
 
 const ReportContext = React.createContext<{
@@ -40,8 +41,11 @@ export const ReportProvider = (props: {
       console.debug('Fetched report', data);
       setReport(data);
     },
-    onError: (err) => {
-      sendNotification({ variant: 'error', message: `Failed to fetch report` });
+    onError: (e) => {
+      sendNotification({
+        variant: 'error',
+        message: extractErrorMessage(e, 'Failed to fetch report')
+      });
     }
   });
 
@@ -53,8 +57,8 @@ export const ReportProvider = (props: {
       console.debug('Saved report', output);
       setReport(output);
     },
-    onError: (err) => {
-      sendNotification({ variant: 'error', message: `Failed to save notebook` });
+    onError: (e) => {
+      sendNotification({ variant: 'error', message: extractErrorMessage(e, 'Failed to save notebook') });
     },
   })
 

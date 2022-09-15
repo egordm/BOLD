@@ -17,7 +17,9 @@ import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateComm
 import React, { useEffect, useMemo } from "react";
 import { useMutation } from "react-query";
 import { useApi } from "../../hooks/useApi";
+import useNotification from "../../hooks/useNotification";
 import { Report } from "../../types/reports";
+import { extractErrorMessage } from "../../utils/errors";
 import { useFetchList } from "../../utils/pagination";
 import Link from '@mui/material/Link';
 import { FormContainer } from "../layout/FormContainer";
@@ -62,6 +64,7 @@ export const ServerDataGrid = (props: {
   const [ filterModel, setFilterModel ] = React.useState<GridFilterModel>(initialFilter ?? { items: [] });
   const [ sortModel, setSortModel ] = React.useState<GridSortModel>(initialSorting ?? []);
   const [ deleteItem, setDeleteItem ] = React.useState<null | any>(null);
+  const { sendNotification } = useNotification();
 
   const columnsProcessed = useMemo(() => {
     const actionsIntern = (params: GridRowParams) => [
@@ -100,8 +103,15 @@ export const ServerDataGrid = (props: {
     mutate,
   } = useMutation<any>(async (item) => {
     console.debug('Deleting item ', item);
-    await apiClient.delete(`${endpoint}${(item as any).id}`);
-    setDeleteItem(null);
+    try {
+      await apiClient.delete(`${endpoint}${(item as any).id}`);
+      setDeleteItem(null);
+    } catch (e) {
+      sendNotification({
+        variant: 'error',
+        message: extractErrorMessage(e),
+      });
+    }
   })
 
   useEffect(() => {
