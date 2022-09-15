@@ -33,6 +33,7 @@ COPY backend /app
 COPY --from=builder-tools /code/target/release/bold-cli /app/backend/bin/bold-cli
 RUN rm -rf /app/frontend/static
 COPY --from=builder-frontend /code/build /app/frontend/static
+RUN poetry run python manage.py collectstatic --no-input
 
 RUN mkdir /storage
 ENV STORAGE_DIR=/storage \

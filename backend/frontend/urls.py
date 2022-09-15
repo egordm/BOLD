@@ -14,3 +14,8 @@ urlpatterns = [
     # *static('static', document_root=settings.BASE_DIR / 'frontend' / 'static' / 'static'),
     re_path('^static/(?P<path>.*)$', serve, dict(document_root=settings.BASE_DIR / 'frontend' / 'static' / 'static')),
 ]
+
+if not settings.DEBUG:
+    urlpatterns += [
+        re_path(f'^assets/(?P<path>.*)$', serve, dict(document_root=settings.STATIC_ROOT)),
+    ]
