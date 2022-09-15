@@ -37,6 +37,7 @@ urlpatterns = [
         path('', include('datasets.urls')),
         path('', include('tasks.urls')),
         path('', include('reports.urls')),
+        path('', include('users.urls')),
     ])),
     path('admin/', admin.site.urls),
     path('', include('frontend.urls')),

@@ -153,13 +153,13 @@ class WikidataSearchService(SearchService):
 
         result_data = response.json()
         return SearchResult(
-            count=999999 if 'search-continue' in result_data else offset + len(result_data['search']),
+            count=999999 if 'search-continue' in result_data else offset + len(result_data.get('search', [])),
             hits=[
                 SearchHit(
                     score=1.0,
                     document=self._parse_doc(hit, pos),
                 )
-                for hit in result_data['search']
+                for hit in result_data.get('search', [])
             ],
         )
 
