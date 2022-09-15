@@ -10,8 +10,8 @@ import { AutocompleteProps } from "@mui/material/Autocomplete/Autocomplete";
 import _ from "lodash";
 import throttle from "lodash/throttle";
 import React, { useMemo } from "react";
+import { useApi } from "../../hooks/useApi";
 import { Term, TermPos, SearchResult } from "../../types/terms";
-import { apiClient } from "../../utils/api";
 import { extractIriLabel, formatIri } from "../../utils/formatting";
 
 export const TermInput = (props: {
@@ -30,6 +30,7 @@ export const TermInput = (props: {
   const [ options, setOptions ] = React.useState<readonly Term[]>([]);
 
   const value = propValue ?? valueInternal;
+  const apiClient = useApi();
 
   const fetchOptions = React.useMemo(() => throttle(
     async (

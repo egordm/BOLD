@@ -10,12 +10,12 @@ import { AxiosResponse } from "axios";
 import { useFormik } from "formik";
 import React, { useMemo, useState } from "react";
 import * as yup from "yup";
+import { useApi } from "../../../hooks/useApi";
 import useNotification from "../../../hooks/useNotification";
 import { useCellContext } from "../../../providers/CellProvider";
 import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
 import { CodeCellType} from "../../../types/notebooks";
 import { GPTOutput} from "../../../types/reports";
-import { apiClient } from "../../../utils/api";
 import { fieldProps } from "../../../utils/forms";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { Yasr } from "../../data/Yasr";
@@ -37,6 +37,8 @@ const GPTPromptModal = ({
 }) => {
   const [ loading, setLoading ] = useState(false);
   const { sendNotification } = useNotification();
+
+  const apiClient = useApi();
 
   const formik = useFormik({
     initialValues: {

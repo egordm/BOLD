@@ -16,8 +16,9 @@ import { GridSortModel } from "@mui/x-data-grid/models/gridSortModel";
 import { GridInitialStateCommunity } from "@mui/x-data-grid/models/gridStateCommunity";
 import React, { useEffect, useMemo } from "react";
 import { useMutation } from "react-query";
+import { useApi } from "../../hooks/useApi";
 import { Report } from "../../types/reports";
-import { apiClient, useFetchList } from "../../utils/api";
+import { useFetchList } from "../../utils/pagination";
 import Link from '@mui/material/Link';
 import { FormContainer } from "../layout/FormContainer";
 import { ModalContainer } from "../layout/ModalContainer";
@@ -92,6 +93,8 @@ export const ServerDataGrid = (props: {
     setOrdering,
   } = useFetchList<Report>(endpoint, {}, {});
 
+
+  const apiClient = useApi();
   const {
     isLoading: isDeleting,
     mutate,

@@ -8857,6 +8857,7 @@ __metadata:
     dayjs: ^1.11.3
     formik: ^2.2.9
     history: ^5.3.0
+    jwt-decode: ^3.1.2
     lodash: ^4.17.21
     notistack: ^2.0.5
     nprogress: ^0.2.0
@@ -11234,6 +11235,13 @@ __metadata:
     array-includes: ^3.1.4
     object.assign: ^4.1.2
   checksum: e3c0667e8979c70600fb0456b19f0ec194994c953678ac2772a819d8d5740df2ed751e49e4f1db7869bf63251585a93b18acd42ef02269fe41cb23941d0d4950
+  languageName: node
+  linkType: hard
+
+"jwt-decode@npm:^3.1.2":
+  version: 3.1.2
+  resolution: "jwt-decode@npm:3.1.2"
+  checksum: 20a4b072d44ce3479f42d0d2c8d3dabeb353081ba4982e40b83a779f2459a70be26441be6c160bfc8c3c6eadf9f6380a036fbb06ac5406b5674e35d8c4205eeb
   languageName: node
   linkType: hard
 

@@ -7,11 +7,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { DatasetSelectInput } from "../../components/input/DatasetSelectInput";
 import { FormContainer } from "../../components/layout/FormContainer";
+import { useApi } from "../../hooks/useApi";
 import useNotification from "../../hooks/useNotification";
 import * as yup from 'yup';
 import { createNotebook } from "../../types/notebooks";
 import { Report } from "../../types/reports";
-import { apiClient } from "../../utils/api";
 
 
 export const ReportCreateForm = (props: {
@@ -25,6 +25,8 @@ export const ReportCreateForm = (props: {
   } = props;
 
   const validationSchema = yup.object({});
+
+  const apiClient = useApi();
 
   const formik = useFormik<Partial<Report>>({
     initialValues: {

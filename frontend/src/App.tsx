@@ -14,10 +14,12 @@ import NotebookPage from "./pages/report/[rid]";
 import ReportsPage from "./pages/reports";
 import TasksPage from "./pages/tasks";
 import TriplyDBPage from "./pages/triplydb";
+import { AuthProvider } from "./providers/AuthProvider";
 import { TasksProvider } from "./providers/TasksProvider";
 import { createEmotionCache } from './utils/create-emotion-cache';
 import { theme } from './theme';
 import { Link, Route, Routes } from "react-router-dom";
+import LoginPage from "./pages/login";
 
 
 const relativeTime = require('dayjs/plugin/relativeTime');
@@ -31,27 +33,30 @@ export default function App(props) {
   return (
     <div className="App">
       <CacheProvider value={clientSideEmotionCache}>
-        <QueryClientProvider client={queryClient}>
-          <LocalizationProvider dateAdapter={AdapterDateFns}>
-            <ThemeProvider theme={theme}>
-              <TasksProvider>
-                <SnackbarProvider maxSnack={3}>
-                  <CssBaseline/>
-                  <Routes>
-                    <Route path="/" element={DatasetsPage.getLayout(<DatasetsPage />)} />
-                    <Route path="/datasets" element={DatasetsPage.getLayout(<DatasetsPage />)} />
-                    <Route path="/reports" element={ReportsPage.getLayout(<ReportsPage />)} />
-                    <Route path="/report/:rid" element={NotebookPage.getLayout(<NotebookPage />)} />
-                    <Route path="/tasks" element={TasksPage.getLayout(<TasksPage />)} />
-                    <Route path="/lodc" element={LODCPage.getLayout(<LODCPage />)} />
-                    <Route path="/triplydb" element={TriplyDBPage.getLayout(<TriplyDBPage />)} />
-                  </Routes>
-                  <TasksWidget/>
-                </SnackbarProvider>
-              </TasksProvider>
-            </ThemeProvider>
-          </LocalizationProvider>
-        </QueryClientProvider>
+        <AuthProvider>
+          <QueryClientProvider client={queryClient}>
+            <LocalizationProvider dateAdapter={AdapterDateFns}>
+              <ThemeProvider theme={theme}>
+                <TasksProvider>
+                  <SnackbarProvider maxSnack={3}>
+                    <CssBaseline/>
+                    <Routes>
+                      <Route path="/" element={DatasetsPage.getLayout(<DatasetsPage/>)}/>
+                      <Route path="/datasets" element={DatasetsPage.getLayout(<DatasetsPage/>)}/>
+                      <Route path="/reports" element={ReportsPage.getLayout(<ReportsPage/>)}/>
+                      <Route path="/report/:rid" element={NotebookPage.getLayout(<NotebookPage/>)}/>
+                      <Route path="/tasks" element={TasksPage.getLayout(<TasksPage/>)}/>
+                      <Route path="/lodc" element={LODCPage.getLayout(<LODCPage/>)}/>
+                      <Route path="/triplydb" element={TriplyDBPage.getLayout(<TriplyDBPage/>)}/>
+                      <Route path="/login" element={LoginPage.getLayout(<LoginPage/>)}/>
+                    </Routes>
+                    <TasksWidget/>
+                  </SnackbarProvider>
+                </TasksProvider>
+              </ThemeProvider>
+            </LocalizationProvider>
+          </QueryClientProvider>
+        </AuthProvider>
       </CacheProvider>
     </div>
   );

@@ -13,12 +13,12 @@ import { AxiosResponse } from "axios";
 import { useFormik } from "formik";
 import React, { useCallback, useState } from "react";
 import { FormContainer } from "../../components/layout/FormContainer";
+import { useApi } from "../../hooks/useApi";
 import useNotification from "../../hooks/useNotification";
 import { LODCDataset, LODCDownload } from "../../services/lodc";
 import { TDBDataset } from "../../services/triplydb";
 import { Dataset } from "../../types/datasets";
 import * as yup from 'yup';
-import { apiClient } from "../../utils/api";
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { fieldProps } from "../../utils/forms";
 
@@ -94,8 +94,8 @@ export const TDBImportForm = (props: {
   const sparqlURL = `${apiURL}/services/${dataset.name}/sparql`;
 
   const validationSchema = yup.object({});
-  console.log(dataset);
 
+  const apiClient = useApi();
   const formik = useFormik({
     initialValues: {
       name: dataset.displayName as string,

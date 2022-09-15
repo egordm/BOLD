@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Box } from '@mui/material';
 import { styled } from '@mui/material/styles';
+import PrivateRoute from "../other/PrivateRoute";
 import { Navbar } from './navbar';
 import { Sidebar } from './sidebar';
 
@@ -25,29 +26,31 @@ export const Layout = (props: Props) => {
     showSidebar = true,
     showNavbar = true
   } = props;
-  const [isSidebarOpen, setSidebarOpen] = useState(showSidebar);
+  const [ isSidebarOpen, setSidebarOpen ] = useState(showSidebar);
 
   return (
-    <>
-      <LayoutRoot sx={{
-        paddingTop: showNavbar ? '64px' : 0,
-      }}>
-        <Box
-          sx={{
-            display: 'flex',
-            flex: '1 1 auto',
-            flexDirection: 'column',
-            width: '100%'
-          }}
-        >
-           {children}
-        </Box>
-      </LayoutRoot>
-      {showNavbar && (<Navbar onSidebarOpen={() => setSidebarOpen(true)} />)}
-      <Sidebar
-        onClose={() => setSidebarOpen(false)}
-        open={isSidebarOpen}
-      />
-    </>
+    <PrivateRoute>
+      <>
+        <LayoutRoot sx={{
+          paddingTop: showNavbar ? '64px' : 0,
+        }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flex: '1 1 auto',
+              flexDirection: 'column',
+              width: '100%'
+            }}
+          >
+            {children}
+          </Box>
+        </LayoutRoot>
+        {showNavbar && (<Navbar onSidebarOpen={() => setSidebarOpen(true)}/>)}
+        <Sidebar
+          onClose={() => setSidebarOpen(false)}
+          open={isSidebarOpen}
+        />
+      </>
+    </PrivateRoute>
   );
 };

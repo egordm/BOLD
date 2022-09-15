@@ -13,11 +13,11 @@ import { AxiosResponse } from "axios";
 import { useFormik } from "formik";
 import React, { useCallback, useState } from "react";
 import { FormContainer } from "../../components/layout/FormContainer";
+import { useApi } from "../../hooks/useApi";
 import useNotification from "../../hooks/useNotification";
 import { LODCDataset, LODCDownload } from "../../services/lodc";
 import { Dataset } from "../../types/datasets";
 import * as yup from 'yup';
-import { apiClient } from "../../utils/api";
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { fieldProps } from "../../utils/forms";
 
@@ -95,6 +95,8 @@ export const LODCImportForm = (props: {
 
 
   const validationSchema = yup.object({});
+
+  const apiClient = useApi();
 
   const formik = useFormik({
     initialValues: {

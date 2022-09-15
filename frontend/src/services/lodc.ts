@@ -1,4 +1,5 @@
-import { apiClient } from "../utils/api";
+import { Axios } from "axios";
+import { useApi } from "../hooks/useApi";
 
 export interface LODCDataset {
   title: string;
@@ -24,7 +25,7 @@ export interface LODCDownload {
 }
 
 
-export const fetchLODCDatasets = async () => {
+export const fetchLODCDatasets = (apiClient: Axios) => async () => {
   const result = await apiClient.get<Record<string, LODCDataset>>('lodc/datasets');
   const data = Object.values(result.data).map((dataset) => ({
     id: dataset._id,

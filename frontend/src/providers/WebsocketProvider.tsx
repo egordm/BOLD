@@ -1,5 +1,7 @@
 import { Backdrop, CircularProgress } from "@mui/material";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useApi } from "../hooks/useApi";
+import { useAuthContext } from "./AuthProvider";
 
 export interface Packet<U, T> {
   type: U;
@@ -42,8 +44,15 @@ export const createWebsocketProvider = <U, T = any, C = any>(useBackdrop: boolea
     const [ status, setStatus ] = React.useState<ConnectionStatus>(ConnectionStatus.CONNECTING);
     const [ socket, setSocket ] = React.useState<WebSocket | null>(() => null);
 
+    const _ = useApi();
+    const {authTokens} = useAuthContext();
+
     const connect = useCallback(() => {
-      const socket = new WebSocket(endpoint);
+      if (!authTokens?.access) {
+        return () => {};
+      }
+
+      const socket = new WebSocket(`${endpoint}?token=${encodeURIComponent(authTokens?.access)}`);
       setSocket(socket);
       let reconnect = true;
 
@@ -86,11 +95,11 @@ export const createWebsocketProvider = <U, T = any, C = any>(useBackdrop: boolea
         };
         socket.close();
       };
-    }, [ endpoint ]);
+    }, [ endpoint, authTokens ]);
 
     useEffect(() => {
       return connect();
-    }, [ endpoint ]);
+    }, [ endpoint, authTokens ]);
 
     const contextValue = useMemo(() => ({
       status, socket, state, setState

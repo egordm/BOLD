@@ -1,7 +1,9 @@
 import React, { useCallback, useState } from "react";
 import { useQuery, useQueryClient } from "react-query";
+import { useApi } from "../hooks/useApi";
 import { Task } from "../types/tasks";
-import { apiClient, PaginatedResult, WS_ENDPOINT } from "../utils/api";
+import { WS_ENDPOINT } from "../utils/api";
+import { PaginatedResult } from "../utils/pagination";
 import { createWebsocketProvider } from "./WebsocketProvider";
 
 type PacketType = 'TASK_UPDATED';
@@ -21,6 +23,7 @@ export const TasksProvider = (props: {
     setTasksInternal(tasks);
   }, []);
 
+  const apiClient = useApi();
 
   useQuery('GLOBAL_TASKS', async () => {
     const response = await apiClient.get<PaginatedResult<Task>>('/tasks', {

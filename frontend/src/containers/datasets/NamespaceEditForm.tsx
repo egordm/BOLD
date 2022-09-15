@@ -8,10 +8,10 @@ import { useFormik } from "formik";
 import React, { useCallback, useMemo, useState } from "react";
 import { IconButton } from "../../components/input/IconButton";
 import { FormContainer } from "../../components/layout/FormContainer";
+import { useApi } from "../../hooks/useApi";
 import useNotification from "../../hooks/useNotification";
 import { Dataset } from "../../types/datasets";
 import * as yup from 'yup';
-import { apiClient } from "../../utils/api";
 import DeleteIcon from '@mui/icons-material/Delete';
 
 
@@ -25,6 +25,7 @@ export const NamespaceEditForm = (props: {
 
   const validationSchema = yup.object({});
 
+  const apiClient = useApi();
   const formik = useFormik({
     initialValues: {
       namespaces: dataset.namespaces,

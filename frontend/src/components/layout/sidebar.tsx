@@ -1,13 +1,16 @@
+import { styled } from "@mui/material/styles";
 import { Theme } from "@mui/system";
 import PropTypes from 'prop-types';
-import { Box, Divider, Drawer, useMediaQuery } from '@mui/material';
+import { Avatar, Box, Divider, Drawer, IconButton, Link, Paper, Stack, Typography, useMediaQuery } from '@mui/material';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
 import ArticleIcon from '@mui/icons-material/Article';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import CloudIcon from '@mui/icons-material/Cloud';
+import { useAuthContext } from "../../providers/AuthProvider";
 import { Logo } from "../other/Logo";
 import { NavItem } from './nav-item';
 import StorageIcon from '@mui/icons-material/Storage';
+import LogoutIcon from '@mui/icons-material/Logout';
 
 const items = [
   {
@@ -36,6 +39,9 @@ export const Sidebar = (props) => {
     defaultMatches: true, noSsr: false
   });
 
+  const { user, logoutUser } = useAuthContext();
+  console.log(user);
+
   const content = (<>
     <Box
       sx={{
@@ -43,25 +49,39 @@ export const Sidebar = (props) => {
       }}
     >
       <div>
-        <Box sx={{
-          mt: 3, px: 2,
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+        <Stack alignItems={"center"} sx={{ mt: 3, mb: 2, px: 2 }}>
+          <Logo/>
+        </Stack>
+
+        <Box sx={{ px: 2 }}>
           <Box
             sx={{
-              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+              alignItems: 'center',
+              backgroundColor: 'rgba(255, 255, 255, 0.08)',
               cursor: 'pointer',
-              px: 3,
-              py: '11px',
-              borderRadius: 1
+              display: 'flex',
+              justifyContent: 'space-between',
+              pl: 2,
+              pr: 1,
+              borderRadius: 1,
+              py: 1,
             }}
           >
-            <Logo/>
+            <div>
+              <Typography color="inherit" variant="subtitle1">
+                {user?.name ?? user?.username}
+              </Typography>
+              <Typography color="neutral.400" variant="body2">
+                {user?.group}
+              </Typography>
+            </div>
+            <IconButton aria-label="logout" size="medium" onClick={logoutUser}>
+              <LogoutIcon fontSize="inherit"/>
+            </IconButton>
           </Box>
         </Box>
       </div>
+
       <Divider
         sx={{
           borderColor: '#2D3748', my: 3

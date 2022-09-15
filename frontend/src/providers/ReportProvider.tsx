@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo } from "react";
 import { useMutation, useQuery } from "react-query";
+import { useApi } from "../hooks/useApi";
 import useNotification from "../hooks/useNotification";
 import { namespacesToPrefixes } from "../types/datasets";
 import { Report } from "../types/reports";
-import { apiClient } from "../utils/api";
 
 
 const ReportContext = React.createContext<{
@@ -21,6 +21,7 @@ export const ReportProvider = (props: {
   children: React.ReactNode,
 }) => {
   const { sendNotification } = useNotification();
+  const apiClient = useApi();
 
   const { reportId, children, } = props;
   const [ report, setReportInternal ] = React.useState<Report | null>(null);

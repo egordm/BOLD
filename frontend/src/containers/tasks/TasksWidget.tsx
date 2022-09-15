@@ -16,6 +16,7 @@ import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline';
 import { styled } from "@mui/material/styles";
 import _ from "lodash";
 import { useMemo, useState } from "react";
+import { useAuthContext } from "../../providers/AuthProvider";
 import { useTasksContext } from "../../providers/TasksProvider";
 import { ConnectionStatus } from "../../providers/WebsocketProvider";
 import { Task } from "../../types/tasks";
@@ -44,6 +45,7 @@ const isTaskRunning = (task: Task) => IN_PROGRESS_STATES.has(task.state);
 
 
 export const TasksWidget = (props: {}) => {
+  const { user } = useAuthContext();
   const [ expanded, setExpanded ] = useState(false);
   const { state: tasks, status } = useTasksContext();
 
@@ -80,7 +82,7 @@ export const TasksWidget = (props: {}) => {
     </List>
   ), [ tasks ]);
 
-  return (
+  return user ? (
     <Card sx={{
       width: 345,
       position: 'fixed',
@@ -116,5 +118,5 @@ export const TasksWidget = (props: {}) => {
         </ExpandMore>
       </CardActions>
     </Card>
-  )
+  ) : (<></>);
 }

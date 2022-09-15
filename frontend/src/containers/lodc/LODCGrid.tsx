@@ -4,6 +4,7 @@ import {
 import React from "react";
 import { useQuery } from "react-query";
 import { ExpandableCell } from "../../components/data/ServerDataGrid";
+import { useApi } from "../../hooks/useApi";
 import { fetchLODCDatasets, LODCDataset } from "../../services/lodc";
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 
@@ -46,7 +47,8 @@ const COLUMNS: GridColDef[] = [
 ];
 
 export const LODCGrid = (props: {}) => {
-  const { data: rows } = useQuery<LODCDataset[]>('lodc-datasets', fetchLODCDatasets);
+  const apiClient = useApi();
+  const { data: rows } = useQuery<LODCDataset[]>('lodc-datasets', fetchLODCDatasets(apiClient));
   const [ openItem, setOpenItem ] = React.useState<LODCDataset | null>(null);
 
   const openImportDialog = (item: LODCDataset) => {

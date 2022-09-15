@@ -1,7 +1,7 @@
 import { Autocomplete, Chip, Grid, TextField } from "@mui/material";
 import React, { useState } from "react";
 import { Dataset } from "../../types/datasets";
-import { useFetchList } from "../../utils/api";
+import { useFetchList } from "../../utils/pagination";
 
 
 export const DatasetSelectInput = (props: {

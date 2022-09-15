@@ -11,10 +11,10 @@ import {
 import { useFormik } from "formik";
 import { useState } from "react";
 import { FormContainer } from "../../components/layout/FormContainer";
+import { useApi } from "../../hooks/useApi";
 import useNotification from "../../hooks/useNotification";
 import { Dataset } from "../../types/datasets";
 import * as yup from 'yup';
-import { apiClient } from "../../utils/api";
 import { fieldProps } from "../../utils/forms";
 
 
@@ -31,6 +31,7 @@ export const DatasetCreateForm = (props: {
 
   const validationSchema = yup.object({});
 
+  const apiClient = useApi();
   const formik = useFormik({
     initialValues: {
       name: "" as string,
