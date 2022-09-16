@@ -8,8 +8,10 @@ def forwards(apps, schema_editor):
 
     try:
         report = Report.objects.get(id='c0b11d70-c79b-46db-8ddd-8136c06afb42')
+        report.discoverable = True
         report.share_mode = Report.ShareModes.PUBLIC_READONLY
         report.creator = get_user_model().objects.get(username=settings.DJANGO_SUPERUSER_USERNAME)
+        report.save()
 
     except Report.DoesNotExist:
         print('Demo report not found, doing nothing')
