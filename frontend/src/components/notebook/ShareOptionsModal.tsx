@@ -1,7 +1,7 @@
 import {
   Avatar, Button,
   FormControl,
-  InputLabel, lighten,
+  lighten,
   ListItem,
   ListItemAvatar,
   ListItemText,
@@ -10,7 +10,6 @@ import {
 } from "@mui/material";
 import { makeStyles } from "@mui/styles";
 import React, { useCallback, useEffect } from "react";
-import { useApi } from "../../hooks/useApi";
 import useNotification from "../../hooks/useNotification";
 import { useReportContext } from "../../providers/ReportProvider";
 import { ModalContainer } from "../layout/ModalContainer";
@@ -76,6 +75,16 @@ export const ShareOptionsModal = ({
     });
     onClose();
   };
+
+  const { sendNotification } = useNotification();
+  const copyUrl = useCallback(() => {
+    navigator.clipboard.writeText(window.location.href);
+
+    sendNotification({
+      variant: 'success',
+      message: 'URL copied to clipboard',
+    });
+  }, [])
 
   const Icon = mode === 'PRIVATE'
     ? LockOutlinedIcon
@@ -151,7 +160,11 @@ export const ShareOptionsModal = ({
           </Typography>}
         />
       </ListItem>
-      <Stack direction={'row'} alignContent="end" justifyContent={"end"} sx={{ mt: 3 }}>
+      <Stack direction={'row'} justifyContent={"space-between"} sx={{ mt: 3 }}>
+        <Button
+          disabled={mode === 'PRIVATE'}
+          variant="outlined" onClick={copyUrl}
+          startIcon={<LinkIcon/>}>Copy Url</Button>
         <Button variant="contained" onClick={submit}>Save</Button>
       </Stack>
     </ModalContainer>
