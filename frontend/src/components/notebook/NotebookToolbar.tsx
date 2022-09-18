@@ -120,19 +120,20 @@ export const NotebookToolbar = (props: {}) => {
       }}
     >
       <IconButton size="large" onClick={onAddCell} label="Add cell" icon={<Add fontSize="inherit"/>}/>
-      <IconButton size="large" onClick={onDeleteCell} label="Delete cell" icon={<DeleteIcon fontSize="inherit"/>}/>
+      <IconButton size="large" onClick={onDeleteCell} label="Delete cell" icon={<DeleteIcon fontSize="inherit"/>} disabled={!focus}/>
+      {/*<Divider orientation="vertical" flexItem/>*/}
+      {/*<IconButton size="large" label="Cut cell" icon={<ContentCutIcon fontSize="inherit"/>}/>*/}
+      {/*<IconButton size="large" label="Copy cell" icon={<ContentCopyIcon fontSize="inherit"/>}/>*/}
+      {/*<IconButton size="large" label="Paste cell" icon={<ContentPasteIcon fontSize="inherit"/>}/>*/}
       <Divider orientation="vertical" flexItem/>
-      <IconButton size="large" label="Cut cell" icon={<ContentCutIcon fontSize="inherit"/>}/>
-      <IconButton size="large" label="Copy cell" icon={<ContentCopyIcon fontSize="inherit"/>}/>
-      <IconButton size="large" label="Paste cell" icon={<ContentPasteIcon fontSize="inherit"/>}/>
-      <Divider orientation="vertical" flexItem/>
-      <IconButton size="large" onClick={onRunCell} label="Run cell" icon={<PlayArrowIcon fontSize="inherit"/>}/>
+      <IconButton size="large" onClick={onRunCell} label="Run cell" icon={<PlayArrowIcon fontSize="inherit"/>} disabled={!focus}/>
       <IconButton size="large" onClick={onRunAll} label="Run all" icon={<FastForwardIcon fontSize="inherit"/>}/>
       <IconButton size="large" label="Edit Namespaces" icon={<AbcIcon/>} onClick={() => setEditNamespaces(true)}/>
       <Divider orientation="vertical" flexItem/>
       <FormControl variant="filled" sx={{ minWidth: 120 }}>
         <InputLabel>Cell Type</InputLabel>
         <Select
+          disabled={!focus}
           displayEmpty
           sx={{ border: 'none' }}
           value={focusCellType}
@@ -148,6 +149,7 @@ export const NotebookToolbar = (props: {}) => {
         </Select>
       </FormControl>
       <Autocomplete
+        disabled={!focus}
         sx={{ minWidth: 140 }}
         getOptionLabel={(option) => option.toString()}
         renderInput={(params) =>
@@ -157,8 +159,6 @@ export const NotebookToolbar = (props: {}) => {
         value={focusCellTimeout / 1000}
         onChange={(event, newValue) => newValue && onChangeTimeout(newValue as number * 1000)}
       />
-
-
     </Box>
   ), [ focus, focusCellType, focusCellTimeout ]);
 
