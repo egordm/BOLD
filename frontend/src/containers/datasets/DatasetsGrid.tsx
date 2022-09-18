@@ -20,7 +20,7 @@ const COLUMNS: GridColDef[] = [
     field: 'description', headerName: 'Description', flex: 1,
     renderCell: (params: GridRenderCellParams) => <ExpandableCell {...params} maxLength={100} />,
   },
-  { field: 'database', headerName: 'Database', flex: 0.5 },
+  { field: 'mode', headerName: 'Source', flex: 0.5 },
   { field: 'state', headerName: 'State', flex: 0.5, type: 'singleSelect' },
   {
     field: 'triples', headerName: 'Triples', flex: 0.5, type: 'number',

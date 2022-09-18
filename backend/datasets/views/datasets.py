@@ -29,6 +29,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
     serializer_class = DatasetSerializer
     pagination_class = LimitOffsetPagination
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['mode', 'search_mode', 'state', 'id', 'creator']
     search_fields = ['name', 'source', 'description']
 
     def perform_create(self, serializer):

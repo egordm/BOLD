@@ -1,6 +1,7 @@
 import { Autocomplete, Chip, Grid, TextField } from "@mui/material";
 import React, { useState } from "react";
 import { Dataset } from "../../types/datasets";
+import { formatUUIDShort } from "../../utils/formatting";
 import { useFetchList } from "../../utils/pagination";
 
 
@@ -35,14 +36,18 @@ export const DatasetSelectInput = (props: {
 
       setOptions(newOptions);
     }
+  }, {
+    state: 'IMPORTED',
   });
+
+  const optionLabel = (option: Dataset) => (
+    typeof option === 'string' ? option : `${formatUUIDShort(option.id)} - ${option.name} (${option.mode})`
+  )
 
   return (
     <Autocomplete
       {...rest}
-      getOptionLabel={(option) =>
-        typeof option === 'string' ? option : option.name
-      }
+      getOptionLabel={optionLabel}
       multiple
       limitTags={1}
       options={options}
@@ -68,7 +73,7 @@ export const DatasetSelectInput = (props: {
         tagValue.map((option, index) => (
           <Chip
             key={index}
-            label={option.name}
+            label={optionLabel(option)}
             {...getTagProps({ index })}
           />
         ))

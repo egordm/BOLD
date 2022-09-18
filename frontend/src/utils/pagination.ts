@@ -24,11 +24,12 @@ export const apiFetchList = <T, >(
   endpoint: string,
   updateCountFn: (count: number) => void
 ) => (
-  async (page = 0, limit = 20, query = '', ordering = '-created_at') => {
+  async (page = 0, limit = 20, query = '', ordering = '-created_at', filters = undefined) => {
     const params = {
       offset: page * limit,
       limit: limit,
       ordering: ordering,
+      ...filters,
     }
 
     if (query) {
@@ -46,6 +47,7 @@ export const useFetchList = <T, >(
   endpoint: string,
   pagination: Partial<PaginationParams>,
   options: UseQueryOptions<T[]>,
+  filters = undefined
 ) => {
   const [ count, setCount ] = useState(1);
   const [ page, setPage ] = useState(pagination.page ?? 0);
@@ -58,8 +60,8 @@ export const useFetchList = <T, >(
   const fetchItems = apiFetchList<T>(apiClient, endpoint, setCount);
 
   const result = useQuery(
-    [ endpoint, page, limit, query, ordering ],
-    () => fetchItems(page, limit, query, ordering),
+    [ endpoint, page, limit, query, ordering, filters ],
+    () => fetchItems(page, limit, query, ordering, filters),
     { ...options, keepPreviousData: true }
   )
 
