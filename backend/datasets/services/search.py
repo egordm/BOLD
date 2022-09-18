@@ -1,10 +1,12 @@
 import json
 import re
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from dataclasses import dataclass, field
 from enum import IntEnum, Enum
 from pathlib import Path
 from typing import List, Optional
+from rest_framework.serializers import ValidationError
 
 import requests
 from simple_parsing import Serializable
@@ -187,25 +189,15 @@ class TriplyDBSearchService(SearchService):
         self.namespace = namespace
 
     def search(self, query, pos: TermPos, limit: int = 100, offset: int = 0, timeout=5000, **options) -> SearchResult:
+        endpoint = self.get_endpoint()
+        if not endpoint:
+            raise ValidationError('Search endpoint is not reachable')
+
+        query = self.build_query(query, pos, limit, offset)
+        print(json.dumps(query))
         response = requests.post(
-            f'https://api.triplydb.com/datasets/{self.namespace}/services/search/search',
-            data=json.dumps({
-                'size': limit,
-                'from': offset,
-                'query': {
-                    "bool": {
-                        "must": [
-                            {"simple_query_string": {
-                                "query": query
-                            }},
-                            {("match" if pos == TermPos.PREDICATE else "not_match"): {
-                                "http://www w3 org/1999/02/22-rdf-syntax-ns#type":
-                                    "http://www.w3.org/2002/07/owl#DatatypeProperty"
-                            }}
-                        ]
-                    }
-                }
-            }),
+            endpoint,
+            data=json.dumps(query),
             timeout=timeout,
             headers={
                 'User-Agent': 'https://github.com/EgorDm/BOLD',
@@ -228,6 +220,71 @@ class TriplyDBSearchService(SearchService):
                 for hit in result_data['hits']['hits']
             ],
         )
+
+    # noinspection PyTypeChecker
+    def build_query(self, query, pos: TermPos, limit: int = 100, offset: int = 0):
+        base_query = {
+            'size': limit,
+            'from': offset,
+            'query': {"bool": defaultdict(dict)},
+        }
+
+        if pos != TermPos.PREDICATE:
+            base_query['query']['bool']['must_not'] = [{
+                "terms": {
+                    "http://www w3 org/1999/02/22-rdf-syntax-ns#type":
+                        ["http://www.w3.org/2002/07/owl#DatatypeProperty"]
+                }
+            }]
+
+        if query:
+            base_query['query']['bool']['must'] = [{
+                "simple_query_string": {
+                    "query": query
+                }
+            }]
+            base_query['query']['bool']['should'] = [{
+                "simple_query_string": {
+                    "query": query,
+                    "fields": [
+                        "http://www w3 org/2000/01/rdf-schema#label"
+                    ]
+                }
+            }]
+
+        if pos == TermPos.PREDICATE:
+            base_query['query']['bool']['must'] = [
+                *base_query['query']['bool'].get('must', []),
+                {
+                    "match": {
+                        "http://www w3 org/1999/02/22-rdf-syntax-ns#type":
+                            "http://www.w3.org/2002/07/owl#DatatypeProperty"
+                    }
+                }
+            ]
+
+        return base_query
+
+    def get_endpoint(self):
+        response = requests.get(
+            f'https://api.triplydb.com/datasets/{self.namespace}/services/',
+            timeout=5,
+            headers={
+                'User-Agent': 'https://github.com/EgorDm/BOLD',
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+        )
+
+        if response.status_code != 200:
+            return None
+
+        result_data = response.json()
+        for service in result_data:
+            if service.get('type', None) == 'elasticSearch':
+                return service['endpoint']
+
+        return None
 
     def _parse_doc(self, doc: dict) -> TermDocument:
         iri = doc['@id']

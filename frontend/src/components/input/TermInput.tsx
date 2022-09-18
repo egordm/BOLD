@@ -149,6 +149,7 @@ export const TermInput = (props: {
 const PropsTable = styled.table`
   td, td * {
     vertical-align: top;
+    word-wrap: anywhere;
   }
 
   td:first-of-type {
@@ -166,7 +167,7 @@ const TermChip = ({ term, prefixes, chipProps, ...rest }: {
   const primary = term.label ? term.label : extractIriLabel(term.value);
 
   return (
-    <Tooltip sx={{ maxWidth: 'none' }} arrow title={
+    <Tooltip sx={{ maxWidth: 300 }} arrow title={
       <Stack>
         <PropsTable>
           <tbody>
