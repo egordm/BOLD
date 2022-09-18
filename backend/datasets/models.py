@@ -4,12 +4,14 @@ from enum import Enum
 from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+from django.contrib.auth.models import User
 
 from datasets.services.query import QueryService, LocalQueryService, SPARQLQueryService
 from datasets.services.search import LocalSearchService, WikidataSearchService, SearchService, TriplyDBSearchService
 from shared.models import TimeStampMixin
 from shared.paths import DATA_DIR
 from tasks.models import TaskMixin
+from users.mixins import OwnableMixin
 
 
 class DatasetState(Enum):
@@ -22,7 +24,7 @@ class DatasetState(Enum):
     FAILED = 'FAILED'
 
 
-class Dataset(TaskMixin, TimeStampMixin):
+class Dataset(TaskMixin, TimeStampMixin, OwnableMixin):
     """
     The internal dataset model.
     """
@@ -113,3 +115,12 @@ class Dataset(TaskMixin, TimeStampMixin):
                 return SPARQLQueryService(str(self.sparql_endpoint))
             case _:
                 raise ValueError(f'Unknown mode {self.mode}')
+
+    def can_view(self, user: User):
+        return bool(user)
+
+    def can_edit(self, user: User):
+        return super().can_edit(user) or self.creator == user
+
+
+

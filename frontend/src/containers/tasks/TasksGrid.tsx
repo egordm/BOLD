@@ -25,6 +25,10 @@ const COLUMNS: GridColDef[] = [
     valueGetter: (params) => params.value.model
   },
   {
+    field: 'creator', headerName: 'Creator', flex: 0.5,
+    valueGetter: (params) => params.value?.username
+  },
+  {
     field: 'created_at', headerName: 'Created At', flex: 0.5, type: 'dateTime', minWidth: 200,
     valueFormatter: (params) => formatDateTime(params.value)
   },

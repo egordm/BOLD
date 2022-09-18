@@ -55,6 +55,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
         instance.apply_async(
             import_dataset,
             (instance.id,),
+            creator=self.request.user,
             name=f'Import dataset {instance.name}'
         )
 
@@ -62,6 +63,7 @@ class DatasetViewSet(viewsets.ModelViewSet):
         instance.apply_async(
             delete_dataset,
             (instance.id,),
+            creator=self.request.user,
             name=f'Deleting dataset {instance.name}'
         )
 

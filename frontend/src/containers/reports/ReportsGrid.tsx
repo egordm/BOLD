@@ -26,6 +26,10 @@ const COLUMNS: GridColDef[] = [
     valueGetter: (params) => params.row.notebook.metadata.name
   },
   {
+    field: 'creator', headerName: 'Creator', flex: 0.5,
+    valueGetter: (params) => params.value?.username
+  },
+  {
     field: 'created_at', headerName: 'Created At', flex: 0.5, type: 'dateTime', minWidth: 200,
     valueFormatter: (params) => formatDateTime(params.value)
   },

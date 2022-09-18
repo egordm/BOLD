@@ -52,6 +52,7 @@ class NotebookConsumer(WebsocketConsumer):
                 Report.update_cell_state(self.report_id, cell_id, CellState.QUEUED)
                 self.report.apply_async(
                     run_cell, (self.report_id, cell_id),
+                    creator=self.user,
                     name='Run cell #{}'.format(cell_index)
                 )
             case PacketType.CELL_RESULT:

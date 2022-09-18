@@ -49,3 +49,13 @@ class TaskViewSet(viewsets.ModelViewSet):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     search_fields = ['object_id', 'name', 'state']
     filter_class = TaskFilter
+
+    def get_queryset(self):
+        if self.request.user.is_superuser:
+            return super().get_queryset()
+
+        return super().get_queryset().filter(
+            Q(creator=self.request.user)
+        )
+
+

@@ -1,8 +1,10 @@
 from django.db import models
+from django.conf import settings
 from django.db.models import Q
 from django.db.models.query import QuerySet
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
+from django.contrib.auth.models import User
 
 from celery.result import AsyncResult
 from celery.utils import uuid
@@ -76,6 +78,8 @@ class Task(TimeStampMixin):
     content_object = GenericForeignKey()
     content_type = models.ForeignKey(ContentType, null=True, on_delete=models.SET_NULL)
     name = models.CharField(max_length=255)
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    """The user who started the task."""
 
     objects = TaskManager()
 
@@ -92,6 +96,11 @@ class Task(TimeStampMixin):
 
     def delete(self, using=None, keep_parents=False):
         return super().delete(using, keep_parents)
+
+    def can_view(self, user: User):
+        return user.is_superuser or self.creator == user or (
+            self.content_object and self.content_object.can_view(user)
+        )
 
 
 class ModelAsyncResult(AsyncResult):
@@ -191,7 +200,7 @@ class TaskMixin(models.Model):
     def has_ready_task(self):
         return self.tasks.ready().exists()
 
-    def apply_async(self, task_fn, *args, name=None, **kwargs):
+    def apply_async(self, task_fn, *args, name=None, creator=None, **kwargs):
         if 'task_id' in kwargs:
             task_id = kwargs['task_id']
         else:
@@ -205,8 +214,11 @@ class TaskMixin(models.Model):
             task = Task.objects.get(task_id=task_id)
             task.content_object = self
             task.name = name
+            task.creator = creator
         except Task.DoesNotExist:
             task = Task(task_id=task_id, content_object=self, name=name)
+            task.creator = creator
+
         task.save()
         return task_fn.apply_async(*args, **kwargs)
 
