@@ -1,4 +1,4 @@
-import { Box} from '@mui/material';
+import { Box } from '@mui/material';
 import { useMatch } from "react-router";
 // import { useRouter } from "next/router";
 import { Layout } from '../../components/layout/layout';
@@ -8,6 +8,7 @@ import { NotebookConnectionProvider } from "../../providers/NotebookConnectionPr
 import { NotebookProvider } from "../../providers/NotebookProvider";
 import { ReportProvider } from "../../providers/ReportProvider";
 import { RunQueueProvider } from "../../providers/RunQueueProvider";
+import { UndoHistoryProvider } from "../../providers/UndoHistoryProvider";
 
 
 const NotebookPage = (props) => {
@@ -19,7 +20,7 @@ const NotebookPage = (props) => {
 
   return (
     <>
-     {/* <Head>
+      {/* <Head>
         <title>
           BOLD Profiler
         </title>
@@ -29,11 +30,13 @@ const NotebookPage = (props) => {
           <ReportProvider reportId={rid as string}>
             <NotebookConnectionProvider reportId={rid as string}>
               <NotebookProvider>
-                <CellFocusProvider>
-                  <RunQueueProvider>
-                    <Notebook/>
-                  </RunQueueProvider>
-                </CellFocusProvider>
+                <UndoHistoryProvider>
+                  <CellFocusProvider>
+                    <RunQueueProvider>
+                      <Notebook/>
+                    </RunQueueProvider>
+                  </CellFocusProvider>
+                </UndoHistoryProvider>
               </NotebookProvider>
             </NotebookConnectionProvider>
           </ReportProvider>

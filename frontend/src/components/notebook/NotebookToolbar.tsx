@@ -16,11 +16,9 @@ import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useNotebookContext } from "../../providers/NotebookProvider";
 import { useReportContext } from "../../providers/ReportProvider";
 import { useRunQueueContext } from "../../providers/RunQueueProvider";
+import { useUndoHistoryContext } from "../../providers/UndoHistoryProvider";
 import { addCell, createCell, removeCell, setCellContent, setCellMeta, setCellOutputs } from "../../types/notebooks";
 import DeleteIcon from '@mui/icons-material/Delete';
-import ContentCutIcon from '@mui/icons-material/ContentCut';
-import ContentCopyIcon from '@mui/icons-material/ContentCopy';
-import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FastForwardIcon from '@mui/icons-material/FastForward';
 import { IconButton } from "../input/IconButton";
@@ -29,7 +27,8 @@ import { ModalContainer } from "../layout/ModalContainer";
 export const NotebookToolbar = (props: {}) => {
   const { report, refetch } = useReportContext();
   const { focus, focusRef, setFocus } = useCellFocusContext();
-  const { notebook, notebookRef, setNotebook } = useNotebookContext();
+  const { notebook, notebookRef } = useNotebookContext();
+  const { setNotebook } = useUndoHistoryContext();
   const { runCells } = useRunQueueContext();
 
   const { sendNotification } = useNotification();

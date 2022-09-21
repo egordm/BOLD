@@ -4,6 +4,7 @@ import { useCellFocusContext } from "./CellFocusProvider";
 import { useNotebookConnectionContext } from "./NotebookConnectionProvider";
 import { useNotebookContext } from "./NotebookProvider";
 import { useRunQueueContext } from "./RunQueueProvider";
+import { useUndoHistoryContext } from "./UndoHistoryProvider";
 
 export const CellContext = React.createContext<{
   cell: Cell;
@@ -23,7 +24,8 @@ export const CellProvider = (props: {
   const { runCells } = useRunQueueContext();
   const { socket } = useNotebookConnectionContext();
   const { focus, setFocus } = useCellFocusContext();
-  const { notebook, notebookRef, setNotebook, setCell } = useNotebookContext();
+  const { notebook, notebookRef, setCell } = useNotebookContext();
+  const { setNotebook } = useUndoHistoryContext();
   const cellRef = React.useRef<Cell>(null);
 
   const cell = notebook?.content?.cells[cellId];
