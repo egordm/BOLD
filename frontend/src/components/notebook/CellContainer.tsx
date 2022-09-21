@@ -4,6 +4,7 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import { useMemo } from "react";
 import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useCellContext } from "../../providers/CellProvider";
+import { ClassBrowserWidget } from "./cells/ClassBrowserWidget";
 import { ClassTreeWidget } from "./cells/ClassTreeWidget";
 import { CodeCell } from "./cells/CodeCell";
 import { PropertiesPreviewWidget } from "./cells/PropertiesPreviewWidget";
@@ -18,6 +19,7 @@ export const CELL_TYPES = {
   widget_classtree: ClassTreeWidget,
   widget_propertiespreview: PropertiesPreviewWidget,
   widget_subgraph: SubgraphWidget,
+  widget_classbrowser: ClassBrowserWidget,
 }
 
 export const CellContainer = (props: {}) => {

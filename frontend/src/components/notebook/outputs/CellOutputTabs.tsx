@@ -5,7 +5,7 @@ import { VirtualizedTabs } from "../../layout/VirtualizedTabs";
 
 
 export const CellOutputTabs = ({
-  mode, options, onChange, renderResult
+  mode, options, onChange, renderResult, extraData
 }: {
   options: { value: string; label: string }[];
   mode?: string;
@@ -13,6 +13,7 @@ export const CellOutputTabs = ({
     mode: string, cell: Cell, outputs: CellOutput[] | null
   }) => JSX.Element;
   onChange: (mode: string) => void;
+  extraData?: any;
 }) => {
   const { cell, outputs } = useCellContext();
 
@@ -21,7 +22,7 @@ export const CellOutputTabs = ({
       value={mode ?? options[0].value}
       tabs={options}
       onChange={(event, value) => onChange(value)}
-      renderTab={(mode) => renderResult({ mode, cell, outputs })}
+      renderTab={(mode) => renderResult({ mode, cell, outputs, ...extraData })}
     />)
-  ), [ (cell as any).data?.output_mode, outputs ])
+  ), [ (cell as any).data?.output_mode, outputs, extraData ])
 }
