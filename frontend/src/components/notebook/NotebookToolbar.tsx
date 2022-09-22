@@ -23,6 +23,8 @@ import PlayArrowIcon from '@mui/icons-material/PlayArrow';
 import FastForwardIcon from '@mui/icons-material/FastForward';
 import { IconButton } from "../input/IconButton";
 import { ModalContainer } from "../layout/ModalContainer";
+import UndoIcon from '@mui/icons-material/Undo';
+import RedoIcon from '@mui/icons-material/Redo';
 
 export const NotebookToolbar = (props: {}) => {
   const { report, refetch } = useReportContext();
@@ -30,6 +32,7 @@ export const NotebookToolbar = (props: {}) => {
   const { notebook, notebookRef } = useNotebookContext();
   const { setNotebook } = useUndoHistoryContext();
   const { runCells } = useRunQueueContext();
+  const { undo, redo } = useUndoHistoryContext();
 
   const { sendNotification } = useNotification();
 
@@ -108,7 +111,7 @@ export const NotebookToolbar = (props: {}) => {
       sx={{
         display: 'flex',
         alignItems: 'center',
-        width: 'fit-content',
+        width: '100%',
         border: (theme) => `1px solid ${theme.palette.divider}`,
         borderLeftWidth: '0px',
         borderRightWidth: '0px',
@@ -159,6 +162,9 @@ export const NotebookToolbar = (props: {}) => {
         value={focusCellTimeout / 1000}
         onChange={(event, newValue) => newValue && onChangeTimeout(newValue as number * 1000)}
       />
+      <Box sx={{ flex: 1 }}/>
+      <IconButton size="large" label="Undo" icon={<UndoIcon/>} onClick={undo}/>
+      <IconButton size="large" label="Redo" icon={<RedoIcon/>} onClick={redo}/>
     </Box>
   ), [ focus, focusCellType, focusCellTimeout ]);
 

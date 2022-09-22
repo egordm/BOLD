@@ -3,7 +3,7 @@ import {
   Grid,
   IconButton, FormLabel, Typography, Link
 } from "@mui/material";
-import { namedNode } from "@rdfjs/data-model";
+import { namedNode, variable } from "@rdfjs/data-model";
 import { SELECT, sparql } from "@tpluscode/sparql-builder";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
@@ -23,55 +23,50 @@ import { CellOutputTabs } from "../outputs/CellOutputTabs";
 import NavigateNextIcon from '@mui/icons-material/NavigateNext';
 import Breadcrumbs from '@mui/material/Breadcrumbs';
 
-interface ClassParent {
-  iri: string;
-  count: number;
-}
-
 interface ClassBrowserData {
-  classPath: ClassParent[];
   limit?: number;
   output_mode?: string;
 }
 
 const OUTPUT_TABS = [
-  { value: 'hierarchy', label: 'Hierarchy' },
-  { value: 'table', label: 'Show Table' },
+  { value: 'sunburst', label: 'Sunburst' },
+  { value: 'treemap', label: 'Treemap' },
+  { value: 'tableHierarchy', label: 'Show Hierarchy Data' },
+  { value: 'tableCounts', label: 'Show Counts Data' },
 ]
-
 
 const buildQuery = (data: ClassBrowserData) => {
   const { rdf, rdfs } = PREFIXES;
 
-  let query = SELECT`?type (COUNT(?s) as ?count)`;
+  const primaryQuery = SELECT`?type ?parent`
+    .WHERE`
+      ?type ${rdfs.subClassOf} ?parent .
+    `.LIMIT(data.limit ?? 20);
 
-  if (!data.classPath?.length) {
-    query = query.WHERE`
+  const secondaryQuery = SELECT`?type (COUNT(?s) as ?count)`
+    .WHERE`
       ?s ${rdf.type} ?type .
-      FILTER NOT EXISTS { ?type ${rdfs.subClassOf} ?parent }
-    `;
-  } else {
-    const parent = data.classPath[data.classPath.length - 1];
-    query = query.WHERE`
-      ?s ${rdf.type} ?type .
-      ?type ${rdfs.subClassOf} ${namedNode(parent.iri)} .
-    `;
-  }
-
-  query = query.GROUP().BY('type')
+      FILTER EXISTS {
+        { ?type ${rdfs.subClassOf} ?a . }
+        UNION
+        { ?a ${rdfs.subClassOf} ?type . }
+      }	
+    `
+    .GROUP().BY('type')
+    .ORDER().BY(variable('count'), true)
     .LIMIT(data.limit ?? 20);
 
   return {
-    primaryQuery: query.build(),
+    primaryQuery: primaryQuery.build(),
+    secondaryQuery: secondaryQuery.build(),
   };
 }
 
+
 export const ClassBrowserWidget = (props: {}) => {
-  const { cell, runCell } = useCellContext();
+  const { cell } = useCellContext();
   const { data, source } = cell as WidgetCellType<ClassBrowserData>;
   const [ showSource, setShowSource ] = React.useState(false);
-  const [run, setRun] = React.useState(false);
-
   const { setData } = useCellWidgetData(buildQuery);
 
   useEffect(() => {
@@ -80,39 +75,6 @@ export const ClassBrowserWidget = (props: {}) => {
     })
   }, []);
 
-  const updateClassPath = useCallback((level: number, head?: ClassParent) => {
-    let classPath = (data.classPath ?? []).slice(0, level);
-    if (head) {
-      classPath.push(head);
-    }
-    setData({ classPath })
-    setRun(true);
-  }, [ data.classPath ]);
-
-  useEffect(() => {
-    if (run) {
-      setRun(false);
-      runCell();
-    }
-  }, [ run ]);
-
-  const classPath = data.classPath ?? [];
-  const breadcrumbs = useMemo(() => (
-    [
-      { iri: 'Root', count: null },
-      ...classPath,
-    ].map((parent, index) => (
-      index === classPath.length ? (
-        <Typography key={index} color="text.primary">
-          {extractIriLabel(parent.iri)} {parent.count && `(${parent.count})`}
-        </Typography>
-      ) : (
-        <Link key={index} color="inherit" underline="hover" onClick={() => updateClassPath(index, null)}>
-          {extractIriLabel(parent.iri)} {parent.count && `(${parent.count})`}
-        </Link>
-      )
-    ))
-  ), [ data.classPath ]);
 
   const Content = useMemo(() => (
     <>
@@ -130,33 +92,19 @@ export const ClassBrowserWidget = (props: {}) => {
           />
         </Grid>
         <Grid item xs={12}>
-          <Breadcrumbs
-            separator={<NavigateNextIcon fontSize="small" />}
-            aria-label="breadcrumb"
-          >
-            {breadcrumbs}
-          </Breadcrumbs>
-        </Grid>
-        <Grid item xs={12}>
           <Container maxWidth="md">
             <NumberedSlider
               label={'Limit results'}
               value={data?.limit ?? 100}
               valueLabelFormat={(value) => value.toString()}
               onChange={(event, value) => setData({ limit: value as number })}
-              min={100} max={1000} step={100}
+              min={100} max={5000} step={200}
             />
           </Container>
         </Grid>
       </Grid>
     </>
   ), [ data ]);
-
-  const extraData = useMemo(() => ({
-    updateClassPath
-  }), [ data.classPath ]);
-
-  console.log('data', extraData);
 
   return (
     <>
@@ -166,17 +114,24 @@ export const ClassBrowserWidget = (props: {}) => {
         options={OUTPUT_TABS}
         renderResult={ResultTab}
         onChange={(output_mode) => setData({ output_mode })}
-        extraData={extraData}
       />
       <SourceViewModal
         source={{
-          'Main Query': source[0],
+          'Hierarchy Query': source[0],
+          'Count Query': source[1],
         }}
         open={showSource}
         onClose={() => setShowSource(false)}
       />
     </>
   )
+}
+
+interface ClassParent {
+  iri: string;
+  label: string;
+  count: number;
+  parents: string[];
 }
 
 const ResultTab = ({
@@ -189,94 +144,150 @@ const ResultTab = ({
 }) => {
   const prefixes = usePrefixes();
   const itemsRef = useRef<any>();
-  const data = (cell as WidgetCellType<ClassBrowserData>).data;
-  const output = outputs[0];
 
-  const onPlotClick = useCallback((event: any) => {
-    if (!event.points?.length) {
-      return;
-    }
+  const hierarchy = useMemo(() => extractClassHierarchy(outputs), [ outputs ]);
 
-    const point = event.points[0];
-    for (const item of itemsRef.current ?? []) {
-      if (item.label !== point.label) {
-        continue;
-      }
-
-      updateClassPath(item.level, { iri: item.iri, count: item.count });
-      break;
-    }
-  }, [itemsRef, updateClassPath]);
-
-  if (
-    mode === 'hierarchy'
-    && output?.output_type === 'execute_result'
-    && 'application/sparql-results+json' in output?.data
-  ) {
-    const results: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
-    const points = results.results.bindings;
-    const classPath = data.classPath ?? [];
-
-    let items = [];
-    let parent = "";
-    let i = 0;
-    for (const parentItem of classPath.slice(classPath.length - 1, classPath.length)) {
-      items.push({
-        label: extractIriLabel(parentItem.iri) + ' ',
-        iri: parentItem.iri,
-        count: parentItem.count,
-        parent,
-        level: i++,
-      });
-      parent = extractIriLabel(parentItem.iri) + ' ';
-    }
-
-    items = items.concat(points.map((row) => ({
-      label: extractIriLabel(row['typeLabel']?.value ?? row['type'].value),
-      count: Number(row['count'].value) || null,
-      iri: row['type'].value,
-      parent,
-      level: data.classPath?.length ?? 0,
-    })));
-    itemsRef.current = items;
-
-    const labels = items.map((item) => item.label);
-    const values = items.map((item) => item.count as any as number);
-    const texts = items.map((item) => `${item.label} (${item.count} instances)<br>${item.iri}`);
-    const parents = items.map((item) => item.parent);
-    console.log(labels, values);
-
+  if ((mode === 'sunburst' || mode === 'treemap') && hierarchy) {
     return (
       <Plot
         data={[
           {
-            type: "sunburst",
-            labels: labels,
-            values: values,
-            text: texts,
-            parents,
+            type: mode,
+            ...hierarchy,
             hoverinfo: "text",
             textinfo: "label",
           }
         ]}
-        onClick={onPlotClick}
         style={{ width: "100%" }}
         layout={{
-          margin: {l: 0, r: 0, b: 0, t: 0},
+          margin: { l: 0, r: 0, b: 0, t: 0 },
           autosize: true,
           height: 400
         }}
       />
     )
   } else {
-    const result = cellOutputToYasgui(outputs[0]);
     return (
       <Yasr
-        result={result}
+        result={cellOutputToYasgui(mode === 'tableCounts' ? outputs[1] : outputs[0])}
         prefixes={prefixes}
       />
     )
   }
 
   return null;
+}
+
+
+const extractClassHierarchy = (outputs: CellOutput[] | null) => {
+  if (!outputs?.length) {
+    return null;
+  }
+
+  const hierarchyOutput = extractSparqlResult(outputs[0])?.results?.bindings;
+  const countsOutput = extractSparqlResult(outputs[1])?.results?.bindings;
+
+  if (!hierarchyOutput || !countsOutput) {
+    return null;
+  }
+
+  let items: Record<string, ClassParent> = {};
+  for (const row of hierarchyOutput) {
+    const type = row?.type?.value;
+    const parent = row?.parent?.value;
+    if (parent && !items[parent]) {
+      items[parent] = {
+        iri: parent,
+        label: extractIriLabel(parent),
+        parents: [],
+        count: 0,
+      };
+    }
+
+    if (!items[type]) {
+      items[type] = {
+        iri: type,
+        label: type,
+        parents: [],
+        count: 0,
+      };
+    }
+
+    const item = items[type];
+    item.iri = type;
+    item.label = extractIriLabel(row?.typeLabel ?? type);
+    item.parents.push(parent);
+  }
+
+  for (const row of countsOutput) {
+    const type = row?.type?.value;
+    const count = row?.count?.value;
+    if (items[type]) {
+      items[type].count = parseInt(count);
+    }
+  }
+
+  const children = {};
+  for (const item of Object.values(items)) {
+    for (const parent of item.parents) {
+      if (!children[parent]) {
+        children[parent] = [];
+      }
+      children[parent].push(item.iri);
+    }
+  }
+
+  let visited = {};
+  const updateCounts = (item: ClassParent) => {
+    if (!item || visited[item.iri]) {
+      return;
+    }
+    visited[item.iri] = true;
+    for (const child of children[item.iri] ?? []) {
+      updateCounts(items[child]);
+      item.count += items[child].count;
+    }
+  }
+  for (const item of Object.values(items)) {
+    updateCounts(item);
+  }
+
+  const ids = [];
+  const labels = [];
+  const counts = [];
+  const parents = [];
+  const texts = [];
+  let idCounter = 0;
+
+  // Adds same item twice wit different id if it has multiple parents
+  let visited2 = {};
+  const addNode = (item: ClassParent, parent: any) => {
+    if (visited2[item.iri]) {
+      return;
+    }
+    visited[item.iri] = true;
+    visited2[item.iri] = true;
+    const id = idCounter++;
+    ids.push(id);
+    labels.push(item.label);
+    counts.push(item.count);
+    parents.push(parent);
+    texts.push(`${item.label} (${item.count} instances)<br>${item.iri}`);
+    for (const child of children[item.iri] ?? []) {
+      addNode(items[child], id);
+    }
+  }
+  for (const item of Object.values(items)) {
+    if (!item.parents.length) {
+      addNode(item, "");
+    }
+  }
+
+  return ids ? {
+    ids,
+    labels,
+    values: counts,
+    parents,
+    text: texts,
+  } : null;
 }

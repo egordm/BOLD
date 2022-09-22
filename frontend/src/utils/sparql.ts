@@ -21,8 +21,8 @@ export const PREFIXES = {
 }
 
 
-export const extractSparqlResult = (output: CellErrorOutput | CellOutput) => {
-  if (output.output_type === 'execute_result') {
+export const extractSparqlResult = (output?: CellOutput) => {
+  if (output?.output_type === 'execute_result') {
     const contentType = Object.keys(output.data)[0];
     const data = output.data[contentType];
 
