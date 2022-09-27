@@ -35,11 +35,11 @@ class DatasetViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         if serializer.validated_data.get('mode') == Dataset.Mode.SPARQL.value and \
                 serializer.validated_data.get('search_mode') == Dataset.SearchMode.LOCAL.value:
-            raise Exception('Local search index for sparql datasets is not yet supported')
+            raise ValidationError('Local search index for sparql datasets is not yet supported')
 
         if serializer.validated_data.get('search_mode', None) == Dataset.SearchMode.TRIPLYDB.value and \
                 'tdb_id' not in serializer.validated_data.get('source', {}):
-            raise Exception('TriplyDB dataset must be a TriplyDB dataset')
+            raise ValidationError('TriplyDB dataset must be a TriplyDB dataset')
 
         if not settings.STARDOG_ENABLE and (
             serializer.validated_data.get('mode') != Dataset.Mode.SPARQL.value or
