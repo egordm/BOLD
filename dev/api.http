@@ -182,3 +182,20 @@ Accept: application/json
     }
   }
 }
+
+
+###
+# curl -X POST
+#     -H "Content-Type:application/sparql-update"
+#     -H "Accept:text/html"
+#     --data "select distinct ?Concept where {[] a ?Concept} LIMIT 100" http://localhost:8890/sparql
+POST https://dbpedia.org/sparql?limit=10&timeout=60
+Content-Type: application/sparql-query
+Accept: application/sparql-results+json
+
+SELECT (COUNT(*) AS ?count)
+WHERE { ?s ?p ?o }
+LIMIT 10
+
+###
+

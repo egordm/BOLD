@@ -1,5 +1,5 @@
 import stardog
-import requests
+from requests import Session
 
 from abc import ABC, abstractmethod
 
@@ -44,20 +44,29 @@ class SPARQLQueryService(QueryService):
         if 'LIMIT' not in query and not ignore_limit:
             raise QueryExecutionException(f'SPARQL queries must specify a LIMIT')
 
-        response = requests.post(
-            self.endpoint,
-            data=query,
-            params={
-                'limit': limit,
-                'timeout': timeout,
-            },
-            headers={
-                'User-Agent': 'https://github.com/EgorDm/BOLD',
-                'Content-Type': 'application/sparql-query',
-                'Accept': 'application/sparql-results+json',
-            },
-            timeout=timeout,
-        )
+        with Session() as session:
+            response = session.post(
+                self.endpoint,
+                data=query,
+                params={
+                    'limit': limit,
+                    'timeout': timeout,
+                },
+                headers={
+                    'User-Agent': 'https://github.com/EgorDm/BOLD',
+                    'Content-Type': 'application/sparql-query',
+                    'Accept': 'application/sparql-results+json',
+                },
+                timeout=timeout,
+                allow_redirects=False
+            )
+
+            retry_count = 0
+            while response.status_code // 100 == 3 and retry_count < 3:
+                request = response.request
+                request.url = response.headers.get('Location')
+                response = session.send(response.request)
+                retry_count += 1
 
         if response.status_code != 200:
             raise QueryExecutionException(f'{response.status_code} {response.reason}\n{response.text}')
