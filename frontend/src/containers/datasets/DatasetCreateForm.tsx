@@ -113,7 +113,7 @@ export const DatasetCreateForm = (props: {
             <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
               <TabList onChange={(e, v) => setMode(v)} centered>
                 <Tab label="Existing" value="existing"/>
-                <Tab label="Import URL(s)" value="url"/>
+                <Tab label="Import URL(s)" value="urls"/>
                 <Tab label="SPARQL Endpoint" value="sparql"/>
               </TabList>
             </Box>
@@ -129,7 +129,7 @@ export const DatasetCreateForm = (props: {
                 </Grid>
               </Grid>
             </TabPanel>
-            <TabPanel value="url">
+            <TabPanel value="urls">
               <Grid container spacing={3}>
                 <Grid item xs={12}>
                   <TextField
