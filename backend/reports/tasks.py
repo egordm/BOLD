@@ -67,7 +67,7 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
 
 def run_sparql(dataset: Dataset, source: str, timeout: int = None, limit: int = None):
     start_time = timer()
-    limit = (limit or DEFAULT_LIMIT) if ' LIMIT ' not in source.upper() else None
+    limit = (limit or DEFAULT_LIMIT) if 'LIMIT ' not in source.upper() else None
     timeout = timeout or DEFAULT_TIMEOUT
 
     outputs, error = [], False
