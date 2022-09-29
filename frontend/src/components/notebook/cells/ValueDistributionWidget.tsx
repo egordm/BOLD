@@ -90,7 +90,7 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
       const objectVar = variable(`o${index}`);
 
       const selector = filter.negate
-        ? sparql`FILTER NOT EXISTS { ?s ${predicateVar} ${objectVar} }`
+        ? sparql`MINUS { ?s ${predicateVar} ${objectVar} }`
         : sparql`?s ${predicateVar} ${objectVar}`;
 
       query = query.WHERE`
