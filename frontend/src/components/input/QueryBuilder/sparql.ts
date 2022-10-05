@@ -40,13 +40,17 @@ export const queryToSparql = (query: RuleGroup) => {
     `
   } catch (e) {
     console.error(e)
-    return null;
+    return '';
   }
 }
 
 export const partialToSparql = (state: QueryState, rule: Rule | RuleGroup, parent?: RuleGroup): SparqlValue => {
+  if (!rule) {
+    return null;
+  }
+
   // @ts-ignore
-  if (!!rule.combinator) {
+  if (rule?.combinator) {
     return ruleGroupToSparql(state, rule as RuleGroup);
   } else {
     return ruleToSparql(state, rule as Rule, parent!);
@@ -55,16 +59,38 @@ export const partialToSparql = (state: QueryState, rule: Rule | RuleGroup, paren
 
 const ruleGroupToSparql = (state: QueryState, ruleGroup: RuleGroup) => {
   const combinator = (ruleGroup.combinator ?? 'and').toUpperCase();
+  const not = !!ruleGroup.not;
   const rules = ruleGroup.rules.map(rule => sparql`{ ${partialToSparql(state, rule, ruleGroup)} }`);
 
   switch (combinator) {
     case 'AND':
-      return sparql`${rules.join('\n')}`
+      return {
+        _toPartialString(options) {
+          return not
+            ? sparql`MINUS { ${sparqlJoin(rules, '\n')} }`._toPartialString(options)
+            : sparql`${sparqlJoin(rules, '\n')}`._toPartialString(options);
+        }
+      }
     case 'OR':
-      return sparql`${rules.join('\nUNION\n')}`
+      return {
+        _toPartialString(options) {
+          return not
+            ? sparql`MINUS { ${sparqlJoin(rules, '\nUNION\n')} }`._toPartialString(options)
+            : sparql`${sparqlJoin(rules, '\nUNION\n')}`._toPartialString(options);
+        }
+      }
     default:
       throw new Error(`Unknown combinator ${combinator}`)
   }
+}
+
+const sparqlJoin = (sparqls: SparqlValue[], separator: any) => {
+  if (sparqls.length === 0) {
+    return null;
+  }
+
+  const first = sparqls.shift();
+  return sparqls.reduce((acc, curr) => sparql`${acc} ${separator} ${curr}`, first)
 }
 
 const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
