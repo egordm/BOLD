@@ -194,7 +194,6 @@ class TriplyDBSearchService(SearchService):
             raise ValidationError('Search endpoint is not reachable')
 
         query = self.build_query(query, pos, limit, offset)
-        print(json.dumps(query))
         response = requests.post(
             endpoint,
             data=json.dumps(query),

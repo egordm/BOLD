@@ -81,7 +81,7 @@ export const TermInput = (props: {
   ), [ label ]);
 
   const renderOption = useMemo(() => (props, option: Term) => {
-    const { className, ...rest } = props;
+    const { key, className, ...rest } = props;
 
     const bgcolor = option.pos === 'SUBJECT' ? 'info.light'
       : option.pos === 'PREDICATE' ? 'warning.light'
@@ -92,7 +92,7 @@ export const TermInput = (props: {
     const secondary = iri;
 
     return (
-      <>
+      <div key={key}>
         <ListItem {...rest} sx={{ alignItems: 'stretch', cursor: 'pointer' }}>
           <Box sx={{ width: 4, bgcolor, mr: 1, borderRadius: 1 }}/>
           <ListItemText
@@ -104,7 +104,7 @@ export const TermInput = (props: {
           />
         </ListItem>
         <Divider variant="fullWidth" component="li"/>
-      </>
+      </div>
     )
   }, [ prefixes ]);
 

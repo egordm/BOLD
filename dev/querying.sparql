@@ -1,0 +1,8 @@
+
+SELECT ?s
+WHERE {
+    # Or clause where o matches different pedicates and values
+    { ?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#Class> }
+    UNION
+    { ?s <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2002/07/owl#ObjectProperty> }
+}
