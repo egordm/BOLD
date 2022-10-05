@@ -126,6 +126,7 @@ CACHES = {
 
 CHANNEL_LAYERS = {
     'default': {
+        # 'BACKEND': 'channels.layers.InMemoryChannelLayer',
         'BACKEND': 'channels_postgres.core.PostgresChannelLayer',
         'CONFIG': DATABASES['channels_postgres'],
     },

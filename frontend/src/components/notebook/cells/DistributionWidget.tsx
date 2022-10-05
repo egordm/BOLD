@@ -1,42 +1,22 @@
 import {
-  CardHeader, Container, Grid,
+  CardHeader, Grid,
   IconButton
 } from "@mui/material";
 import { SELECT } from "@tpluscode/sparql-builder";
 import React, { useEffect, useMemo } from "react";
+import { RuleGroupType } from "react-querybuilder";
 import { useCellWidgetData } from "../../../hooks/useCellWidgetData";
 import { useCellContext } from "../../../providers/CellProvider";
-import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
 import { Cell, CellOutput, WidgetCellType } from "../../../types/notebooks";
 import { PREFIXES } from "../../../utils/sparql";
 import { SourceViewModal } from "../../data/SourceViewModal";
-import { NumberedSlider } from "../../input/NumberedSlider";
 import CodeIcon from '@mui/icons-material/Code';
 import QueryBuilder from "../../input/QueryBuilder";
-import { QueryBuilderConfig } from "../../input/QueryBuilder/config";
-import TermPOWidget from "../../input/QueryBuilder/widgets/TermPOWidget";
-import TermWidget from "../../input/QueryBuilder/widgets/TermPOWidget";
-import TermPWidget from "../../input/QueryBuilder/widgets/TermPWidget";
 import { CellOutputTabs } from "../outputs/CellOutputTabs";
-import MuiConfig from 'react-awesome-query-builder/lib/config/mui';
-import {
-  Query,
-  Builder,
-  BasicConfig,
-  Utils as QbUtils,
-  JsonTree,
-  ImmutableTree,
-  JsonGroup
-} from 'react-awesome-query-builder';
-
-import 'react-awesome-query-builder/lib/css/styles.css';
-import '../../input/QueryBuilder/style.css';
-
-// import 'react-awesome-query-builder/lib/css/compact_styles.css'; //optional, for more compact styles
 
 
 interface DistributionData {
-  tree: JsonTree,
+  tree: RuleGroupType,
   limit?: number;
   output_mode?: string;
 }
@@ -93,7 +73,7 @@ export const DistributionWidget = (props: {}) => {
         </Grid>
         <Grid item xs={12}>
           <QueryBuilder
-            initialValue={data?.tree}
+            value={data?.tree}
             setValue={(tree) => setData({ tree })}/>
         </Grid>
       </Grid>

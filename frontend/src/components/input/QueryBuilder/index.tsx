@@ -1,103 +1,96 @@
-import _ from "lodash";
-import React, { useCallback, useEffect, useMemo } from "react";
-import {
-  Builder,
-  ImmutableTree,
-  JsonTree,
-  Query,
-  Utils as QbUtils,
-  Config,
-  JsonGroup
-} from "react-awesome-query-builder";
+import { Button } from "@mui/material";
+import { useMemo, useState } from 'react';
+import type { Field, RuleGroupType } from 'react-querybuilder';
+import { formatQuery, QueryBuilder } from 'react-querybuilder';
 import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
-import { QueryBuilderConfig, wildcardField } from "./config";
+import { controlClassnames, controlElements, operators, translations } from "./config";
+import './styles.css';
+import { partialToSparql, queryToSparql } from "./sparql";
 
-const queryValue = { "id": QbUtils.uuid(), "type": "group" };
+const INITIAL_FIELDS: Field[] = [
+  {
+    name: 'Unused',
+    label: 'unused',
+    defaultOperator: 'filter',
+  },
+];
 
+const INITIAL_VALUE: RuleGroupType = {
+  combinator: 'and',
+  variable: {
+    value: 'main'
+  },
+  rules: [
+    { field: 'unused', operator: 'filter', value: {} },
+  ],
+} as any;
 
-export default ({ initialValue, setValue }: {
-  initialValue: JsonTree,
-  setValue: (tree: JsonTree) => void
+export default ({
+  value, setValue,
+}: {
+  value: RuleGroupType,
+  setValue: (tree: RuleGroupType) => void
 }) => {
-  const { report } = useReportContext();
   const prefixes = usePrefixes();
+  const { report } = useReportContext();
 
-  const [ config, setConfigInternal ] = React.useState<Config>({
-    ...QueryBuilderConfig,
-    settings: {
-      ...QueryBuilderConfig.settings,
-      notebook: {
-        datasetId: report?.dataset?.id,
-        prefixes,
-      }
+  const context = useMemo(() => {
+    const vars = new Set<string>();
+    vars.add('main')
+    if (value?.combinator) {
+      collectVars(value, vars);
     }
-  } as any);
-  const configRef = React.useRef(config);
-  const setConfig = useCallback((config) => {
-    configRef.current = config;
-    setConfigInternal(config);
-  }, []);
 
-  const treeRef = React.useRef<ImmutableTree>(QbUtils.checkTree(QbUtils.loadTree(initialValue ?? DEFAULT_VALUE), config));
-
-  useEffect(() => {
-    setConfig({
-      ...configRef.current,
-      settings: {
-        ...configRef.current.settings,
-        notebook: {
-          datasetId: report?.dataset?.id,
-          prefixes,
-        }
-      }
-    } as any)
-  }, [ report?.dataset?.id, prefixes ]);
-
-  const onChange = useCallback((immutableTree, config) => {
-    treeRef.current = immutableTree;
-    const jsonTree = QbUtils.getTree(immutableTree);
-    setValue(jsonTree);
-    setConfig(config);
-  }, []);
-
-  const renderBuilder = useCallback((props) => (
-    <div className="query-builder-container">
-      <div className="query-builder qb-lite">
-        <Builder {...props} />
-      </div>
-    </div>
-  ), []);
+    return {
+      variables: Array.from(vars),
+      prefixes,
+      datasetId: report?.dataset?.id,
+    }
+  }, [ value, prefixes, report ]);
 
   return (
-    <Query
-      {...config}
-      value={treeRef.current}
-      onChange={onChange}
-      renderBuilder={renderBuilder}
-    />
-  )
-}
-
-const DEFAULT_VALUE: JsonGroup = {
-  "id": QbUtils.uuid(),
-  "type": "group",
-  "children1": {
-    "aab89a88-4567-489a-bcde-f1838dc13e4c": {
-      "type": "rule",
-      // "id": QbUtils.uuid(),
-      "properties": {
-        "field": "var0",
-        "operator": "groupBy",
-        "value": [
-          null
-        ],
-        "valueSrc": [
-          "value"
-        ],
-        "valueType": [
-          "text"
-        ]
-      }
-    } as any
-  }
+    <div>
+      <div className="query-builder-container">
+        <QueryBuilder
+          showNotToggle={true}
+          controlClassnames={controlClassnames}
+          translations={translations}
+          fields={INITIAL_FIELDS}
+          query={value?.combinator ? value : INITIAL_VALUE}
+          onQueryChange={q => setValue(q)}
+          controlElements={controlElements}
+          operators={operators}
+          context={context}
+        />
+      </div>
+      <h4>Query</h4>
+      <pre>
+        <code>{queryToSparql(value as any).toString()}</code>
+      </pre>
+      <pre>
+        <code>{formatQuery(value, 'json')}</code>
+      </pre>
+    </div>
+  );
 };
+
+
+const collectVars = (group: RuleGroupType | any, vars: Set<string>) => {
+  if (group.variable?.value) {
+    vars.add(group.variable.value);
+  }
+
+  if (group?.value?.input?.variable?.value) {
+    vars.add(group.value.input.variable.value);
+  }
+
+  if (group?.value?.predicate?.variable?.value) {
+    vars.add(group.value.predicate.variable.value);
+  }
+
+  if (group.rules) {
+    for (const rule of group.rules) {
+      collectVars(rule, vars);
+    }
+  }
+}

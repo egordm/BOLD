@@ -17,7 +17,7 @@ import { extractIriLabel, formatIri } from "../../utils/formatting";
 export const TermInput = (props: {
   datasetId: string;
   pos: TermPos,
-  label?: string;
+  label?: React.ReactNode;
   prefixes: Record<string, string> | null
   value?: Term[];
   onChange?: (terms: Term[]) => void;
@@ -58,8 +58,8 @@ export const TermInput = (props: {
     fetchOptions({ query: inputValue }, (results?: SearchResult<Term>) => {
       if (active) {
         const optionCandidates: readonly Term[] = results
-          ? [ ...value, ...results.hits.map(hit => hit.document) ]
-          : [ ...value ];
+          ? [ ...(value ?? []), ...results.hits.map(hit => hit.document) ]
+          : [ ...(value ?? []) ];
 
         const options = _.uniqBy(optionCandidates, 'value');
         setOptions(options);
