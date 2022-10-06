@@ -10,7 +10,7 @@ from backend import settings
 from datasets.models import Dataset
 from datasets.services.bold_cli import BoldCli
 from shared.logging import get_logger
-from shared.paths import DATA_DIR, DOWNLOAD_DIR
+from shared.paths import DATA_DIR, DOWNLOAD_DIR, DEFAULT_SEARCH_INDEX
 from shared.random import random_string
 from shared.shell import consume_print
 
@@ -20,10 +20,11 @@ QUERY_EXPORT_SEARCH = '''
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 SELECT
     ?iri 
-    (STR(?label_raw) AS ?label)  
+    (STR(?labelRaw) AS ?label) 
     ?count 
     ?pos
     ?type
+    (STR(?descriptionRaw) AS ?description)  
 {
     {
         SELECT (?t as ?iri) (COUNT(?t) as ?count) ({pos} as ?pos)  
@@ -32,8 +33,12 @@ SELECT
     }
 
     OPTIONAL { 
-        ?iri rdfs:label ?label_raw.
-        FILTER (STRSTARTS(lang(?label_raw), 'en'))
+        ?iri rdfs:label ?labelRaw.
+        FILTER (STRSTARTS(lang(?labelRaw), 'en') || lang(?labelRaw)='')
+    }
+    OPTIONAL { 
+        ?iri rdfs:comment ?descriptionRaw.
+        FILTER (STRSTARTS(lang(?descriptionRaw), 'en') || lang(?descriptionRaw)='')
     }
     OPTIONAL { ?iri rdfs:type ?type }
 }
@@ -67,7 +72,12 @@ def query_to_file(database: str, query: str, file: Path, timeout=5000, **kwargs)
 
 
 @shared_task()
-def create_search_index(dataset_id: UUID, min_term_count: int = 3, path: str = None) -> str:
+def create_search_index(
+    dataset_id: UUID,
+    min_term_count: int = 3,
+    path: str = None,
+    force: bool = True,
+):
     dataset = Dataset.objects.get(id=dataset_id)
     logger.info(f"Creating search index for {dataset.name}")
 
@@ -75,9 +85,19 @@ def create_search_index(dataset_id: UUID, min_term_count: int = 3, path: str = N
     if database is None:
         raise Exception("Dataset has no database")
 
+    search_index_dir = DATA_DIR / f'search_index_{database}'
+    if search_index_dir.exists():
+        if force:
+            logger.info(f"Removing existing search index at {search_index_dir}")
+            shutil.rmtree(search_index_dir)
+        else:
+            logger.info(f"Search index already exists for {dataset.name}")
+            return
+
+    search_index_dir.mkdir(parents=True, exist_ok=True)
+
     tmp_dir = (Path(path) if path else DOWNLOAD_DIR) / random_string(10)
     tmp_dir.mkdir(parents=True, exist_ok=True)
-
     try:
         terms_files = []
 
@@ -109,8 +129,46 @@ def create_search_index(dataset_id: UUID, min_term_count: int = 3, path: str = N
         terms_files.append(terms_o_file)
 
         logger.info('Creating search index from documents')
-        search_index_dir = DATA_DIR / f'search_index_{database}'
-        search_index_dir.mkdir(parents=True, exist_ok=True)
+        consume_print(BoldCli.cmd(
+            ['build-index', '--force', *map(str, terms_files), '--index', str(search_index_dir)]
+        ))
+
+        logger.info('Search index created')
+    finally:
+        logger.info(f"Cleaning up {tmp_dir}")
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+
+
+@shared_task()
+def create_default_search_index(
+    path: str = None,
+    force: bool = True,
+):
+    logger.info(f"Creating default search index")
+
+    search_index_dir = DEFAULT_SEARCH_INDEX
+    if search_index_dir.exists():
+        if force:
+            logger.info(f"Removing existing search index at {search_index_dir}")
+            shutil.rmtree(search_index_dir)
+        else:
+            logger.info(f"Default search index already exists")
+            return
+
+    search_index_dir.mkdir(parents=True, exist_ok=True)
+
+    tmp_dir = (Path(path) if path else DOWNLOAD_DIR) / random_string(10)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+
+    try:
+        terms_files = [
+            settings.ROOT_DIR.joinpath('dev', 'queries', 'rdf.tsv'),
+            settings.ROOT_DIR.joinpath('dev', 'queries', 'rdfs.tsv'),
+            settings.ROOT_DIR.joinpath('dev', 'queries', 'owl.tsv'),
+            settings.ROOT_DIR.joinpath('dev', 'queries', 'foaf.tsv'),
+        ]
+
+        logger.info('Creating search index from documents')
         consume_print(BoldCli.cmd(
             ['build-index', '--force', *map(str, terms_files), '--index', str(search_index_dir)]
         ))

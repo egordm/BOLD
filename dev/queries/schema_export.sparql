@@ -1,0 +1,42 @@
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+SELECT
+    ?iri
+    (STR(?labelRaw) AS ?label)
+    ?count
+    ?pos
+    ?type
+    (STR(?descriptionRaw) AS ?description)
+{
+    {
+        SELECT (?t as ?iri) (0 as ?count) (1 as ?pos)
+        {
+            ?t rdf:type rdf:Property
+        }
+    }
+    UNION
+    {
+        SELECT (?t as ?iri) (0 as ?count) (0 as ?pos)
+        {
+            VALUES ?tt { rdfs:Class rdfs:Resource }
+            ?t rdf:type ?tt
+        }
+    }
+    UNION
+    {
+        SELECT (?t as ?iri) (0 as ?count) (2 as ?pos)
+        {
+            VALUES ?tt { rdfs:Class rdfs:Resource }
+            ?t rdf:type ?tt
+        }
+    }
+
+    OPTIONAL {
+        ?iri rdfs:label ?labelRaw.
+        FILTER (STRSTARTS(lang(?labelRaw), 'en') || lang(?labelRaw)='')
+    }
+    OPTIONAL {
+        ?iri rdfs:comment ?descriptionRaw.
+        FILTER (STRSTARTS(lang(?descriptionRaw), 'en') || lang(?descriptionRaw)='')
+    }
+    OPTIONAL { ?iri rdfs:type ?type }
+}

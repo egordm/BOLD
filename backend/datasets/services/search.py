@@ -7,6 +7,7 @@ from enum import IntEnum, Enum
 from pathlib import Path
 from typing import List, Optional
 from rest_framework.serializers import ValidationError
+from fuzzywuzzy import fuzz
 
 import requests
 from simple_parsing import Serializable
@@ -66,6 +67,14 @@ class TermDocument(Serializable):
     count: Optional[int] = None
     range: Optional[str] = None
 
+    def searchable_text(self):
+        return ' '.join([
+            self.search_text,
+            self.label or '',
+            self.description or '',
+            self.value or '',
+        ])
+
 
 class SearchService(ABC):
     @abstractmethod
@@ -121,6 +130,7 @@ class LocalSearchService(SearchService):
             label=doc.get('label', None),
             count=doc.get('count', None),
             search_text=doc.get('iri_text', None),
+            description=doc.get('description', None),
         )
 
 
@@ -305,3 +315,27 @@ class TriplyDBSearchService(SearchService):
             search_text=search_text,
             range=doc.get('http://www w3 org/2000/01/rdf-schema#range', None),
         )
+
+
+def merge_results(
+    a: SearchResult,
+    b: SearchResult,
+    query: str,
+) -> SearchResult:
+    hits = {hit.document.value: hit for hit in a.hits + b.hits}
+    docs = [
+        (fuzz.ratio(hit.document.searchable_text(), query), hit)
+        for hit in hits.values()
+    ]
+    docs = sorted(docs, key=lambda x: x[0], reverse=True)
+
+    return SearchResult(
+        count=len(docs),
+        hits=[
+            SearchHit(
+                score=score,
+                document=hit.document,
+            )
+            for score, hit in docs
+        ],
+    )

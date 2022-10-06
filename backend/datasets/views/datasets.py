@@ -16,8 +16,9 @@ from rest_framework.serializers import ValidationError
 
 from datasets.models import Dataset
 from datasets.serializers import DatasetSerializer
-from datasets.services.search import TermPos
+from datasets.services.search import TermPos, LocalSearchService, merge_results
 from datasets.tasks.pipeline import import_dataset, delete_dataset
+from shared.paths import DEFAULT_SEARCH_INDEX
 from users.permissions import IsOwner
 
 
@@ -103,7 +104,11 @@ def term_search(request: Request, id: UUID):
     offset = int(request.GET.get('offset', 0))
     timeout = int(request.GET.get('timeout', 5000))
 
-    result = dataset.get_search_service().search(q, pos, limit, offset, timeout)
+    result_default = LocalSearchService(DEFAULT_SEARCH_INDEX).search(q, pos, limit, offset, timeout) \
+        if q and DEFAULT_SEARCH_INDEX.exists() else None
+    result_dataset = dataset.get_search_service().search(q, pos, limit, offset, timeout)
+
+    result = merge_results(result_default, result_dataset, q) if result_default else result_dataset
     return JsonResponse(result.to_dict())
 
 

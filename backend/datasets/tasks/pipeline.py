@@ -5,7 +5,8 @@ from celery import shared_task
 
 from datasets.models import Dataset, DatasetState
 from datasets.services.stardog_api import StardogApi
-from datasets.tasks import download_url, import_files, update_dataset_info, create_search_index
+from datasets.tasks import download_url, import_files, update_dataset_info, create_search_index, \
+    create_default_search_index
 from shared.logging import get_logger
 from shared.paths import DOWNLOAD_DIR
 from shared.random import random_string
@@ -57,6 +58,7 @@ def import_dataset(dataset_id: UUID) -> str:
         logger.info(f"Updating dataset info")
         update_dataset_info(dataset_id)
 
+        create_default_search_index(path=str(tmp_dir), force=False)
         if dataset.search_mode == Dataset.SearchMode.LOCAL.value:
             logger.info(f"Creating search index")
             create_search_index(dataset_id, path=str(tmp_dir))

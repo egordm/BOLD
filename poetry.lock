@@ -479,6 +479,17 @@ optional = false
 python-versions = ">=3.6"
 
 [[package]]
+name = "fuzzywuzzy"
+version = "0.18.0"
+description = "Fuzzy string matching in python"
+category = "main"
+optional = false
+python-versions = "*"
+
+[package.extras]
+speedup = ["python-levenshtein (>=0.12)"]
+
+[[package]]
 name = "ghp-import"
 version = "2.1.0"
 description = "Copy your docs directly to the gh-pages branch."
@@ -1328,7 +1339,7 @@ testing = ["coverage (>=5.0.3)", "zope.event", "zope.testing"]
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.10"
-content-hash = "389e1eb5e1ee9897e943c15b0fc92c4128d53196ab19d254b39889a2212a5351"
+content-hash = "3d271e69c535ce3b8f256a8bbc2289800f9973730fd6798cc4828438bd4f5cf9"
 
 [metadata.files]
 aiopg = []
@@ -1422,6 +1433,7 @@ djangorestframework = [
 djangorestframework-simplejwt = []
 drf-yasg = []
 et-xmlfile = []
+fuzzywuzzy = []
 ghp-import = []
 greenlet = []
 griffe = []

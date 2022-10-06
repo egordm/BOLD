@@ -36,7 +36,8 @@ struct Record {
     pos: u64,
     #[serde(rename = "?type")]
     ty: String,
-
+    #[serde(rename = "?description")]
+    description: String,
 }
 
 
@@ -66,6 +67,7 @@ pub fn run(args: BuildIndex) -> Result<()> {
     let pos = schema_builder.add_u64_field("pos", INDEXED | STORED | FAST);
     let is_url = schema_builder.add_u64_field("is_url", INDEXED | FAST);
     let ty = schema_builder.add_text_field("ty", TEXT | STORED);
+    let description = schema_builder.add_text_field("description", natural_text_options.clone());
     let schema = schema_builder.build();
 
     let index = Index::create_in_dir(args.index, schema.clone())?;
@@ -111,6 +113,7 @@ pub fn run(args: BuildIndex) -> Result<()> {
                     pos => record.pos as u64,
                     is_url => is_url_value as u64,
                     ty => record.ty,
+                    description => record.description,
                 ))?;
                     success_count += 1;
                 }

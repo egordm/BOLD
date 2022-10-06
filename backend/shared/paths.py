@@ -14,3 +14,6 @@ EXPORT_DIR = settings.STORAGE_DIR / 'export'
 
 DATA_DIR = settings.STORAGE_DIR / 'data'
 """The path to the data directory."""
+
+DEFAULT_SEARCH_INDEX = DATA_DIR / f'search_index_default'
+"""The path to the data directory."""
