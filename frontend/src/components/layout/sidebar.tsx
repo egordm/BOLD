@@ -11,6 +11,8 @@ import { Logo } from "../other/Logo";
 import { NavItem } from './nav-item';
 import StorageIcon from '@mui/icons-material/Storage';
 import LogoutIcon from '@mui/icons-material/Logout';
+import SchoolIcon from '@mui/icons-material/School';
+import GitHubIcon from '@mui/icons-material/GitHub';
 
 const items = [
   {
@@ -31,7 +33,19 @@ const items = [
   // {
   //   href: '/datasets', icon: (<UsersIcon fontSize="small"/>), title: 'Datasets'
   // },
+
 ];
+
+const bottomItems = [
+  {
+    href: 'https://egordm.github.io/BOLD/', icon: (<SchoolIcon fontSize="small"/>), title: 'Documentation',
+    external: true,
+  },
+  {
+    href: 'https://github.com/EgorDm/BOLD', icon: (<GitHubIcon fontSize="small"/>), title: 'Source Code',
+    external: true,
+  },
+]
 
 export const Sidebar = (props) => {
   const { open, onClose } = props;
@@ -40,7 +54,7 @@ export const Sidebar = (props) => {
   });
 
   const { user, logoutUser } = useAuthContext();
-  console.log(user);
+  // console.log(user);
 
   const content = (<>
     <Box
@@ -93,6 +107,17 @@ export const Sidebar = (props) => {
           icon={item.icon}
           href={item.href}
           title={item.title}
+          external={false}
+        />))}
+      </Box>
+      <Box sx={{ flex: 1 }}/>
+      <Box sx={{ pb: 2 }}>
+        {bottomItems.map((item) => (<NavItem
+          key={item.title}
+          icon={item.icon}
+          href={item.href}
+          title={item.title}
+          external={item?.external ?? false}
         />))}
       </Box>
     </Box>

@@ -1,10 +1,22 @@
 import PropTypes from 'prop-types';
-import { Box, Button, ListItem } from '@mui/material';
+import { Box, Button, Link as LinkExt, ListItem } from '@mui/material';
 import { useLocation } from "react-router";
 import { Link } from "react-router-dom";
 
+const LinkMe = ({ children, href, external = false, ...props }: { children, href: string, external: boolean } | any) =>(
+  external ? (
+    <LinkExt href={href} target="_blank" {...props}>
+      {children}
+    </LinkExt>
+  ) : (
+    <Link to={href} {...props}>
+      {children}
+    </Link>
+  )
+)
+
 export const NavItem = (props) => {
-  const { href, icon, title, ...others } = props;
+  const { href, icon, title, external = false, ...others } = props;
   const location = useLocation();
   const active = href ? (location.pathname === href) : false;
 
@@ -19,8 +31,9 @@ export const NavItem = (props) => {
       }}
       {...others}
     >
-      <Link
-        to={href}
+      <LinkMe
+        href={href}
+        external={external}
         style={{flex: 1}}>
         <Button
           startIcon={icon}
@@ -47,7 +60,7 @@ export const NavItem = (props) => {
             {title}
           </Box>
         </Button>
-      </Link>
+      </LinkMe>
     </ListItem>
   );
 };
@@ -55,5 +68,6 @@ export const NavItem = (props) => {
 NavItem.propTypes = {
   href: PropTypes.string,
   icon: PropTypes.node,
-  title: PropTypes.string
+  title: PropTypes.string,
+  external: PropTypes.bool,
 };
