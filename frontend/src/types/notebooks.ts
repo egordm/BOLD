@@ -76,6 +76,7 @@ export interface CellExecuteOutput extends BaseOutput {
   output_type: 'execute_result';
   execution_count: number;
   data: OutputData;
+  snapshot?: any;
 }
 
 export interface CellStreamOutput extends BaseOutput {

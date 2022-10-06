@@ -1,27 +1,23 @@
 import {
-  CardHeader, Container, FormControl, FormGroup,
-  Grid,
-  IconButton, FormLabel, Typography, Link
+  CardHeader, Container, Grid,
+  IconButton
 } from "@mui/material";
-import { namedNode, variable } from "@rdfjs/data-model";
-import { SELECT, sparql } from "@tpluscode/sparql-builder";
-import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { variable } from "@rdfjs/data-model";
+import { SELECT } from "@tpluscode/sparql-builder";
+import React, { useEffect, useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
 import { useCellWidgetData } from "../../../hooks/useCellWidgetData";
 import { useCellContext } from "../../../providers/CellProvider";
 import { usePrefixes } from "../../../providers/ReportProvider";
 import { Cell, CellOutput, WidgetCellType } from "../../../types/notebooks";
-import { SparQLResult } from "../../../types/sparql";
 import { extractIriLabel } from "../../../utils/formatting";
-import { extractSparqlResult, PREFIXES, querySparqlLabel } from "../../../utils/sparql";
+import { extractSparqlResult, PREFIXES } from "../../../utils/sparql";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { SourceViewModal } from "../../data/SourceViewModal";
 import { Yasr } from "../../data/Yasr";
 import { NumberedSlider } from "../../input/NumberedSlider";
 import CodeIcon from '@mui/icons-material/Code';
 import { CellOutputTabs } from "../outputs/CellOutputTabs";
-import NavigateNextIcon from '@mui/icons-material/NavigateNext';
-import Breadcrumbs from '@mui/material/Breadcrumbs';
 
 interface ClassBrowserData {
   limit?: number;
@@ -215,7 +211,7 @@ const extractClassHierarchy = (outputs: CellOutput[] | null) => {
 
     const item = items[type];
     item.iri = type;
-    item.label = extractIriLabel(row?.typeLabel ?? type);
+    item.label = extractIriLabel(row?.typeLabel?.value ?? type);
     item.parents.push(parent);
   }
 

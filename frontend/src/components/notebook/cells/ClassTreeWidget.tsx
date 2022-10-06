@@ -247,7 +247,7 @@ const ResultTab = ({
         defaultExpandIcon={<ChevronRightIcon/>}
         sx={{ height: 300, flexGrow: 1, overflowY: 'auto' }}
       >
-        {tree.map(renderTree)}
+        {tree.map(renderTree as any)}
       </TreeView>
     )
   } else {

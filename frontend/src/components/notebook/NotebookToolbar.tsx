@@ -147,7 +147,7 @@ export const NotebookToolbar = (props: {}) => {
           <MenuItem value={'widget_propertiespreview'}>Properties Preview Widget</MenuItem>
           <MenuItem value={'widget_subgraph'}>Subgraph Widget</MenuItem>
           <MenuItem value={'widget_classbrowser'}>Class Browser Widget</MenuItem>
-          <MenuItem value={'widget_distribution'}>Distribution</MenuItem>
+          <MenuItem value={'widget_plotbuilder'}>Plot Builder</MenuItem>
           <MenuItem value={'widget_querybuilder'}>Query Builder</MenuItem>
         </Select>
       </FormControl>

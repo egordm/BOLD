@@ -7,7 +7,7 @@ import { useCellContext } from "../../providers/CellProvider";
 import { ClassBrowserWidget } from "./cells/ClassBrowserWidget";
 import { ClassTreeWidget } from "./cells/ClassTreeWidget";
 import { CodeCell } from "./cells/CodeCell";
-import { DistributionWidget } from "./cells/DistributionWidget";
+import { PlotBuilderWidget } from "./cells/PlotBuilderWidget";
 import { PropertiesPreviewWidget } from "./cells/PropertiesPreviewWidget";
 import { QueryBuilderWidget } from "./cells/QueryBuilderWidget";
 import { SubgraphWidget } from "./cells/SubgraphWidget";
@@ -22,7 +22,7 @@ export const CELL_TYPES = {
   widget_propertiespreview: PropertiesPreviewWidget,
   widget_subgraph: SubgraphWidget,
   widget_classbrowser: ClassBrowserWidget,
-  widget_distribution: DistributionWidget,
+  widget_plotbuilder: PlotBuilderWidget,
   widget_querybuilder: QueryBuilderWidget,
 }
 

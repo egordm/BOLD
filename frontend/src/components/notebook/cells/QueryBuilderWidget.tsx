@@ -10,6 +10,7 @@ import { useCellWidgetData } from "../../../hooks/useCellWidgetData";
 import { useCellContext } from "../../../providers/CellProvider";
 import { usePrefixes } from "../../../providers/ReportProvider";
 import { Cell, CellOutput, WidgetCellType } from "../../../types/notebooks";
+import { sparqlLabelsBound } from "../../../utils/sparql";
 import { cellOutputToYasgui } from "../../../utils/yasgui";
 import { SourceViewModal } from "../../data/SourceViewModal";
 import CodeIcon from '@mui/icons-material/Code';
@@ -35,16 +36,21 @@ const OUTPUT_TABS = [
 ]
 
 const buildQuery = (data: DistributionData) => {
-  const variables = (data.select ?? []).map(v => variable(v.value));
-  if (!variables.length) {
+  const vars = (data.select ?? []).map(v => variable(v.value));
+  if (!vars.length) {
     return {};
     // throw new Error('No variables selected');
   }
 
-  const body = queryToSparql(data.tree);
+  const { bounds: labelBounds, vars: labelVars} = sparqlLabelsBound(vars);
+  const selectVars = [...vars, ...labelVars];
 
-  const query = SELECT`${variables}`
-    .WHERE`${body}`
+  const body = queryToSparql(data.tree);
+  const query = SELECT`${selectVars}`
+    .WHERE`
+      ${body}
+      ${labelBounds}
+    `
     .LIMIT(data.limit ?? 20);
 
   return {
@@ -80,7 +86,7 @@ export const QueryBuilderWidget = (props: {}) => {
           <CardHeader
             sx={{ p: 0 }}
             title="Query Builder Widget"
-            subheader="Allows you to build sparql queries in a visual way"
+            subheader="Build sparql queries in a visual way"
             action={
               <IconButton aria-label="View source" onClick={() => setShowSource(true)}>
                 <CodeIcon/>

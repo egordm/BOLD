@@ -1,4 +1,5 @@
 import { literal, namedNode, variable } from "@rdfjs/data-model";
+import { Variable } from "@rdfjs/types";
 import { SparqlValue } from "@tpluscode/rdf-string";
 import { sparql } from "@tpluscode/sparql-builder";
 import { RuleGroupType, RuleType } from "react-querybuilder/dist/types/types/ruleGroups";
@@ -252,4 +253,21 @@ const boundDatatypeSparql = (state: QueryState, term: FlexibleTerm, datatype: st
   }
 
   return sparql`FILTER(BOUND(${varName}) && DATATYPE(${varName}) IN (${datatypeIri.join(',')})).`
+}
+
+export const aggregateToSparql = (state: QueryState | null, v: Variable | SparqlValue, aggregate: string) => {
+  switch (aggregate) {
+    case 'COUNT':
+      return sparql`COUNT(${v})`;
+    case 'SUM':
+      return sparql`SUM(${v})`;
+    case 'AVG':
+      return sparql`AVG(${v})`;
+    case 'MIN':
+      return sparql`MIN(${v})`;
+    case 'MAX':
+      return sparql`MAX(${v})`;
+    case 'SAMPLE':
+      return sparql`SAMPLE(${v})`;
+  }
 }

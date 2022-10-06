@@ -48,11 +48,19 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
             case 'code':
                 outputs, error = run_sparql(dataset, cell.get('source', ''), timeout, limit)
             case _ if cell_type.startswith('widget_'):
+                snapshot = cell.get('data', {})
                 for source in cell.get('source', []):
                     outputs_s, error = run_sparql(dataset, source, timeout, limit)
+
+                    for output in outputs_s:
+                        if output.get('output_type') == 'execute_result':
+                            output['snapshot'] = snapshot
+
                     outputs.extend(outputs_s)
                     if error:
                         break
+
+                # outputs.
             case _:
                 raise Exception(f'Cell {cell_id} in notebook {report_id} has unknown cell type {cell_type}')
 

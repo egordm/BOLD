@@ -13,7 +13,7 @@ import React, { useCallback, useEffect, useMemo } from "react";
 import { useCellContext } from "../../../providers/CellProvider";
 import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
 import { CellOutput, WidgetCellType } from "../../../types/notebooks";
-import { SparQLResult } from "../../../types/sparql";
+import { SPARQLResult } from "../../../types/sparql";
 import { Term } from "../../../types/terms";
 import { extractIriLabel } from "../../../utils/formatting";
 import { PREFIXES, querySparqlLabel } from "../../../utils/sparql";
@@ -472,7 +472,7 @@ const ResultTab = ({
   if (mode === 'plot') {
     const output = outputs[0];
     if (output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
-      const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
+      const data: SPARQLResult = JSON.parse(output.data['application/sparql-results+json']);
       const points = data.results.bindings.filter((row) => row['g']);
       const x = points.map((row) => extractIriLabel(row['gLabel']?.value ?? row['g'].value));
       const y = points.map((row) => row['count']?.value ? (Number(row['count'].value) || null) : null);
@@ -545,7 +545,7 @@ const ResultTab = ({
   } else if (mode === 'completeness') {
     const output = outputs[2];
     if (output && output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
-      const data: SparQLResult = JSON.parse(output.data['application/sparql-results+json']);
+      const data: SPARQLResult = JSON.parse(output.data['application/sparql-results+json']);
       const completeCount = data.results.bindings.map((row) => parseInt(row['complete_count'].value))[0] ?? 0;
       const totalCount = data.results.bindings.map((row) => parseInt(row['total_count'].value))[0] ?? 0;
 
