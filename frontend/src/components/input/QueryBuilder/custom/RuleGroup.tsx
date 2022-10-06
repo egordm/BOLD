@@ -12,7 +12,6 @@ import {
   InlineCombinator,
 } from 'react-querybuilder';
 import { VariableInput } from "../../VariableInput";
-import { VariableSelector } from "./VariableSelector";
 
 const c = (...classNames: string[]) => classNames.filter(Boolean).join(' ');
 
@@ -351,11 +350,12 @@ export const RuleGroup = ({
               disabled ||
               (typeof r !== 'string' && r.disabled) ||
               disabledPaths.some(p => pathsAreEqual(thisPath, p));
-            const key = typeof r === 'string' ? [ ...thisPath, r ].join('-') : r.id;
+            const key = (typeof r === 'string' ? [ ...thisPath, r ].join('-') : r.id) ?? idx;
             return (
               <Fragment key={key}>
                 {idx > 0 && !independentCombinators && showCombinatorsBetweenRules && (
                   <InlineCombinator
+                    key={key}
                     options={combinators}
                     value={combinator}
                     title={translations.combinators.title}
@@ -374,6 +374,7 @@ export const RuleGroup = ({
                 )}
                 {typeof r === 'string' ? (
                   <InlineCombinator
+                    key={key}
                     options={combinators}
                     value={r}
                     title={translations.combinators.title}

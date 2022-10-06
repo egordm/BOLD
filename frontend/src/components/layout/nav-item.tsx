@@ -19,9 +19,10 @@ export const NavItem = (props) => {
       }}
       {...others}
     >
-      <Link to={href} style={{flex: 1}}>
+      <Link
+        to={href}
+        style={{flex: 1}}>
         <Button
-          component="a"
           startIcon={icon}
           disableRipple
           sx={{

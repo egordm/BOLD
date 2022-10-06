@@ -1,12 +1,10 @@
 import AbcIcon from "@mui/icons-material/Abc";
 import {
   Autocomplete,
-  Box, Button,
-  Divider,
-  FormControl, InputAdornment,
-  InputLabel,
+  Box, Divider,
+  FormControl, InputLabel,
   MenuItem,
-  Select, TextField, Tooltip, Typography
+  Select, TextField
 } from "@mui/material";
 import { Add } from '@mui/icons-material';
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -150,6 +148,7 @@ export const NotebookToolbar = (props: {}) => {
           <MenuItem value={'widget_subgraph'}>Subgraph Widget</MenuItem>
           <MenuItem value={'widget_classbrowser'}>Class Browser Widget</MenuItem>
           <MenuItem value={'widget_distribution'}>Distribution</MenuItem>
+          <MenuItem value={'widget_querybuilder'}>Query Builder</MenuItem>
         </Select>
       </FormControl>
       <Autocomplete

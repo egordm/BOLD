@@ -31,8 +31,6 @@ const OUTPUT_TABS = [
 const buildQuery = (data: DistributionData) => {
   const { rdf, rdfs } = PREFIXES;
 
-  console.log('refs', data)
-
   const primaryQuery = SELECT`?type ?parent`
     .WHERE`
       ?type ${rdfs.subClassOf} ?parent .

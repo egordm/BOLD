@@ -9,6 +9,7 @@ import { ClassTreeWidget } from "./cells/ClassTreeWidget";
 import { CodeCell } from "./cells/CodeCell";
 import { DistributionWidget } from "./cells/DistributionWidget";
 import { PropertiesPreviewWidget } from "./cells/PropertiesPreviewWidget";
+import { QueryBuilderWidget } from "./cells/QueryBuilderWidget";
 import { SubgraphWidget } from "./cells/SubgraphWidget";
 import { TripleMatchWidget } from "./cells/TripleMatchWidget";
 import { ValueDistributionWidget } from "./cells/ValueDistributionWidget";
@@ -22,6 +23,7 @@ export const CELL_TYPES = {
   widget_subgraph: SubgraphWidget,
   widget_classbrowser: ClassBrowserWidget,
   widget_distribution: DistributionWidget,
+  widget_querybuilder: QueryBuilderWidget,
 }
 
 export const CellContainer = (props: {}) => {

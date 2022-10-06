@@ -1,11 +1,11 @@
-import { Button } from "@mui/material";
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { Field, RuleGroupType } from 'react-querybuilder';
 import { formatQuery, QueryBuilder } from 'react-querybuilder';
 import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
 import { controlClassnames, controlElements, operators, translations } from "./config";
 import './styles.css';
-import { partialToSparql, queryToSparql } from "./sparql";
+import { queryToSparql } from "./sparql";
+import { collectVarsFromGroup } from "./utils";
 
 const INITIAL_FIELDS: Field[] = [
   {
@@ -27,29 +27,25 @@ const INITIAL_VALUE: RuleGroupType = {
 
 export default ({
   value, setValue,
+  debug = false,
 }: {
   value: RuleGroupType,
-  setValue: (tree: RuleGroupType) => void
+  setValue: (tree: RuleGroupType) => void,
+  debug?: boolean,
 }) => {
   const prefixes = usePrefixes();
   const { report } = useReportContext();
 
   const context = useMemo(() => {
-    const vars = new Set<string>();
-    vars.add('main')
-    if (value?.combinator) {
-      collectVars(value, vars);
-    }
-
     return {
-      variables: Array.from(vars),
+      variables: collectVarsFromGroup(value),
       prefixes,
       datasetId: report?.dataset?.id,
     }
   }, [ value, prefixes, report ]);
 
   return (
-    <div>
+    <>
       <div className="query-builder-container">
         <QueryBuilder
           showNotToggle={true}
@@ -63,34 +59,18 @@ export default ({
           context={context}
         />
       </div>
-      <h4>Query</h4>
-      <pre>
-        <code>{queryToSparql(value as any).toString()}</code>
-      </pre>
-      <pre>
-        <code>{formatQuery(value, 'json')}</code>
-      </pre>
-    </div>
+      {debug && (<>
+        <h4>Query</h4>
+        <pre>
+          <code>{queryToSparql(value as any).toString()}</code>
+        </pre>
+        <pre>
+          <code>{formatQuery(value, 'json')}</code>
+        </pre>
+      </>)}
+
+    </>
   );
 };
 
 
-const collectVars = (group: RuleGroupType | any, vars: Set<string>) => {
-  if (group.variable?.value) {
-    vars.add(group.variable.value);
-  }
-
-  if (group?.value?.input?.variable?.value) {
-    vars.add(group.value.input.variable.value);
-  }
-
-  if (group?.value?.predicate?.variable?.value) {
-    vars.add(group.value.predicate.variable.value);
-  }
-
-  if (group.rules) {
-    for (const rule of group.rules) {
-      collectVars(rule, vars);
-    }
-  }
-}

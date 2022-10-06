@@ -1,6 +1,7 @@
 import { useCallback, useEffect } from "react";
 import { useCellContext } from "../providers/CellProvider";
 import { WidgetCellType } from "../types/notebooks";
+import useNotification from "./useNotification";
 
 export const useCellWidgetData = <T, >(
   buildQuery: (data: T) => {[query: string]: string}
@@ -8,13 +9,23 @@ export const useCellWidgetData = <T, >(
   const { cell, cellRef, setCell } = useCellContext();
   const { data } = cell as WidgetCellType<T>;
 
-  useEffect(() => {
-    const queries = Object.values(buildQuery(data));
+  const { sendNotification } = useNotification();
 
-    setCell({
-      ...cellRef.current,
-      source: queries,
-    } as any)
+  useEffect(() => {
+    try {
+      const queries = Object.values(buildQuery(data));
+
+      setCell({
+        ...cellRef.current,
+        source: queries,
+      } as any)
+    } catch (e) {
+      console.error(e);
+      sendNotification({
+        message: `Error building query: ${e.message}`,
+        variant: 'error',
+      });
+    }
   }, [ data ]);
 
   const setData = useCallback((newData: Partial<T>) => {

@@ -3,7 +3,6 @@ import { SparqlValue } from "@tpluscode/rdf-string";
 import { sparql } from "@tpluscode/sparql-builder";
 import { RuleGroupType, RuleType } from "react-querybuilder/dist/types/types/ruleGroups";
 import { Term } from "../../../types/terms";
-import { PREFIXES } from "../../../utils/sparql";
 import { FlexibleTerm } from "../FlexibleTermInput";
 
 export interface RuleGroup extends RuleGroupType<Rule> {
@@ -28,16 +27,21 @@ export interface QueryState {
   globalBound: SparqlValue[],
 }
 
-export const queryToSparql = (query: RuleGroup) => {
+export const tryQueryToSparql = (query: RuleGroup) => {
   const state: QueryState = {
     tempVarCounter: 0,
     globalBound: [],
   }
-  try {
-    return sparql `
-      ${ruleGroupToSparql(state, query)}
-      ${state.globalBound}
+
+  return sparql`
+    ${ruleGroupToSparql(state, query)}
+    ${state.globalBound}
     `
+}
+
+export const queryToSparql = (query: RuleGroup) => {
+  try {
+    return tryQueryToSparql(query);
   } catch (e) {
     console.error(e)
     return '';
@@ -51,6 +55,7 @@ export const partialToSparql = (state: QueryState, rule: Rule | RuleGroup, paren
 
   // @ts-ignore
   if (rule?.combinator) {
+    console.log(rule, 'rule')
     return ruleGroupToSparql(state, rule as RuleGroup);
   } else {
     return ruleToSparql(state, rule as Rule, parent!);
@@ -64,21 +69,13 @@ const ruleGroupToSparql = (state: QueryState, ruleGroup: RuleGroup) => {
 
   switch (combinator) {
     case 'AND':
-      return {
-        _toPartialString(options) {
-          return not
-            ? sparql`MINUS { ${sparqlJoin(rules, '\n')} }`._toPartialString(options)
-            : sparql`${sparqlJoin(rules, '\n')}`._toPartialString(options);
-        }
-      }
+      return not
+        ? sparql`MINUS { ${sparqlJoin(rules, '\n')} }`
+        : sparql`${sparqlJoin(rules, '\n')}`;
     case 'OR':
-      return {
-        _toPartialString(options) {
-          return not
-            ? sparql`MINUS { ${sparqlJoin(rules, '\nUNION\n')} }`._toPartialString(options)
-            : sparql`${sparqlJoin(rules, '\nUNION\n')}`._toPartialString(options);
-        }
-      }
+      return not
+        ? sparql`MINUS { ${sparqlJoin(rules, '\nUNION\n')} }`
+        : sparql`${sparqlJoin(rules, '\nUNION\n')}`;
     default:
       throw new Error(`Unknown combinator ${combinator}`)
   }
@@ -189,7 +186,7 @@ const termToSparql = (state: QueryState, term: Term) => {
 }
 
 const boundDatatypeSparql = (state: QueryState, term: FlexibleTerm, datatype: string) => {
-  const { varName, bound } = flexTermToSparql(state, term);
+  const { varName } = flexTermToSparql(state, term);
 
   if (datatype === 'null') {
     return sparql`FILTER(isBLANK(${varName})).`
@@ -198,7 +195,7 @@ const boundDatatypeSparql = (state: QueryState, term: FlexibleTerm, datatype: st
     return sparql`FILTER(BOUND(${varName})).`
   }
 
-  if (['iri', 'url', 'literal'].includes(datatype)) {
+  if ([ 'iri', 'url', 'literal' ].includes(datatype)) {
     let func: string;
     switch (datatype) {
       case 'iri':
@@ -220,13 +217,13 @@ const boundDatatypeSparql = (state: QueryState, term: FlexibleTerm, datatype: st
   let datatypeIri = [];
   switch (datatype) {
     case 'string':
-      datatypeIri = [`<http://www.w3.org/2001/XMLSchema#string>`];
+      datatypeIri = [ `<http://www.w3.org/2001/XMLSchema#string>` ];
       break;
     case 'integer':
-      datatypeIri = [`<http://www.w3.org/2001/XMLSchema#integer>`];
+      datatypeIri = [ `<http://www.w3.org/2001/XMLSchema#integer>` ];
       break;
     case 'boolean':
-      datatypeIri = [`<http://www.w3.org/2001/XMLSchema#boolean>`];
+      datatypeIri = [ `<http://www.w3.org/2001/XMLSchema#boolean>` ];
       break;
     case 'datetime':
       datatypeIri = [

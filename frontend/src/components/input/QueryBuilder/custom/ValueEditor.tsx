@@ -39,15 +39,9 @@ export const ValueEditor = ({
 }: ValueEditorProps & { parent: RuleGroupType & { variable: any } }) => {
   useValueEditor({ handleOnChange, inputType, operator, value });
 
-  const { prefixes, datasetId } = context;
-
-  const variable = parent?.variable?.value;
-
   const updateValue = (updateValue: any) => {
     handleOnChange({ ...value, ...updateValue });
   };
-
-  console.log(props)
 
   switch (operator) {
     case 'filter':
@@ -75,6 +69,7 @@ export const ValueEditor = ({
           options={DATA_TYPES}
           sx={{ flex: 1 }}
           value={value}
+          isOptionEqualToValue={(option, value) => (option?.value ?? option) === (value?.value ?? value)}
           renderInput={(params) => <TextField {...params} variant="filled" label="Datatype"/>}
           onChange={(event: any, newValue: OptionType | null) => handleOnChange(newValue ? newValue : null)}
         />
