@@ -57,13 +57,23 @@ export const brackets = (expr: SparqlValue) => ({
   }
 })
 
+export const bind = (expr: SparqlValue, alias: Variable | string) => ({
+  expr,
+  alias: typeof alias === 'string' ? variable(alias) : alias,
+  _toPartialString(options) {
+    return sparql`BIND( ${expr} AS ${alias} )`._toPartialString(options)
+  }
+})
+
 export const sparqlLabelBound = (v: Variable | string) => {
   const { rdfs } = PREFIXES;
   const varName = typeof v === 'string' ? variable(v) : v;
   const varLabel = variable(`${varName.value}Label`);
 
   return {
-    bound: sparql`OPTIONAL { ${varName} ${rdfs.label} ${varLabel} FILTER (BOUND(${varLabel}) && lang(${varLabel}) = "en"). }`,
+    bounds: [
+      sparql`OPTIONAL { ${varName} ${rdfs.label} ${varLabel} FILTER (BOUND(${varLabel}) && lang(${varLabel}) = "en"). }.`
+    ],
     varLabel
   }
 }
@@ -71,8 +81,8 @@ export const sparqlLabelBound = (v: Variable | string) => {
 
 export const sparqlLabelsBound = (v: (Variable | string)[]) => {
   return v.reduce((acc: any, v) => {
-    const { bound, varLabel } = sparqlLabelBound(v);
-    acc.bounds.push(bound);
+    const { bounds, varLabel } = sparqlLabelBound(v);
+    acc.bounds.push(...bounds);
     acc.vars.push(varLabel);
     return acc;
   }, { bounds: [], vars: [] })
@@ -140,7 +150,7 @@ export const sparqlPrettyPrint = (
     return label;
   }
 
-  if ((value as NamedNode).termType) {
+  if ((value as NamedNode)?.termType) {
     const { value: iriValue } = value as NamedNode;
     const iri = formatIri(iriValue, prefixes)
 
@@ -150,3 +160,79 @@ export const sparqlPrettyPrint = (
   return value;
 }
 
+export const sparqlDTypeBound = (v: Variable | string, dtype: string) => {
+  const varName = typeof v === 'string' ? variable(v) : v;
+
+  switch (dtype) {
+    case 'numeric':
+      return sparql`FILTER (BOUND(${varName}) && isNumeric(${v}))`;
+    case 'date': {
+      const datatypeIri = [
+        `<http://www.w3.org/2001/XMLSchema#date>`,
+        `<http://www.w3.org/2001/XMLSchema#dateTime>`
+      ];
+
+      return sparql`
+        FILTER(BOUND(${varName}) && DATATYPE(${varName}) IN (${datatypeIri.join(',')})).
+        FILTER(YEAR(${varName}) > 0 && YEAR(${varName}) < 2100).
+      `
+    }
+    case 'categorical':
+    default:
+      return sparql`FILTER (BOUND(${varName}))`;
+  }
+}
+
+
+export const sparqlDTypeContinuize = (v: Variable | string, dtype: string) => {
+  switch (dtype) {
+    case 'date': {
+      return sparql`(YEAR(${v}) + MONTH(${v}) / 12)`;
+    }
+    case 'numeric':
+    case 'categorical':
+    default:
+      return v;
+  }
+}
+
+export const sparqlDTypeContinuizeRev = (v: Variable | string, dtype: string) => {
+  switch (dtype) {
+    case 'date': {
+      return v;
+    }
+    case 'numeric':
+    case 'categorical':
+    default:
+      return v;
+  }
+}
+
+export const sparqlConjunctionBuilder = (terms: SparqlValue[], combinator: 'AND' | 'OR', not: boolean = false) => ({
+  combinator,
+  terms,
+  not,
+  _toPartialString(options) {
+    switch (combinator) {
+      case 'AND':
+        return not
+          ? sparql`MINUS { ${sparqlJoin(terms, '\n')} }`._toPartialString(options)
+          : sparql`${sparqlJoin(terms, '\n')}`._toPartialString(options);
+      case 'OR':
+        return not
+          ? sparql`MINUS { ${sparqlJoin(terms, '\nUNION\n')} }`._toPartialString(options)
+          : sparql`${sparqlJoin(terms, '\nUNION\n')}`._toPartialString(options)
+      default:
+        throw new Error(`Unknown combinator ${combinator}`)
+    }
+  }
+})
+
+export const sparqlJoin = (sparqls: SparqlValue[], separator: any) => {
+  if (sparqls.length === 0) {
+    return null;
+  }
+
+  const first = sparqls.shift();
+  return sparqls.reduce((acc, curr) => sparql`${acc} ${separator} ${curr}`, first)
+}

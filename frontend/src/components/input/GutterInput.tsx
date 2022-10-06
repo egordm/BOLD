@@ -9,11 +9,13 @@ export const GutterInput = ({
   gutter,
   padGutter = true,
   sx,
+  gutterProps,
   ...props
 }: {
   children: React.ReactNode,
   gutter?: React.ReactNode,
   padGutter?: boolean,
+  gutterProps?: StackProps,
 } & Partial<StackProps>) => {
   return (
     <Stack
@@ -30,6 +32,7 @@ export const GutterInput = ({
         className="gutter"
         direction="row"
         justifyContent="stretch"
+        {...gutterProps}
         sx={{
           backgroundColor: 'rgba(0, 0, 0, 0.08)',
           borderBottomLeftRadius: 4,
@@ -38,6 +41,7 @@ export const GutterInput = ({
           px: padGutter ? 1.5 : 0,
           fontSize: 11,
           pt: padGutter ? 0.2 : 0,
+          ...gutterProps?.sx
         }}
       >
         {gutter}

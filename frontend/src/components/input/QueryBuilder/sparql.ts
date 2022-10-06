@@ -2,8 +2,10 @@ import { literal, namedNode, variable } from "@rdfjs/data-model";
 import { Variable } from "@rdfjs/types";
 import { SparqlValue } from "@tpluscode/rdf-string";
 import { sparql } from "@tpluscode/sparql-builder";
+import _ from "lodash";
 import { RuleGroupType, RuleType } from "react-querybuilder/dist/types/types/ruleGroups";
 import { Term } from "../../../types/terms";
+import { sparqlConjunctionBuilder, sparqlJoin } from "../../../utils/sparql";
 import { FlexibleTerm } from "../FlexibleTermInput";
 
 export interface RuleGroup extends RuleGroupType<Rule> {
@@ -25,19 +27,19 @@ export type RuleValue = {
 
 export interface QueryState {
   tempVarCounter: number,
-  globalBound: SparqlValue[],
+  globalBounds: SparqlValue[],
 }
 
 export const tryQueryToSparql = (query: RuleGroup) => {
   const state: QueryState = {
     tempVarCounter: 0,
-    globalBound: [],
+    globalBounds: [],
   }
 
-  return sparql`
-    ${ruleGroupToSparql(state, query)}
-    ${state.globalBound}
-    `
+  return [
+    ruleGroupToSparql(state, query),
+      ...state.globalBounds
+  ]
 }
 
 export const queryToSparql = (query: RuleGroup) => {
@@ -56,7 +58,6 @@ export const partialToSparql = (state: QueryState, rule: Rule | RuleGroup, paren
 
   // @ts-ignore
   if (rule?.combinator) {
-    console.log(rule, 'rule')
     return ruleGroupToSparql(state, rule as RuleGroup);
   } else {
     return ruleToSparql(state, rule as Rule, parent!);
@@ -64,32 +65,28 @@ export const partialToSparql = (state: QueryState, rule: Rule | RuleGroup, paren
 }
 
 const ruleGroupToSparql = (state: QueryState, ruleGroup: RuleGroup) => {
-  const combinator = (ruleGroup.combinator ?? 'and').toUpperCase();
+  const combinator = (ruleGroup.combinator ?? 'AND').toUpperCase();
   const not = !!ruleGroup.not;
-  const rules = ruleGroup.rules.map(rule => sparql`{ ${partialToSparql(state, rule, ruleGroup)} }`);
+  const rules = ruleGroup.rules.map(rule => partialToSparql(state, rule, ruleGroup));
 
-  switch (combinator) {
-    case 'AND':
-      return not
-        ? sparql`MINUS { ${sparqlJoin(rules, '\n')} }`
-        : sparql`${sparqlJoin(rules, '\n')}`;
-    case 'OR':
-      return not
-        ? sparql`MINUS { ${sparqlJoin(rules, '\nUNION\n')} }`
-        : sparql`${sparqlJoin(rules, '\nUNION\n')}`;
-    default:
-      throw new Error(`Unknown combinator ${combinator}`)
-  }
-}
-
-const sparqlJoin = (sparqls: SparqlValue[], separator: any) => {
-  if (sparqls.length === 0) {
-    return null;
+  const cleanedRules = [];
+  for (const rule of rules) {
+    if ((rule as any)?.combinator) {
+      if ((rule as any)?.combinator === combinator && (rule as any)?.not === not) {
+        cleanedRules.push(...(rule as any).terms);
+      } else {
+        cleanedRules.push(sparql`{ ${rule} }`);
+      }
+    } else if(_.isArray(rule)) {
+      cleanedRules.push(...rule);
+    } else {
+      cleanedRules.push(rule);
+    }
   }
 
-  const first = sparqls.shift();
-  return sparqls.reduce((acc, curr) => sparql`${acc} ${separator} ${curr}`, first)
+  return sparqlConjunctionBuilder(cleanedRules, combinator as any, not);
 }
+
 
 const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
   switch (rule.operator) {
@@ -113,7 +110,7 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
       const type = rule.value?.value;
       const parentVar: FlexibleTerm = { type: 'variable', variable: parent.variable };
 
-      state.globalBound.push(
+      state.globalBounds.push(
         boundDatatypeSparql(state, parentVar, type)
       )
       return null;
@@ -125,16 +122,16 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
 
 
 const tripleToSparql = (state: QueryState, subject: FlexibleTerm, predicate: FlexibleTerm, object: FlexibleTerm) => {
-  const { varName: sVar, bound: sBound } = flexTermToSparql(state, subject);
-  const { varName: pVar, bound: pBound } = flexTermToSparql(state, predicate);
-  const { varName: oVar, bound: oBound } = flexTermToSparql(state, object);
+  const { varName: sVar, bounds: sBounds } = flexTermToSparql(state, subject);
+  const { varName: pVar, bounds: pBounds } = flexTermToSparql(state, predicate);
+  const { varName: oVar, bounds: oBounds } = flexTermToSparql(state, object);
 
-  return sparql`
-    ${sBound}
-    ${pBound}
-    ${oBound}
-    ${sVar} ${pVar} ${oVar}
-  `
+  return [
+    ...(sBounds ?? []),
+    ...(pBounds ?? []),
+    ...(oBounds ?? []),
+    sparql`${sVar} ${pVar} ${oVar} .`,
+  ]
 }
 
 const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
@@ -159,9 +156,11 @@ const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
         );
 
       const varName = variable(`tmp${state.tempVarCounter++}`);
-      const bound = sparql`VALUES ${varName} { ${tokens} }`;
+      const bounds = [
+        sparql`VALUES ${varName} { ${tokens} }.`
+      ];
 
-      return { varName, bound }
+      return { varName, bounds }
     }
     case 'search': {
       if (!term.search) {
@@ -169,9 +168,11 @@ const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
       }
       const tokens = term.search.map(t => termToSparql(state, t));
       const varName = variable(`tmp${state.tempVarCounter++}`);
-      const bound = sparql`VALUES ${varName} { ${tokens} }`;
+      const bounds = [
+        sparql`VALUES ${varName} { ${tokens} }.`
+      ];
 
-      return { varName, bound }
+      return { varName, bounds }
     }
     default:
       throw new Error(`Unknown term type ${term.type}`)
@@ -196,7 +197,7 @@ const boundDatatypeSparql = (state: QueryState, term: FlexibleTerm, datatype: st
     return sparql`FILTER(BOUND(${varName})).`
   }
 
-  if ([ 'iri', 'url', 'literal' ].includes(datatype)) {
+  if ([ 'iri', 'url', 'literal', 'number' ].includes(datatype)) {
     let func: string;
     switch (datatype) {
       case 'iri':
@@ -207,6 +208,9 @@ const boundDatatypeSparql = (state: QueryState, term: FlexibleTerm, datatype: st
         break;
       case 'literal':
         func = 'isLITERAL';
+        break;
+      case 'number':
+        func = 'isNumeric';
         break;
       default:
         throw new Error(`Unknown datatype ${datatype}`)
@@ -237,15 +241,6 @@ const boundDatatypeSparql = (state: QueryState, term: FlexibleTerm, datatype: st
         `<http://www.w3.org/2001/XMLSchema#float>`,
         `<http://www.w3.org/2001/XMLSchema#double>`,
         `<http://www.w3.org/2001/XMLSchema#decimal>`,
-      ];
-      break;
-    case 'number':
-      datatypeIri = [
-        `<http://www.w3.org/2001/XMLSchema#integer>`,
-        `<http://www.w3.org/2001/XMLSchema#float>`,
-        `<http://www.w3.org/2001/XMLSchema#double>`,
-        `<http://www.w3.org/2001/XMLSchema#decimal>`,
-        `<http://www.w3.org/2001/XMLSchema#long>`,
       ];
       break;
     default:
