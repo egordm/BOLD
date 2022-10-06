@@ -50,6 +50,8 @@ export const alias = (expr: SparqlValue, alias: Variable | string) => ({
   }
 })
 
+export const suffix = (expr: Variable, suffix: string) => variable(`${expr.value}${suffix}`)
+
 export const brackets = (expr: SparqlValue) => ({
   expr,
   _toPartialString(options) {

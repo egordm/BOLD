@@ -1,4 +1,6 @@
 import { Grid, Stack, Typography } from "@mui/material";
+import { variable } from "@rdfjs/data-model";
+import { Variable } from "@rdfjs/types";
 import _ from "lodash";
 import React, { useMemo } from "react";
 import { usePrefixes } from "../../../../providers/ReportProvider";
@@ -8,7 +10,7 @@ import {
   extractSparqlResult,
   sparqlParseValue, sparqlPrettyPrint,
   SPARQLResultTransposed,
-  sparqlTransposeResult
+  sparqlTransposeResult, suffix
 } from "../../../../utils/sparql";
 import { cellOutputToYasgui } from "../../../../utils/yasgui";
 import { BarPlot } from "../../../data/plots/BarPlot";
@@ -19,7 +21,7 @@ import { Yasr } from "../../../data/Yasr";
 import { Checkbox } from "../../../input/Checkbox";
 import { SimpleSelect } from "../../../input/SimpleSelect";
 import { OptionType } from "../../../input/VariableInput";
-import { PlotBuilderData } from "./types";
+import { PlotBuilderData, RESULT_SUFFIX } from "./types";
 
 export const ResultTab = ({
   mode, cell, outputs, data, setData
@@ -40,14 +42,18 @@ export const ResultTab = ({
     const df = sparqlTransposeResult(extractSparqlResult(outputs[0]));
     if (!df) return null;
 
+    const xVar = variable(snapshot.x.vars[0].value);
+    const yVar = variable(snapshot.y.vars[0].value);
+    const zVar = variable(snapshot.z.vars[0].value);
+
     const x = snapshot.x?.dtype === 'categorical'
-      ? parseSelectColumns(df, snapshot.x?.vars, prefixes)
-      : df[snapshot.x?.vars[0].value].map(sparqlParseValue);
-    const y = df[snapshot.y?.vars[0].value].map(sparqlParseValue);
+      ? parseSelectColumns(df, xVar, prefixes)
+      : parseValueColumns(df, xVar);
+    const y = parseValueColumns(df, yVar);
     const z = snapshot.xy_only ? null : (
       snapshot.z?.dtype === 'categorical'
-        ? parseSelectColumns(df, snapshot.z?.vars, prefixes)
-        : df[snapshot.z?.vars[0].value].map(sparqlParseValue)
+        ? parseSelectColumns(df, zVar, prefixes)
+        : parseValueColumns(df, zVar)
     );
     return { x, z, y };
   }, [ outputs ]);
@@ -161,17 +167,25 @@ export const ResultTab = ({
 
 const parseSelectColumns = (
   df: SPARQLResultTransposed,
-  columns: OptionType[],
+  column: Variable,
   prefixes: Prefixes,
   extractLabel = true,
 ) => {
   const xs = [];
-  for (const xVar of columns) {
-    xs.push(_.zip(df[xVar.value], df[`${xVar.value}Label`]).map(([ v, label ]) => {
-      return sparqlPrettyPrint(sparqlParseValue(v), sparqlParseValue(label), prefixes, extractLabel)
-    }))
-  }
+  xs.push(_.zip(
+    df[suffix(column, RESULT_SUFFIX).value],
+    df[suffix(column, 'Label' + RESULT_SUFFIX).value]
+  ).map(([ v, label ]) => {
+    return sparqlPrettyPrint(sparqlParseValue(v), sparqlParseValue(label), prefixes, extractLabel)
+  }))
   return _.zip(...xs).map((v) => v.join('-'));
+}
+
+const parseValueColumns = (
+  df: SPARQLResultTransposed,
+  column: Variable,
+) => {
+  return df[suffix(column, RESULT_SUFFIX).value].map(sparqlParseValue)
 }
 
 export const PLOT_TYPES_XY = [

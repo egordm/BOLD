@@ -26,8 +26,8 @@ const OUTPUT_TABS = [
 ]
 
 const DEFAULT_X = { vars: [{ value: 'main', label: 'main' }], aggregate: 'COUNT', dtype: 'categorical' };
-const DEFAULT_Y = { vars: [], aggregate: 'COUNT', dtype: 'numeric' };
-const DEFAULT_Z = { vars: [], aggregate: 'COUNT', dtype: 'categorical' };
+const DEFAULT_Y = { vars: [{ value: 'main', label: 'main' }], aggregate: 'COUNT', dtype: 'numeric' };
+const DEFAULT_Z = { vars: [{ value: 'main', label: 'main' }], aggregate: 'COUNT', dtype: 'categorical' };
 
 
 export const PlotBuilderWidget = (props: {}) => {

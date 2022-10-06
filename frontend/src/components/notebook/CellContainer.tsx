@@ -68,7 +68,7 @@ export const CellContainer = (props: {}) => {
         {ActionButton}
       </Box>
       <Stack spacing={2} sx={{ flex: 1 }}>
-        <Cell/>
+        {Cell && <Cell/>}
       </Stack>
     </Box>
   )

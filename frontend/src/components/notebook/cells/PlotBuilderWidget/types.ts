@@ -35,3 +35,4 @@ export const AGGREGATE_FUNCTIONS = [
   { value: 'MAX', label: 'MAX' },
 ]
 
+export const RESULT_SUFFIX = '__out';
