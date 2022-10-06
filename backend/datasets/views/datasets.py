@@ -5,6 +5,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from django_filters.rest_framework import DjangoFilterBackend
 
+from django.core.cache import cache
 from django.conf import settings
 from django.http import JsonResponse
 from rest_framework import filters
@@ -104,12 +105,18 @@ def term_search(request: Request, id: UUID):
     offset = int(request.GET.get('offset', 0))
     timeout = int(request.GET.get('timeout', 5000))
 
-    result_default = LocalSearchService(DEFAULT_SEARCH_INDEX).search(q, pos, limit, offset, timeout) \
-        if q and DEFAULT_SEARCH_INDEX.exists() else None
-    result_dataset = dataset.get_search_service().search(q, pos, limit, offset, timeout)
+    cache_key = f'search:{dataset.id}:{pos}:{q}:{limit}:{offset}:{timeout}'
+    result_dict = cache.get(cache_key)
+    if result_dict is None:
+        result_default = LocalSearchService(DEFAULT_SEARCH_INDEX).search(q, pos, limit, offset, timeout) \
+            if q and DEFAULT_SEARCH_INDEX.exists() else None
+        result_dataset = dataset.get_search_service().search(q, pos, limit, offset, timeout)
+        result = merge_results(result_default, result_dataset, q) if result_default else result_dataset
 
-    result = merge_results(result_default, result_dataset, q) if result_default else result_dataset
-    return JsonResponse(result.to_dict())
+        result_dict = result.to_dict()
+        cache.set(cache_key, result_dict, 60 * 60 * 24 * 7)
+
+    return JsonResponse(result_dict)
 
 
 @swagger_auto_schema(methods=['post'], manual_parameters=[

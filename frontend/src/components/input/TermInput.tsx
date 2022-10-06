@@ -98,7 +98,12 @@ export const TermInput = (props: {
           <ListItemText
             primary={<>
               <Typography component="span" fontWeight={option.label ? 500 : 'normal'}>{primary} </Typography>
-              {option.count && <Typography variant="caption" component="span">({option.count})</Typography>}
+              {option?.count === 0
+                ? <Typography variant="caption" component="span">(default)</Typography>
+                : option?.count
+                  ? <Typography variant="caption" component="span">({option.count})</Typography>
+                  : null
+              }
             </>}
             secondary={secondary}
           />
