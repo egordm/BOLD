@@ -180,7 +180,7 @@ const DatatypeInput = ({
       return (
         <FlexibleTermInput
           sx={{ flex: 1 }}
-          pos={'OBJECT'}
+          pos={'SUBJECT'}
           label={label}
           value={value.input}
           onChange={(input) => setValue(input)}
