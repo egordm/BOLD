@@ -90,7 +90,7 @@ export const TermInput = (props: {
     const iri = option.type === 'uri' ? formatIri(option.value, prefixes || {}) : option.value;
     const primary = option.label ? option.label : extractIriLabel(option.value);
     const secondary = option.description
-      ? `${iri}<br>${_.capitalize(_.truncate(option.description, { length: 100 }))}`
+      ? (<span>{iri}<br/>{_.capitalize(_.truncate(option.description, { length: 100 }))}</span>)
       : iri;
 
     return (

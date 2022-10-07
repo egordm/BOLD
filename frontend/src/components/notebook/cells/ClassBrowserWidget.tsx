@@ -137,8 +137,6 @@ const ResultTab = ({
 
   const hierarchy = useMemo(() => extractClassHierarchy(outputs), [ outputs ]);
 
-  console.log(hierarchy)
-
   if ((mode === 'sunburst' || mode === 'treemap') && hierarchy) {
     return (
       <Plot
