@@ -1,11 +1,11 @@
 import json
 import re
 from abc import ABC, abstractmethod
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from enum import IntEnum, Enum
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Union, Any
 from rest_framework.serializers import ValidationError
 from fuzzywuzzy import fuzz
 
@@ -41,20 +41,6 @@ class TermPos(Enum):
 
 
 @dataclass
-class SearchHit(Serializable):
-    score: float
-    document: Serializable
-
-
-@dataclass
-class SearchResult(Serializable):
-    count: int = field(default=0)
-    hits: List[SearchHit | dict] = field(default_factory=list)
-    agg: dict = field(default_factory=dict)
-    error: Optional[str] = None
-
-
-@dataclass
 class TermDocument(Serializable):
     type: str
     search_text: str
@@ -74,6 +60,20 @@ class TermDocument(Serializable):
             self.description or '',
             self.value or '',
         ])
+
+
+@dataclass
+class SearchHit(Serializable):
+    score: float
+    document: Serializable | TermDocument
+
+
+@dataclass
+class SearchResult(Serializable):
+    count: int = field(default=0)
+    hits: List[SearchHit | dict] = field(default_factory=list)
+    agg: dict = field(default_factory=dict)
+    error: Optional[str] = None
 
 
 class SearchService(ABC):
@@ -219,6 +219,7 @@ class TriplyDBSearchService(SearchService):
             return SearchResult(error=response.text)
 
         result_data = response.json()
+        print(result_data)
         return SearchResult(
             count=result_data['hits']['total']['value'],
             hits=[
@@ -308,13 +309,20 @@ class TriplyDBSearchService(SearchService):
             type='uri',
             value=doc['@id'],
             pos=pos,
-            rdf_type=rdf_type,
-            label=label,
-            description=doc.get('http://www w3 org/2000/01/rdf-schema#comment', None),
+            rdf_type=first_or_self(rdf_type),
+            label=first_or_self(label),
+            description=first_or_self(doc.get('http://www w3 org/2000/01/rdf-schema#comment', None)),
             count=None,
-            search_text=search_text,
+            search_text=first_or_self(search_text),
             range=doc.get('http://www w3 org/2000/01/rdf-schema#range', None),
         )
+
+
+def first_or_self(item: Union[List[Any], Any]):
+    if isinstance(item, list):
+        return item[0]
+
+    return item
 
 
 def merge_results(
@@ -322,20 +330,28 @@ def merge_results(
     b: SearchResult,
     query: str,
 ) -> SearchResult:
-    hits = {hit.document.value: hit for hit in a.hits + b.hits}
-    docs = [
-        (fuzz.ratio(hit.document.searchable_text(), query), hit)
-        for hit in hits.values()
-    ]
-    docs = sorted(docs, key=lambda x: x[0], reverse=True)
+    score_fn = lambda x: fuzz.partial_ratio(x.document.searchable_text(), query)
+    a_hits = deque((score_fn(hit), hit) for hit in a.hits)
+    b_hits = deque((score_fn(hit), hit) for hit in b.hits)
+
+    seen = set()
+    hits = []
+    while a_hits and b_hits:
+        if a_hits[0][0] > b_hits[0][0]:
+            item = a_hits.popleft()[1]
+        else:
+            item = b_hits.popleft()[1]
+
+        if item.document.value not in seen:
+            hits.append(item)
+            seen.add(item.document.value)
+
+    for (_, item) in a_hits + b_hits:
+        if item.document.value not in seen:
+            hits.append(item)
+            seen.add(item.document.value)
 
     return SearchResult(
-        count=len(docs),
-        hits=[
-            SearchHit(
-                score=score,
-                document=hit.document,
-            )
-            for score, hit in docs
-        ],
+        count=len(hits),
+        hits=hits,
     )
