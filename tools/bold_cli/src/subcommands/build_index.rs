@@ -44,11 +44,11 @@ struct Record {
 pub fn run(args: BuildIndex) -> Result<()> {
     if args.force && args.index.exists() {
         println!("Deleting old index directory");
-        std::fs::remove_dir_all(&args.index)?;
+        std::fs::remove_dir_all(&args.index).unwrap();
     }
 
     ensure!(!args.index.exists(), "Index directory already exists!");
-    std::fs::create_dir_all(&args.index)?;
+    std::fs::create_dir_all(&args.index).unwrap();
 
     let natural_text_indexing = TextFieldIndexing::default()
         .set_tokenizer("ngram")
@@ -83,10 +83,11 @@ pub fn run(args: BuildIndex) -> Result<()> {
     let mut error_count = 0;
 
     for input in &args.inputs {
+        println!("Processing file: {}", input.display());
         let mut rdr = csv::ReaderBuilder::new()
             .delimiter(b'\t')
             .has_headers(true)
-            .from_path(input)?;
+            .from_path(input).unwrap();
 
         for result in rdr.deserialize::<Record>() {
             match result {

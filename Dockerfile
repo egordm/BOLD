@@ -3,7 +3,9 @@ FROM rust:1.62.0-slim AS builder-tools
 WORKDIR /code
 COPY tools/ /code
 
-RUN cargo build --release
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/home/root/app/target \
+    cargo build --release
 
 
 FROM node:16-slim AS builder-frontend

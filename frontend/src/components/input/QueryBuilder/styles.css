@@ -19,7 +19,7 @@
 }
 
 .query-builder {
-    overflow: hidden;
+    /*overflow: hidden;*/
 }
 .query-builder *, .query-builder *::before, .query-builder *::after {
     box-sizing: border-box;

@@ -162,10 +162,10 @@ def create_default_search_index(
 
     try:
         terms_files = [
-            settings.ROOT_DIR.joinpath('dev', 'queries', 'rdf.tsv'),
-            settings.ROOT_DIR.joinpath('dev', 'queries', 'rdfs.tsv'),
-            settings.ROOT_DIR.joinpath('dev', 'queries', 'owl.tsv'),
-            settings.ROOT_DIR.joinpath('dev', 'queries', 'foaf.tsv'),
+            settings.BASE_DIR.joinpath('data', 'rdf.tsv'),
+            settings.BASE_DIR.joinpath('data', 'rdfs.tsv'),
+            settings.BASE_DIR.joinpath('data', 'owl.tsv'),
+            settings.BASE_DIR.joinpath('data', 'foaf.tsv'),
         ]
 
         logger.info('Creating search index from documents')

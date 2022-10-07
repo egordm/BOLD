@@ -18,6 +18,7 @@ import {
 } from 'react-querybuilder';
 import { TermInput } from "../../TermInput";
 import FilterOperator from "./operators/FilterOperator";
+import LogicalOperator from "./operators/LogicalOperator";
 
 export const ValueEditor = ({
   fieldData,
@@ -74,8 +75,13 @@ export const ValueEditor = ({
           onChange={(event: any, newValue: OptionType | null) => handleOnChange(newValue ? newValue : null)}
         />
       );
-    default:
-      return (null);
+    case 'operator':
+      return (<LogicalOperator
+        value={value}
+        setValue={updateValue}
+        context={context}
+        parent={parent}
+      />);
   }
 
   return (

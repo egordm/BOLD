@@ -65,9 +65,6 @@ export const TriplyDBGrid = (props: {}) => {
 
   const { data: rows, isFetching, isLoading } = useTDBDatasets(query, limit);
 
-
-  console.log(rows)
-
   const openImportDialog = (item: TDBDataset) => {
     setOpenItem(item);
   }
