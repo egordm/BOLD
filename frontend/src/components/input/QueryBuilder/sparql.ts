@@ -5,7 +5,7 @@ import { sparql } from "@tpluscode/sparql-builder";
 import _ from "lodash";
 import { RuleGroupType, RuleType } from "react-querybuilder/dist/types/types/ruleGroups";
 import { Term } from "../../../types/terms";
-import { sparqlConjunctionBuilder, sparqlJoin } from "../../../utils/sparql";
+import { brackets, sparqlConjunctionBuilder, sparqlJoin } from "../../../utils/sparql";
 import { FlexibleTerm } from "../FlexibleTermInput";
 
 export interface RuleGroup extends RuleGroupType<Rule> {
@@ -70,18 +70,23 @@ const ruleGroupToSparql = (state: QueryState, ruleGroup: RuleGroup) => {
   const rules = ruleGroup.rules.map(rule => partialToSparql(state, rule, ruleGroup));
 
   const cleanedRules = [];
-  for (const rule of rules) {
-    if ((rule as any)?.combinator) {
-      if ((rule as any)?.combinator === combinator && (rule as any)?.not === not) {
-        cleanedRules.push(...(rule as any).terms);
+  if(combinator === 'AND') {
+    for (const rule of rules) {
+      if ((rule as any)?.combinator) {
+        if ((rule as any)?.combinator === combinator && (rule as any)?.not === not) {
+          cleanedRules.push(...(rule as any).terms);
+        } else {
+          cleanedRules.push(sparql`{ ${rule} }`);
+        }
+      } else if (_.isArray(rule)) {
+        cleanedRules.push(...rule);
       } else {
-        cleanedRules.push(sparql`{ ${rule} }`);
+        cleanedRules.push(rule);
       }
-    } else if(_.isArray(rule)) {
-      cleanedRules.push(...rule);
-    } else {
-      cleanedRules.push(rule);
     }
+  } else {
+    // Query optimization is more difficult for disjunction queries
+    cleanedRules.push(...rules.map(rule => brackets(rule, true)));
   }
 
   return sparqlConjunctionBuilder(cleanedRules, combinator as any, not);
