@@ -42,11 +42,6 @@ const buildQuery = (data: ClassBrowserData) => {
   const secondaryQuery = SELECT`?type (COUNT(?s) as ?count)`
     .WHERE`
       ?s ${rdf.type} ?type .
-      FILTER EXISTS {
-        { ?type ${rdfs.subClassOf} ?a . }
-        UNION
-        { ?a ${rdfs.subClassOf} ?type . }
-      }	
     `
     .GROUP().BY('type')
     .ORDER().BY(variable('count'), true)
@@ -139,9 +134,10 @@ const ResultTab = ({
   updateClassPath: (level: number, head?: ClassParent) => void,
 }) => {
   const prefixes = usePrefixes();
-  const itemsRef = useRef<any>();
 
   const hierarchy = useMemo(() => extractClassHierarchy(outputs), [ outputs ]);
+
+  console.log(hierarchy)
 
   if ((mode === 'sunburst' || mode === 'treemap') && hierarchy) {
     return (
@@ -220,6 +216,13 @@ const extractClassHierarchy = (outputs: CellOutput[] | null) => {
     const count = row?.count?.value;
     if (items[type]) {
       items[type].count = parseInt(count);
+    } else {
+      items[type] = {
+        iri: type,
+        label: extractIriLabel(type),
+        parents: [],
+        count: parseInt(count),
+      };
     }
   }
 
