@@ -1,3 +1,4 @@
+import _ from "lodash";
 import { useCallback, useEffect } from "react";
 import { useCellContext } from "../providers/CellProvider";
 import { WidgetCellType } from "../types/notebooks";
@@ -11,7 +12,7 @@ export const useCellWidgetData = <T, >(
 
   const { sendNotification } = useNotification();
 
-  useEffect(() => {
+  const updateSource = useCallback(_.throttle((data) => {
     try {
       const queries = Object.values(buildQuery(data));
 
@@ -26,6 +27,10 @@ export const useCellWidgetData = <T, >(
         variant: 'error',
       });
     }
+  }, 500), [buildQuery, cellRef]);
+
+  useEffect(() => {
+    updateSource(data);
   }, [ data ]);
 
   const setData = useCallback((newData: Partial<T>) => {

@@ -4,7 +4,7 @@ import { Variable } from "@rdfjs/types";
 import _ from "lodash";
 import React, { useMemo } from "react";
 import { usePrefixes } from "../../../../providers/ReportProvider";
-import { CellExecuteOutput, CellOutput, WidgetCellType } from "../../../../types/notebooks";
+import { CellExecuteOutput, CellOutput, OutputData, WidgetCellType } from "../../../../types/notebooks";
 import { Prefixes } from "../../../../types/sparql";
 import {
   extractSparqlResult,
@@ -21,16 +21,16 @@ import { Yasr } from "../../../data/Yasr";
 import { Checkbox } from "../../../input/Checkbox";
 import { SimpleSelect } from "../../../input/SimpleSelect";
 import { OptionType } from "../../../input/VariableInput";
-import { PlotBuilderData, RESULT_SUFFIX } from "./types";
+import { OutputConfig, PlotBuilderData, RESULT_SUFFIX } from "./types";
 
 export const ResultTab = ({
-  mode, cell, outputs, data, setData
+  mode = 'plot', cell, outputs, data, setData
 }: {
   mode: string,
   cell: WidgetCellType<PlotBuilderData>,
   outputs: CellOutput[] | null,
-  data: PlotBuilderData,
-  setData: (data: Partial<PlotBuilderData>) => void,
+  data: OutputConfig,
+  setData: (data: Partial<OutputConfig>) => void,
 }) => {
   try {
     const prefixes = usePrefixes();
@@ -60,9 +60,7 @@ export const ResultTab = ({
       return { x, z, y };
     }, [ outputs ]);
 
-    const output_mode = data.output_mode ?? 'plot';
-
-    if (output_mode === 'plot' && plotData) {
+    if (mode === 'plot' && plotData) {
       const { x, y, z } = plotData;
 
       if (x.length < 2) {

@@ -39,7 +39,9 @@ export const PlotBuilderWidget = (props: {}) => {
   useEffect(() => {
     setData({
       xy_only: true,
-      plot_type: 'pie',
+      output_config: {
+        plot_type: 'pie',
+      },
       x: DEFAULT_X,
       y: DEFAULT_Y,
       z: DEFAULT_Z,
@@ -55,6 +57,8 @@ export const PlotBuilderWidget = (props: {}) => {
       value={data?.tree}
       setValue={(tree) => setData({ tree })}/>
   ), [ data?.tree ]);
+
+  // const
 
   const Content = useMemo(() => (
     <>
@@ -122,7 +126,7 @@ export const PlotBuilderWidget = (props: {}) => {
                 value={data?.max_groups_x ?? 20}
                 valueLabelFormat={(value) => value !== MAX_GROUPS_LIMIT ? value.toString() : 'Unlimited'}
                 onChange={(event, max_groups: number) => setData({ max_groups_x: max_groups })}
-                min={1} max={MAX_GROUPS_LIMIT} step={Math.ceil(MAX_GROUPS_LIMIT / 20)}
+                min={1} max={300} step={10}
               />
               {!xy_only && (
                 <NumberedSlider
@@ -130,7 +134,7 @@ export const PlotBuilderWidget = (props: {}) => {
                   value={data?.max_groups_z ?? 20}
                   valueLabelFormat={(value) => value !== MAX_GROUPS_LIMIT ? value.toString() : 'Unlimited'}
                   onChange={(event, max_groups: number) => setData({ max_groups_z: max_groups })}
-                  min={1} max={MAX_GROUPS_LIMIT} step={Math.ceil(MAX_GROUPS_LIMIT / 20)}
+                  min={1} max={300} step={10}
                 />
               )}
             </Stack>
@@ -144,6 +148,13 @@ export const PlotBuilderWidget = (props: {}) => {
     </>
   ), [ data ]);
 
+  const outputExtra = useMemo(() => ({
+    data: data?.output_config ?? {},
+    setData: (output_config) => setData({
+      output_config: { ...(data?.output_config ?? {}),  ...output_config }
+    })
+  }), [ data?.output_config ]);
+
   return (
     <>
       {Content}
@@ -152,7 +163,7 @@ export const PlotBuilderWidget = (props: {}) => {
         options={OUTPUT_TABS}
         renderResult={ResultTab}
         onChange={(output_mode) => setData({ output_mode })}
-        extraData={{ data, setData }}
+        extraData={outputExtra}
       />
       <SourceViewModal
         source={{
