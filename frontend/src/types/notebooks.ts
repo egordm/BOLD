@@ -114,7 +114,7 @@ export const createNotebook = (name: string): Notebook => ({
   }
 })
 
-export const createCell = (cellType: CellType, metadata?: CellMetadata): Cell => {
+export const createCell = (cellType: CellType, metadata?: CellMetadata, prev_data?: Cell): Cell => {
   metadata = metadata ?? { id: uuidv4() }
 
   if (cellType === 'code') {
@@ -128,6 +128,15 @@ export const createCell = (cellType: CellType, metadata?: CellMetadata): Cell =>
       cell_type: 'markdown',
       metadata,
       source: [ '# Markdown cell' ]
+    }
+  } else if (cellType === 'widget_plotbuilder' || 'widget_querybuilder') {
+    return {
+      cell_type: cellType as any,
+      metadata,
+      source: [],
+      data: {
+        tree: (prev_data as any)?.data?.tree,
+      }
     }
   } else if (cellType.startsWith('widget_')) {
     return {

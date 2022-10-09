@@ -64,7 +64,7 @@ export const NotebookToolbar = (props: {}) => {
   const onChangeCellType = useCallback((newType: string) => {
     const focusIdx = notebookRef.current?.content?.cell_order?.findIndex(id => id === focusRef.current) ?? -1;
     const cell = notebookRef.current.content.cells[focusRef.current];
-    const newCell = createCell(newType, cell.metadata);
+    const newCell = createCell(newType, cell.metadata, cell);
 
     // Change cell type and clear outputs
     setNotebook(
