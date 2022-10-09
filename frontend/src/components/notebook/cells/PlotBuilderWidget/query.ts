@@ -63,7 +63,10 @@ export const buildQuery = ( data: PlotBuilderData) => {
       ${zBoundsD}
       ${labelBounds}
     `
-    .LIMIT(data.max_groups_x ?? 20);
+    .LIMIT(data.xy_only
+      ? (data.max_groups_x ?? 20)
+      : (data.max_groups_x ?? 20) * (data.max_groups_z ?? 20)
+    );
 
   const groupFirst = groupVars.shift();
   primaryQuery = groupVars.reduce(

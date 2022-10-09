@@ -1,5 +1,4 @@
 import { RuleGroupType } from "react-querybuilder";
-import { OptionType } from "../../../input/VariableInput";
 import { VariableSelectorValue } from "./VariableSelector";
 
 export interface PlotBuilderData {
@@ -15,7 +14,10 @@ export interface PlotBuilderData {
   xy_only: boolean;
 
   output_mode?: string;
+  output_config?: OutputConfig;
+}
 
+export interface OutputConfig {
   plot_type?: string;
   group_mode?: string;
   normalize?: boolean;

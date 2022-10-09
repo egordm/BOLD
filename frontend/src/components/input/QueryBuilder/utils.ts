@@ -1,5 +1,19 @@
 import { RuleGroupType } from "react-querybuilder";
 
+export const collectStatements = (group: RuleGroupType | any, vars: Set<string>) => {
+  if (group?.value?.input?.variable?.value) {
+    if (group.value.input.type === 'statement') {
+      vars.add(group.value.input.variable.value);
+    }
+  }
+
+  if (group.rules) {
+    for (const rule of group.rules) {
+      collectStatements(rule, vars);
+    }
+  }
+}
+
 const collectVars = (group: RuleGroupType | any, vars: Set<string>) => {
   if (group.variable?.value) {
     vars.add(group.variable.value);
@@ -7,6 +21,9 @@ const collectVars = (group: RuleGroupType | any, vars: Set<string>) => {
 
   if (group?.value?.input?.variable?.value) {
     vars.add(group.value.input.variable.value);
+    if (group.value.input.type === 'statement') {
+      vars.add(group.value.input.variable.value + 'Value');
+    }
   }
 
   if (group?.value?.predicate?.variable?.value) {

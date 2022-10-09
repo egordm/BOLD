@@ -2,8 +2,10 @@ import { FormControl, MenuItem, Select, Stack, TextField } from "@mui/material";
 import { AutocompleteProps } from "@mui/material/Autocomplete/Autocomplete";
 import { makeStyles } from "@mui/styles";
 import { Box } from "@mui/system";
-import React from "react";
+import React, { useMemo } from "react";
 import { Term, TermPos } from "../../types/terms";
+import { GutterInput, GutterSelect } from "./GutterInput";
+import { QueryContext } from "./QueryBuilder/config";
 import { TermInput } from "./TermInput";
 import { VariableInput } from "./VariableInput";
 import './styles.css';
@@ -43,11 +45,7 @@ export const FlexibleTermInput = ({
   pos: TermPos,
   labels?: Partial<typeof LABELS>,
   label?: string,
-  context?: Partial<{
-    variables: string[],
-    prefixes: any,
-    datasetId: any,
-  }>
+  context?: Partial<QueryContext>
 } & Partial<Omit<AutocompleteProps<any, false, false, true>, 'onChange'>>) => {
   const {
     type = 'search',
@@ -56,13 +54,20 @@ export const FlexibleTermInput = ({
     manual,
   } = value ?? {};
 
-  const { datasetId, variables, prefixes } = context ?? {};
+  const { datasetId, variables, prefixes, wikidata } = context ?? {};
 
   const labels = { ...LABELS, ...partialLabels, label };
   const classes = useStyles();
 
+  const type_options = useMemo(() => wikidata && pos === 'OBJECT'
+      ? [ ...TYPE_OPTIONS, { value: 'statement', label: 'Statement Variable' } ]
+      : TYPE_OPTIONS,
+    [ wikidata, pos ]
+  );
+
   let input = null;
   switch (type) {
+    case 'statement':
     case 'variable':
       input = (<VariableInput
         label={labels.variableLabel ?? labels.label}
@@ -109,54 +114,42 @@ export const FlexibleTermInput = ({
         />
       );
       break;
-
   }
 
   return (
-    <Stack
-      className='flexible-term-input'
-      sx={sx}
-      direction="column"
-      justifyContent="stretch">
-      <Box sx={{display: 'flex'}}>
-        {input}
-      </Box>
-      <Stack
-        className="gutter"
-        direction="row"
-        justifyContent="stretch"
-        sx={{
-          backgroundColor: 'rgba(0, 0, 0, 0.08)',
-          borderBottomLeftRadius: 4,
-          borderBottomRightRadius: 4,
-        }}
-      >
+    <GutterInput
+      padGutter={false}
+      gutter={(<>
         {beforeGutter}
-        <FormControl sx={{ m: 0, flex: 1, pr: 1 }} size="small" variant="standard">
-          <Select
-            value={type}
-            onChange={(event) => onChange({ ...value, type: event.target.value })}
-            sx={{ fontSize: 10, boxShadow: 0 }}
-            disableUnderline={true}
-          >
-            <MenuItem value='search'>SEARCH</MenuItem>
-            <MenuItem value='manual'>MANUAL</MenuItem>
-            <MenuItem value='variable'>VARIABLE</MenuItem>
-            <MenuItem value='any'>ANY</MenuItem>
-          </Select>
-        </FormControl>
+        <GutterSelect
+          value={type}
+          onChange={(type) => onChange({ ...value, type })}
+          options={type_options}
+        />
         {afterGutter}
-      </Stack>
-    </Stack>
-  );
+
+      </>)}
+    >
+      {input}
+    </GutterInput>
+  )
 };
 
 
+export type FlexibleTermType = 'search' | 'manual' | 'variable' | 'any' | 'statement';
+
 export interface FlexibleTerm {
-  type: 'search' | 'manual' | 'variable' | 'any';
+  type: FlexibleTermType;
   search?: Term[];
   manual?: string;
   variable?: {
     value: string,
   };
 }
+
+const TYPE_OPTIONS = [
+  { value: 'search', label: 'Search' },
+  { value: 'manual', label: 'Manual' },
+  { value: 'variable', label: 'Variable' },
+  { value: 'any', label: 'Any' },
+]

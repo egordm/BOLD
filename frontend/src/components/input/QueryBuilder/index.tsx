@@ -41,6 +41,7 @@ export default ({
       variables: collectVarsFromGroup(value),
       prefixes,
       datasetId: report?.dataset?.id,
+      wikidata: report?.dataset?.search_mode === 'WIKIDATA',
     }
   }, [ value, prefixes, report ]);
 

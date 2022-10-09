@@ -1,6 +1,6 @@
 import { literal, namedNode, variable } from "@rdfjs/data-model";
 import namespace from "@rdfjs/namespace";
-import { NamedNode, Variable } from "@rdfjs/types";
+import { NamedNode, Variable, Term as RdfTerm } from "@rdfjs/types";
 import { SparqlValue } from "@tpluscode/rdf-string";
 import { sparql } from "@tpluscode/sparql-builder";
 import { CellOutput } from "../types/notebooks";
@@ -69,6 +69,21 @@ export const bind = (expr: SparqlValue, alias: Variable | string) => ({
   }
 })
 
+export const valuesBound = (variable: Variable, values: RdfTerm[]) => ({
+  variable,
+  values,
+  _toPartialString(options) {
+    return sparql`VALUES ${variable} { ${values} }.`._toPartialString(options)
+  }
+});
+
+export const optionalBound = (expr: SparqlValue) => ({
+  expr,
+  _toPartialString(options) {
+    return sparql`OPTIONAL { ${expr} }`._toPartialString(options)
+  }
+})
+
 export const sparqlLabelBound = (v: Variable | string) => {
   const { rdfs } = PREFIXES;
   const varName = typeof v === 'string' ? variable(v) : v;
@@ -81,7 +96,6 @@ export const sparqlLabelBound = (v: Variable | string) => {
     varLabel
   }
 }
-
 
 export const sparqlLabelsBound = (v: (Variable | string)[]) => {
   return v.reduce((acc: any, v) => {

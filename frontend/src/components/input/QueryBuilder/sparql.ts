@@ -1,12 +1,13 @@
-import { literal, namedNode, variable } from "@rdfjs/data-model";
-import { Variable } from "@rdfjs/types";
+import { literal, namedNode, triple, variable } from "@rdfjs/data-model";
+import { Variable, Term as RdfTerm } from "@rdfjs/types";
 import { SparqlValue } from "@tpluscode/rdf-string";
 import { sparql } from "@tpluscode/sparql-builder";
 import _ from "lodash";
 import { RuleGroupType, RuleType } from "react-querybuilder/dist/types/types/ruleGroups";
 import { Term } from "../../../types/terms";
-import { brackets, sparqlConjunctionBuilder, sparqlJoin } from "../../../utils/sparql";
+import { brackets, optionalBound, sparqlConjunctionBuilder, valuesBound } from "../../../utils/sparql";
 import { FlexibleTerm } from "../FlexibleTermInput";
+import { collectStatements } from "./utils";
 
 export interface RuleGroup extends RuleGroupType<Rule> {
   variable?: {
@@ -28,12 +29,18 @@ export type RuleValue = {
 export interface QueryState {
   tempVarCounter: number,
   globalBounds: SparqlValue[],
+  statements: Set<string>,
 }
 
-export const tryQueryToSparql = (query: RuleGroup) => {
+export const tryQueryToSparql = (query: RuleGroup, wikidata = true) => {
   const state: QueryState = {
     tempVarCounter: 0,
     globalBounds: [],
+    statements: new Set(),
+  }
+
+  if (wikidata) {
+    collectStatements(query, state.statements);
   }
 
   return [
@@ -42,7 +49,7 @@ export const tryQueryToSparql = (query: RuleGroup) => {
   ]
 }
 
-export const queryToSparql = (query: RuleGroup) => {
+export const queryToSparql = (query: RuleGroup, wikidata = true) => {
   try {
     return tryQueryToSparql(query);
   } catch (e) {
@@ -130,17 +137,64 @@ const tripleToSparql = (state: QueryState, subject: FlexibleTerm, predicate: Fle
   const { varName: sVar, bounds: sBounds } = flexTermToSparql(state, subject);
   const { varName: pVar, bounds: pBounds } = flexTermToSparql(state, predicate);
   const { varName: oVar, bounds: oBounds } = flexTermToSparql(state, object);
+  const extra = [];
+
+  if (isStmt(state, sVar) || isStmt(state, oVar)) {
+    let pBoundVals = pBounds?.[0]?.values;
+
+    if (isStmt(state, sVar) && pBoundVals) {
+      // If subject is a statement then we need to modify property to select for value or qualifier
+      // ?stmt wdt:.. ?o is translated to ?stmt ps:.. ?o and ?stmt pq:.. ?o
+      pBoundVals.filter(isWikiDirect).forEach(t => {
+        pBoundVals.push(...wikiDirectToValueProps(t));
+      })
+    }
+
+    if (isStmt(state, oVar) && pBoundVals) {
+      // Wikidata has a special property to select the statement
+
+      // Bind the statement value to the to similar triple
+      const varName = variable(`tmp${state.tempVarCounter++}`);
+      let varProps = [...pBoundVals];
+      varProps.filter(isWikiDirect).forEach(t => { varProps.push(...wikiDirectToValueProps(t)) });
+      extra.push(valuesBound(varName, varProps));
+      extra.push(triple(oVar, varName, variable(`${oVar.value}Value`)));
+
+      // ?s wdt:.. ?stmt is translated to ?s p:.. ?stmt
+      pBoundVals.filter(t => isWikiDirect(t)).forEach(t => {
+        pBoundVals.push(namedNode(WIKIDATA_PREFIX_PROP + t.value.slice(WIKIDATA_PREFIX_DIRECT.length)));
+      });
+      pBounds[0] = valuesBound(pBounds[0].variable, pBoundVals.filter(t => !isWikiDirect(t)))
+    }
+  }
 
   return [
     ...(sBounds ?? []),
     ...(pBounds ?? []),
     ...(oBounds ?? []),
-    sparql`${sVar} ${pVar} ${oVar} .`,
+    triple(sVar, pVar, oVar),
+    ...extra,
   ]
 }
 
+const isStmt = (state: QueryState, v: Variable) => v.termType === 'Variable' && state.statements.has(v.value)
+
+const isWikiDirect = (t: RdfTerm) => t.termType === 'NamedNode' && t.value.startsWith(WIKIDATA_PREFIX_DIRECT);
+
+const wikiDirectToValueProps = (t: RdfTerm) => [
+  namedNode(WIKIDATA_PREFIX_VAL_SIMPLE + t.value.slice(WIKIDATA_PREFIX_DIRECT.length)),
+  namedNode(WIKIDATA_PREFIX_VAL_QUALIFIER + t.value.slice(WIKIDATA_PREFIX_DIRECT.length))
+]
+
+
+const WIKIDATA_PREFIX_DIRECT = 'http://www.wikidata.org/prop/direct/';
+const WIKIDATA_PREFIX_PROP = 'http://www.wikidata.org/prop/';
+const WIKIDATA_PREFIX_VAL_SIMPLE = 'http://www.wikidata.org/prop/statement/';
+const WIKIDATA_PREFIX_VAL_QUALIFIER = 'http://www.wikidata.org/prop/qualifier/';
+
 const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
   switch (term.type) {
+    case 'statement':
     case 'variable': {
       if (!term.variable.value) {
         throw new Error('Variable value is required')
@@ -161,9 +215,7 @@ const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
         );
 
       const varName = variable(`tmp${state.tempVarCounter++}`);
-      const bounds = [
-        sparql`VALUES ${varName} { ${tokens} }.`
-      ];
+      const bounds = [valuesBound(varName, tokens)];
 
       return { varName, bounds }
     }
@@ -171,11 +223,9 @@ const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
       if (!term.search) {
         throw new Error('Search value is required')
       }
-      const tokens = term.search.map(t => termToSparql(state, t));
+      let tokens = term.search.map(t => termToSparql(state, t));
       const varName = variable(`tmp${state.tempVarCounter++}`);
-      const bounds = [
-        sparql`VALUES ${varName} { ${tokens} }.`
-      ];
+      const bounds = [valuesBound(varName, tokens)];
 
       return { varName, bounds }
     }
@@ -271,3 +321,4 @@ export const aggregateToSparql = (state: QueryState | null, v: Variable | Sparql
       return sparql`SAMPLE(${v})`;
   }
 }
+

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { Prefixes } from "../../../types/sparql";
 import { ActionButton } from "./custom/ActionButton";
 import { RuleGroup } from "./custom/RuleGroup";
 import { ValueEditor } from "./custom/ValueEditor";
@@ -47,3 +48,11 @@ export const operators = [
   // { name: 'group_prim', label: 'group primary' },
   // { name: 'group_sec', label: 'group secondary' },
 ]
+
+
+export interface QueryContext {
+  variables: string[],
+  prefixes: Prefixes,
+  datasetId: string,
+  wikidata: boolean,
+}
