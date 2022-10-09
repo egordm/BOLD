@@ -24,8 +24,8 @@ export const CellProvider = (props: {
   const { runCells } = useRunQueueContext();
   const { socket } = useNotebookConnectionContext();
   const { focus, setFocus } = useCellFocusContext();
-  const { notebook, notebookRef, setCell } = useNotebookContext();
-  const { setNotebook } = useUndoHistoryContext();
+  const { notebook, notebookRef } = useNotebookContext();
+  const { setNotebook, setCell } = useUndoHistoryContext();
   const cellRef = React.useRef<Cell>(null);
 
   const cell = notebook?.content?.cells[cellId];

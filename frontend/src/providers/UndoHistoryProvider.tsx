@@ -1,9 +1,7 @@
-import { debounce } from "lodash";
 import throttle from "lodash/throttle";
 import React, { useCallback, useEffect, useMemo } from "react";
-import { Notebook } from "../types/notebooks";
+import { Cell, Notebook } from "../types/notebooks";
 import { useNotebookContext } from "./NotebookProvider";
-import { useReportContext } from "./ReportProvider";
 
 
 export interface UndoHistory {
@@ -11,10 +9,11 @@ export interface UndoHistory {
   redo: (Notebook['content'])[],
 }
 
-const HISTORY_LIMIT = 8;
+const HISTORY_LIMIT = 10;
 
 const UndoHistoryContext = React.createContext<{
   setNotebook: (notebook: Notebook) => void,
+  setCell: (cell: Cell) => void,
   undo: () => void,
   redo: () => void,
 }>(null);
@@ -30,7 +29,7 @@ export const UndoHistoryProvider = ({ children }: {
     historyRef.current = history;
   }, []);
 
-  const { notebookRef, setNotebook: setNotebookInternal } = useNotebookContext();
+  const { notebookRef, setNotebook: setNotebookInternal, setCell: setCellInternal } = useNotebookContext();
 
   const checkpointHistory = useCallback(throttle(() => {
     const undo = historyRef.current.undo.slice();
@@ -45,6 +44,11 @@ export const UndoHistoryProvider = ({ children }: {
   const setNotebook = useCallback((notebook: Notebook) => {
     checkpointHistory();
     setNotebookInternal(notebook);
+  }, []);
+
+  const setCell = useCallback((cell: Cell) => {
+    checkpointHistory();
+    setCellInternal(cell);
   }, []);
 
   const undo = useCallback(() => {
@@ -71,7 +75,7 @@ export const UndoHistoryProvider = ({ children }: {
 
   useEffect(() => {
     const keyDownHandler = (event: KeyboardEvent) => {
-      if (['textarea', 'input'].includes(document.activeElement?.tagName?.toLowerCase())) {
+      if ([ 'textarea', 'input' ].includes(document.activeElement?.tagName?.toLowerCase())) {
         return;
       }
 
@@ -92,7 +96,7 @@ export const UndoHistoryProvider = ({ children }: {
   }, []);
 
   const contextValue = useMemo(() => ({
-    setNotebook, undo, redo,
+    setNotebook, setCell, undo, redo,
   }), []);
 
   return (
