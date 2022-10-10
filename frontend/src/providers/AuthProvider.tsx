@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from "react";
+import React, { createContext, useState, useEffect, useMemo } from "react";
 import jwt_decode, { JwtPayload } from "jwt-decode";
 import { useNavigate } from "react-router-dom";
 import { API_ENDPOINT } from "../utils/api";
@@ -66,14 +66,14 @@ export const AuthProvider = ({ children }) => {
     navigate("/");
   };
 
-  const contextData = {
+  const contextData = useMemo(() => ({
     user,
     setUser,
     authTokens,
     setAuthTokens,
     loginUser,
     logoutUser
-  };
+  }), [user, authTokens]);
 
   useEffect(() => {
     if (authTokens) {

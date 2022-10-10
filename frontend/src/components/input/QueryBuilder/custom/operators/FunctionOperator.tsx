@@ -39,8 +39,8 @@ export default ({
       case 'raw':
         return (<TextField
           className={styles.manualField}
-          value={value.input}
-          onChange={e => updateValue({ input: e.target.value })}
+          value={value.rawFn}
+          onChange={e => updateValue({ rawFn: e.target.value })}
           variant="filled"
           label="Raw transform"
           placeholder={"Valid SPARQL expression"}

@@ -5,7 +5,7 @@ import { sparql } from "@tpluscode/sparql-builder";
 import _ from "lodash";
 import { RuleGroupType, RuleType } from "react-querybuilder/dist/types/types/ruleGroups";
 import { Term } from "../../../types/terms";
-import { brackets, optionalBound, PREFIXES, sparqlConjunctionBuilder, valuesBound } from "../../../utils/sparql";
+import { bind, brackets, PREFIXES, sparqlConjunctionBuilder, valuesBound } from "../../../utils/sparql";
 import { FlexibleTerm } from "../FlexibleTermInput";
 import { DType, OpType } from "./types";
 import { collectStatements } from "./utils";
@@ -185,6 +185,25 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
         ...(sBounds ?? []),
         sparql`${sVar} ${pPath} ${oVar}.`,
       ];
+    }
+    case 'function': {
+      const { rawFn, output } = rule.value;
+      const func = rule.value.func?.value ?? 'raw';
+
+      const outputVar: FlexibleTerm = { type: 'variable', variable: output };
+      const { varName: oVar, bounds: oBounds } = flexTermToSparql(state, outputVar);
+
+      switch (func) {
+        case 'raw': {
+          return [
+            ...(oBounds ?? []),
+            bind(sparql`${rawFn}`, oVar)
+          ];
+        }
+        default: {
+          throw new Error(`Unknown function ${func}`);
+        }
+      }
     }
     default:
       throw new Error(`Unknown operator ${rule.operator}`)
