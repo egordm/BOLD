@@ -48,6 +48,12 @@ export const ResultTab = ({
       const yVar = variable(snapshot.y.vars[0].value);
       const zVar = variable(snapshot.z.vars[0].value);
 
+      const axisLabels = {
+        x: xVar.value,
+        y: yVar.value,
+        z: zVar?.value,
+      };
+
       const x = snapshot.x?.dtype === 'categorical'
         ? parseSelectColumns(df, xVar, prefixes)
         : parseValueColumns(df, xVar);
@@ -57,11 +63,20 @@ export const ResultTab = ({
           ? parseSelectColumns(df, zVar, prefixes)
           : parseValueColumns(df, zVar)
       );
-      return { x, z, y };
+      return { x, z, y, axisLabels };
     }, [ outputs ]);
 
     if (mode === 'plot' && plotData) {
-      const { x, y, z } = plotData;
+      const { x, y, z, axisLabels } = plotData;
+
+      const layout = {
+        xaxis: {
+          title: axisLabels.x,
+        },
+        yaxis: {
+          title: axisLabels.y,
+        }
+      };
 
       if (x.length < 2) {
         return (
@@ -103,6 +118,7 @@ export const ResultTab = ({
             (<PiePlot
               labels={labels as any}
               values={values}
+              layout={layout}
             />)
           );
         }
@@ -114,6 +130,7 @@ export const ResultTab = ({
             (<BarPlot
               labels={labels as any}
               values={values}
+              layout={layout}
             />)
           );
         }
@@ -124,6 +141,7 @@ export const ResultTab = ({
               values={y as number[]}
               groups={z as any[]}
               mode={data?.group_mode as any ?? 'group'}
+              layout={layout}
             />),
             (
               <SimpleSelect
@@ -143,6 +161,7 @@ export const ResultTab = ({
               values={y as number[]}
               groups={z as any[]}
               normalized={data?.normalize ?? false}
+              layout={layout}
             />),
             (
               <Checkbox
