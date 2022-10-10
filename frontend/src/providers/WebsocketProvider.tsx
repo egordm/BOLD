@@ -1,7 +1,8 @@
 import { Backdrop, CircularProgress } from "@mui/material";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import throttle from "lodash/throttle";
+import React, { useCallback, useEffect, useMemo } from "react";
 import { useApi } from "../hooks/useApi";
-import { useAuthContext } from "./AuthProvider";
+import {  useAuthContext } from "./AuthProvider";
 
 export interface Packet<U, T> {
   type: U;
@@ -47,12 +48,20 @@ export const createWebsocketProvider = <U, T = any, C = any>(useBackdrop: boolea
     const _ = useApi();
     const {authTokens} = useAuthContext();
 
-    const connect = useCallback(() => {
-      if (!authTokens?.access) {
+    const endpointRef = React.useRef(endpoint);
+    const authTokensRef = React.useRef(authTokens);
+
+    useEffect(() => {
+      endpointRef.current = endpoint;
+      authTokensRef.current = authTokens;
+    }, [endpoint, authTokens]);
+
+    const connect = useCallback(throttle(() => {
+      if (!authTokensRef.current?.access) {
         return () => {};
       }
 
-      const socket = new WebSocket(`${endpoint}?token=${encodeURIComponent(authTokens?.access)}`);
+      const socket = new WebSocket(`${endpoint}?token=${encodeURIComponent(authTokensRef.current?.access)}`);
       setSocket(socket);
       let reconnect = true;
 
@@ -95,11 +104,11 @@ export const createWebsocketProvider = <U, T = any, C = any>(useBackdrop: boolea
         };
         socket.close();
       };
-    }, [ endpoint, authTokens ]);
+    }, 5000), []);
 
     useEffect(() => {
       return connect();
-    }, [ endpoint, authTokens ]);
+    }, [ endpoint ]);
 
     const contextValue = useMemo(() => ({
       status, socket, state, setState

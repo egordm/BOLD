@@ -6,7 +6,7 @@ import { API_ENDPOINT } from "../utils/api";
 const AuthContext = createContext<{
   user: JwtPayload & { username?: string, name?: string, group?: string } | null;
   setUser: any,
-  authTokens: any,
+  authTokens: AuthTokens,
   setAuthTokens: any,
   loginUser: any,
   logoutUser: any,
@@ -97,3 +97,7 @@ export const useAuthContext = () => {
   return context;
 };
 
+export interface AuthTokens {
+  access: string;
+  refresh: string;
+}
