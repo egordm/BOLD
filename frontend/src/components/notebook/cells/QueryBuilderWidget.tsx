@@ -67,6 +67,9 @@ export const QueryBuilderWidget = (props: {}) => {
 
   useEffect(() => {
     setData({
+      select: [
+        { value: 'main', label: 'main'}
+      ],
       ...data,
     })
   }, []);

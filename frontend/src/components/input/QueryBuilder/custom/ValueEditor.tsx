@@ -16,6 +16,7 @@ import {
   useValueEditor,
   type ValueEditorProps,
 } from 'react-querybuilder';
+import { FlexibleTermInput } from "../../FlexibleTermInput";
 import { TermInput } from "../../TermInput";
 import FilterOperator from "./operators/FilterOperator";
 import LogicalOperator from "./operators/LogicalOperator";
@@ -81,6 +82,15 @@ export const ValueEditor = ({
         setValue={updateValue}
         context={context}
         parent={parent}
+      />);
+    case 'subclass_of':
+      return (<FlexibleTermInput
+        sx={{ flex: 1 }}
+        pos={'OBJECT'}
+        label={'Subclass of'}
+        value={value.input}
+        onChange={(input) => updateValue({ input })}
+        context={context}
       />);
   }
 

@@ -1,10 +1,18 @@
 import { DateTimePicker } from "@mui/lab";
 import { Autocomplete, Stack, StackProps, TextField } from "@mui/material";
-import { literal } from "@rdfjs/data-model";
+import { makeStyles } from "@mui/styles";
 import React from "react";
 import { Checkbox } from "../../../Checkbox";
 import { FlexibleTermInput } from "../../../FlexibleTermInput";
 import { OptionType } from "../../../VariableInput";
+
+const useStyles = makeStyles((theme) => ({
+  manualField: {
+    "& textarea": {
+      fontFamily: "monospace"
+    }
+  }
+}));
 
 
 export default ({
@@ -29,23 +37,26 @@ export default ({
     <Stack direction="row" sx={{ flex: 1 }}>
       <Autocomplete
         disablePortal
-        options={DATA_TYPES}
-        sx={{ width: 100 }}
-        value={dtype}
-        isOptionEqualToValue={(option, value) => (option?.value ?? option) === (value?.value ?? value)}
-        renderInput={(params) => <TextField {...params} variant="filled" label="Datatype"/>}
-        onChange={(event: any, dtype: OptionType | null) => updateValue({ dtype })}
-      />
-      <Autocomplete
-        disablePortal
         options={OPERATORS}
         sx={{ width: 80 }}
         value={op}
         isOptionEqualToValue={(option, value) => (option?.value ?? option) === (value?.value ?? value)}
         renderInput={(params) => <TextField {...params} variant="filled" label="Operator"/>}
         onChange={(event: any, op: OptionType | null) => updateValue({ op })}
+        disableClearable={true}
+      />
+      <Autocomplete
+        disablePortal
+        options={DATA_TYPES}
+        sx={{ width: 160 }}
+        value={dtype}
+        isOptionEqualToValue={(option, value) => (option?.value ?? option) === (value?.value ?? value)}
+        renderInput={(params) => <TextField {...params} variant="filled" label="Datatype"/>}
+        onChange={(event: any, dtype: OptionType | null) => updateValue({ dtype })}
+        disableClearable={true}
       />
       <DatatypeInput
+        sx={{ flex: 1 }}
         value={value?.p1}
         setValue={(p1: any) => updateValue({ p1 })}
         dtype={dtype?.value}
@@ -77,6 +88,7 @@ const OPERATORS = [
   { label: 'not in', value: 'nin' },
   { label: 'null', value: 'null' },
   { label: 'not null', value: 'not_null' },
+  { label: 'raw', value: 'raw' },
 ]
 
 const DatatypeInput = ({
@@ -91,32 +103,38 @@ const DatatypeInput = ({
   dtype: string,
   context,
 } | any) => {
+  const styles = useStyles();
+
   const label = `Input ${dtype}`;
 
   const setValue = (value: any) => {
     switch (dtype) {
       case 'string':
-        return { termType: 'Literal', value }
+        return setValuePartial({ termType: 'Literal', value })
+      case 'raw':
+        return setValuePartial({ termType: 'Raw', value })
       case 'boolean':
-        return { termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#boolean' }
+        return setValuePartial({ termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#boolean' })
       case 'integer':
-        return { termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#integer' }
+        return setValuePartial({ termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#integer' })
       case 'decimal':
-        return { termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#decimal' }
+        return setValuePartial({ termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#decimal' })
       case 'datetime':
-        return { termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#dateTime' }
+        return setValuePartial({ termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#dateTime' })
       case 'iri':
-        return { termType: 'NamedNode', value }
+        return setValuePartial({ termType: 'NamedNode', value })
       case 'url':
-        return { termType: 'NamedNode', value }
+        return setValuePartial({ termType: 'NamedNode', value })
     }
   }
   const value = valueProp?.value ?? valueProp;
 
   switch (dtype) {
+    case 'raw':
     case 'string':
       return (
         <TextField
+          className={styles.manualField}
           value={value}
           onChange={e => setValue(e.target.value)}
           variant="filled"
@@ -160,7 +178,8 @@ const DatatypeInput = ({
         <DateTimePicker
           value={value ?? new Date()}
           onChange={(e) => setValue(e)}
-          renderInput={(params) => <TextField variant="filled" {...params} />}
+          ampm={false}
+          renderInput={(params) => <TextField sx={{ flex: 1 }} variant="filled" {...params} />}
           label={label}
           {...props}
         />

@@ -14,7 +14,7 @@ import {
 import { aggregateToSparql, queryToSparql } from "../../../input/QueryBuilder/sparql";
 import { PlotBuilderData, RESULT_SUFFIX } from "./types";
 
-export const buildQuery = ( data: PlotBuilderData) => {
+export const buildQuery = (data: PlotBuilderData) => {
   const x_vars: Variable[] = (data.x?.vars ?? []).map(v => variable(v.value));
   const y_vars: Variable[] = (data.y?.vars ?? []).map(v => variable(v.value));
   const z_vars: Variable[] = (data?.xy_only ?? true) ? [] : (data.z?.vars ?? []).map(v => variable(v.value));
@@ -77,7 +77,7 @@ export const buildQuery = ( data: PlotBuilderData) => {
   const orderFirst = orderVars.shift();
   primaryQuery = orderVars.reduce(
     (query, varName) => query.THEN.BY(varName as any),
-    primaryQuery.ORDER().BY(orderFirst as any)
+    primaryQuery.ORDER().BY(orderFirst as any, true)
   );
 
   return {

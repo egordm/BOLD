@@ -31,7 +31,6 @@ export const FlexibleTermInput = ({
   onChange,
   context,
   pos,
-  sx,
   beforeGutter,
   afterGutter,
   labels: partialLabels,
@@ -127,8 +126,8 @@ export const FlexibleTermInput = ({
           options={type_options}
         />
         {afterGutter}
-
       </>)}
+      {...props}
     >
       {input}
     </GutterInput>

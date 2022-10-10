@@ -1,5 +1,5 @@
 import { literal, namedNode, variable } from "@rdfjs/data-model";
-import namespace from "@rdfjs/namespace";
+import namespace, { NamespaceBuilder } from "@rdfjs/namespace";
 import { NamedNode, Variable, Term as RdfTerm } from "@rdfjs/types";
 import { SparqlValue } from "@tpluscode/rdf-string";
 import { sparql } from "@tpluscode/sparql-builder";
@@ -22,6 +22,7 @@ export const PREFIXES = {
   rdfs: namespace('http://www.w3.org/2000/01/rdf-schema#'),
   owl: namespace('http://www.w3.org/2002/07/owl#'),
   xsd: namespace('http://www.w3.org/2001/XMLSchema#'),
+  wdt: namespace('http://www.wikidata.org/prop/direct/'),
 }
 
 
@@ -199,6 +200,14 @@ export const sparqlDTypeBound = (v: Variable | string, dtype: string) => {
     default:
       return sparql`FILTER (BOUND(${varName}))`;
   }
+}
+
+export const sparqlPrefixes = (prefixes: Prefixes | Record<string, NamespaceBuilder>) => {
+  return Object.entries(prefixes)
+    .map(([prefix, iri]) => typeof iri === 'string'
+      ? `PREFIX ${prefix}: <${iri}>`
+      : `PREFIX ${prefix}: <${iri.value}>`
+    );
 }
 
 

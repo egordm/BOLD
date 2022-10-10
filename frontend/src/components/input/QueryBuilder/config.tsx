@@ -45,6 +45,7 @@ export const operators = [
   { name: 'filter_path', label: 'filter path' },
   { name: 'datatype', label: 'datatype' },
   { name: 'operator', label: 'operator' },
+  { name: 'subclass_of', label: 'subclass of' },
   // { name: 'group_prim', label: 'group primary' },
   // { name: 'group_sec', label: 'group secondary' },
 ]

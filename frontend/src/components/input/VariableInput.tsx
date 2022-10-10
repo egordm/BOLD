@@ -42,6 +42,7 @@ export const VariableInput = ({
       freeSolo={!selectOnly}
       multiple={multiple}
       disablePortal
+      disableClearable={true}
       value={value}
       defaultValue={defaultValue}
       options={options}

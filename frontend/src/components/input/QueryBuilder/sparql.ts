@@ -5,7 +5,7 @@ import { sparql } from "@tpluscode/sparql-builder";
 import _ from "lodash";
 import { RuleGroupType, RuleType } from "react-querybuilder/dist/types/types/ruleGroups";
 import { Term } from "../../../types/terms";
-import { brackets, optionalBound, sparqlConjunctionBuilder, valuesBound } from "../../../utils/sparql";
+import { brackets, optionalBound, PREFIXES, sparqlConjunctionBuilder, valuesBound } from "../../../utils/sparql";
 import { FlexibleTerm } from "../FlexibleTermInput";
 import { collectStatements } from "./utils";
 
@@ -30,6 +30,7 @@ export interface QueryState {
   tempVarCounter: number,
   globalBounds: SparqlValue[],
   statements: Set<string>,
+  wikidata: boolean,
 }
 
 export const tryQueryToSparql = (query: RuleGroup, wikidata = true) => {
@@ -37,6 +38,7 @@ export const tryQueryToSparql = (query: RuleGroup, wikidata = true) => {
     tempVarCounter: 0,
     globalBounds: [],
     statements: new Set(),
+    wikidata,
   }
 
   if (wikidata) {
@@ -126,6 +128,28 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
         boundDatatypeSparql(state, parentVar, type)
       )
       return null;
+    }
+    case 'subclass_of': {
+      const { input } = rule.value;
+      const parentVar: FlexibleTerm = { type: 'variable', variable: parent.variable };
+
+      const { varName: sVar, bounds: sBounds } = flexTermToSparql(state, parentVar);
+      const { varName: oVar, bounds: oBounds } = flexTermToSparql(state, input);
+
+      const { wdt, rdf, rdfs } = PREFIXES;
+      let pPath = null;
+      if (state.wikidata) {
+        pPath = sparql`${wdt.P31}/${wdt.P279}*`;
+      } else {
+        pPath = sparql`${rdf.type}/${rdfs.subClassOf}*`;
+      }
+      console.log('pPath', pPath, triple(sVar, pPath, oVar));
+
+      return [
+        ...(oBounds ?? []),
+        ...(sBounds ?? []),
+        sparql`${sVar} ${pPath} ${oVar}.`,
+      ];
     }
     default:
       throw new Error(`Unknown operator ${rule.operator}`)
