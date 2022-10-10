@@ -7,6 +7,7 @@ import { RuleGroupType, RuleType } from "react-querybuilder/dist/types/types/rul
 import { Term } from "../../../types/terms";
 import { brackets, optionalBound, PREFIXES, sparqlConjunctionBuilder, valuesBound } from "../../../utils/sparql";
 import { FlexibleTerm } from "../FlexibleTermInput";
+import { DType, OpType } from "./types";
 import { collectStatements } from "./utils";
 
 export interface RuleGroup extends RuleGroupType<Rule> {
@@ -129,6 +130,44 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
       )
       return null;
     }
+    case 'operator': {
+      const value = rule.value ?? {};
+      const op: OpType = value?.op?.value ?? 'eq';
+      const dtype = value?.dtype.value ?? 'term';
+      const p1Val = value?.p1;
+
+      const parentVar: FlexibleTerm = { type: 'variable', variable: parent.variable };
+      const { varName: pVar, bounds: pBounds } = flexTermToSparql(state, parentVar);
+      const extraBounds = [];
+
+      if (OP_TO_SPARQL[op]) {
+        const { varName: p1Var, bounds: p1Bounds } = dtypeValueToSparql(state, dtype, p1Val);
+
+        const sparqlOp = OP_TO_SPARQL[op];
+        extraBounds.push(
+          ...p1Bounds,
+          sparql`FILTER(${pVar} ${sparqlOp} ${p1Var})`
+        )
+      } else {
+        switch (op) {
+          case 'null':
+            extraBounds.push(sparql`FILTER(!BOUND(${pVar}))`);
+            break;
+          case 'not_null':
+            extraBounds.push(sparql`FILTER(BOUND(${pVar}))`);
+            break;
+          case 'raw':
+            extraBounds.push(sparql`FILTER(${p1Val})`);
+        }
+      }
+
+      console.log('extraBounds', extraBounds, rule)
+
+      return [
+        ...(pBounds ?? []),
+        ...extraBounds,
+      ];
+    }
     case 'subclass_of': {
       const { input } = rule.value;
       const parentVar: FlexibleTerm = { type: 'variable', variable: parent.variable };
@@ -143,8 +182,6 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
       } else {
         pPath = sparql`${rdf.type}/${rdfs.subClassOf}*`;
       }
-      console.log('pPath', pPath, triple(sVar, pPath, oVar));
-
       return [
         ...(oBounds ?? []),
         ...(sBounds ?? []),
@@ -156,6 +193,38 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
   }
 }
 
+const OP_TO_SPARQL = {
+  'eq': '=',
+  'neq': '!=',
+  'lt': '<',
+  'lte': '<=',
+  'gt': '>',
+  'gte': '>=',
+}
+
+const dtypeValueToSparql = (state: QueryState, dtype: DType, value: FlexibleTerm | any) => {
+  if (dtype === 'term') {
+    return flexTermToSparql(state, value);
+  }
+
+  const { xsd } = PREFIXES;
+  switch (dtype) {
+    case 'string':
+      return { varName: literal(value), bounds: [] };
+    case 'boolean':
+      return { varName: literal(value, xsd.boolean), bounds: [] };
+    case 'integer':
+      return { varName: literal(value, xsd.integer), bounds: [] };
+    case 'decimal':
+      return { varName: literal(value, xsd.decimal), bounds: [] };
+    case 'datetime':
+      return { varName: literal(value?.toISOString(), xsd.dateTime), bounds: [] };
+    case 'url':
+      return { varName: literal(value, xsd.anyURI), bounds: [] };
+    default:
+      throw new Error(`Unknown dtype ${dtype}`)
+  }
+}
 
 const tripleToSparql = (state: QueryState, subject: FlexibleTerm, predicate: FlexibleTerm, object: FlexibleTerm) => {
   const { varName: sVar, bounds: sBounds } = flexTermToSparql(state, subject);

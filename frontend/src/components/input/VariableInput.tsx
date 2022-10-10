@@ -92,9 +92,9 @@ export const VariableInput = ({
   );
 };
 
-export interface OptionType {
+export interface OptionType<T= string> {
   inputValue?: string;
-  value: string;
+  value: T;
   label?: string;
 }
 

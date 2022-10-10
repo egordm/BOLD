@@ -1,10 +1,11 @@
 import { DateTimePicker } from "@mui/lab";
 import { Autocomplete, Stack, StackProps, TextField } from "@mui/material";
 import { makeStyles } from "@mui/styles";
-import React from "react";
+import React, { useMemo } from "react";
 import { Checkbox } from "../../../Checkbox";
 import { FlexibleTermInput } from "../../../FlexibleTermInput";
 import { OptionType } from "../../../VariableInput";
+import { DType, OpType } from "../../types";
 
 const useStyles = makeStyles((theme) => ({
   manualField: {
@@ -33,59 +34,75 @@ export default ({
   const dtype = value?.dtype ?? { value: 'decimal', label: 'Decimal' };
   const op = value?.op ?? { label: '==', value: 'eq' };
 
+  const datatypeInput = useMemo(() => (
+    <Autocomplete
+      disablePortal
+      options={DATA_TYPES}
+      sx={{ width: 130 }}
+      value={dtype}
+      isOptionEqualToValue={(option, value) => (option?.value ?? option) === (value?.value ?? value)}
+      renderInput={(params) => <TextField {...params} variant="filled" label="Datatype"/>}
+      onChange={(event: any, dtype: OptionType | null) => updateValue({ dtype })}
+      disableClearable={true}
+    />
+  ), [ dtype ]);
+
+  const input = useMemo(() => {
+    switch (op.value) {
+      case 'null':
+      case 'not_null':
+        return null;
+      default:
+        return (
+          <Stack direction="row" sx={{flex: 1}}>
+            {datatypeInput}
+            <DatatypeInput
+              sx={{ flex: 1 }}
+              value={value?.p1}
+              setValue={(p1: any) => updateValue({ p1 })}
+              dtype={dtype?.value}
+              context={context}
+              label={`Input ${dtype?.value}`}
+            />
+          </Stack>
+        )
+    }
+  }, [ value ]);
+
   return (
     <Stack direction="row" sx={{ flex: 1 }}>
       <Autocomplete
         disablePortal
         options={OPERATORS}
-        sx={{ width: 80 }}
+        sx={{ width: 120 }}
         value={op}
         isOptionEqualToValue={(option, value) => (option?.value ?? option) === (value?.value ?? value)}
         renderInput={(params) => <TextField {...params} variant="filled" label="Operator"/>}
         onChange={(event: any, op: OptionType | null) => updateValue({ op })}
         disableClearable={true}
       />
-      <Autocomplete
-        disablePortal
-        options={DATA_TYPES}
-        sx={{ width: 160 }}
-        value={dtype}
-        isOptionEqualToValue={(option, value) => (option?.value ?? option) === (value?.value ?? value)}
-        renderInput={(params) => <TextField {...params} variant="filled" label="Datatype"/>}
-        onChange={(event: any, dtype: OptionType | null) => updateValue({ dtype })}
-        disableClearable={true}
-      />
-      <DatatypeInput
-        sx={{ flex: 1 }}
-        value={value?.p1}
-        setValue={(p1: any) => updateValue({ p1 })}
-        dtype={dtype?.value}
-        context={context}
-      />
+      {input}
     </Stack>
   );
 }
 
-const DATA_TYPES = [
+const DATA_TYPES: OptionType<DType>[] = [
   { label: 'String', value: 'string' },
   { label: 'Boolean', value: 'boolean' },
   { label: 'Integer', value: 'integer' },
   { label: 'Decimal', value: 'decimal' },
   { label: 'Datetime', value: 'datetime' },
-  { label: 'IRI', value: 'iri' },
-  { label: 'URL', value: 'url' },
+  { label: 'URL/IRI', value: 'url' },
   { label: 'Term', value: 'term' },
 ];
 
-const OPERATORS = [
+const OPERATORS: OptionType<OpType>[] = [
   { label: '==', value: 'eq' },
   { label: '!=', value: 'neq' },
   { label: '>', value: 'gt' },
   { label: '>=', value: 'gte' },
   { label: '<', value: 'lt' },
   { label: '<=', value: 'lte' },
-  { label: 'in', value: 'in' },
-  { label: 'not in', value: 'nin' },
   { label: 'null', value: 'null' },
   { label: 'not null', value: 'not_null' },
   { label: 'raw', value: 'raw' },
@@ -93,40 +110,19 @@ const OPERATORS = [
 
 const DatatypeInput = ({
   value: valueProp,
-  setValue: setValuePartial,
+  setValue: setValue,
   dtype,
+  label,
   context,
   ...props
 }: {
   value: any,
   setValue: (value: any) => void,
   dtype: string,
+  label?: string,
   context,
 } | any) => {
   const styles = useStyles();
-
-  const label = `Input ${dtype}`;
-
-  const setValue = (value: any) => {
-    switch (dtype) {
-      case 'string':
-        return setValuePartial({ termType: 'Literal', value })
-      case 'raw':
-        return setValuePartial({ termType: 'Raw', value })
-      case 'boolean':
-        return setValuePartial({ termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#boolean' })
-      case 'integer':
-        return setValuePartial({ termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#integer' })
-      case 'decimal':
-        return setValuePartial({ termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#decimal' })
-      case 'datetime':
-        return setValuePartial({ termType: 'Literal', value, datatype: 'http://www.w3.org/2001/XMLSchema#dateTime' })
-      case 'iri':
-        return setValuePartial({ termType: 'NamedNode', value })
-      case 'url':
-        return setValuePartial({ termType: 'NamedNode', value })
-    }
-  }
   const value = valueProp?.value ?? valueProp;
 
   switch (dtype) {
@@ -185,9 +181,9 @@ const DatatypeInput = ({
         />
       );
     case 'url':
-    case 'iri':
       return (
         <TextField
+          className={styles.manualField}
           value={value}
           onChange={e => setValue(e.target.value)}
           variant="filled"
@@ -201,7 +197,7 @@ const DatatypeInput = ({
           sx={{ flex: 1 }}
           pos={'SUBJECT'}
           label={label}
-          value={value.input}
+          value={value}
           onChange={(input) => setValue(input)}
           context={context}
           {...props}
