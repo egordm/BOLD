@@ -113,7 +113,7 @@ export const ClassTreeWidget = (props: {}) => {
             title="Class Tree Widget"
             subheader="Displays a two level class hierarchy of the dataset"
             action={
-              <IconButton aria-label="View source" onClick={() => setShowSource(true)}>
+              <IconButton sx={{ mr: 3 }} onClick={() => setShowSource(true)}>
                 <CodeIcon/>
               </IconButton>
             }

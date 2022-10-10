@@ -66,7 +66,7 @@ export const PropertiesPreviewWidget = (props: {}) => {
             title="Property Preview Widget"
             subheader="Displays all properties for a given object"
             action={
-              <IconButton aria-label="View source" onClick={() => setShowSource(true)}>
+              <IconButton sx={{ mr: 3 }} onClick={() => setShowSource(true)}>
                 <CodeIcon/>
               </IconButton>
             }

@@ -76,7 +76,7 @@ export const ClassBrowserWidget = (props: {}) => {
             title="Class Browser Widget"
             subheader="Displays subclasses given a parent class"
             action={
-              <IconButton aria-label="View source" onClick={() => setShowSource(true)}>
+              <IconButton sx={{ mr: 3 }} onClick={() => setShowSource(true)}>
                 <CodeIcon/>
               </IconButton>
             }

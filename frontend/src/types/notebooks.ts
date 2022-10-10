@@ -254,3 +254,13 @@ export const removeCell = (notebook: Notebook, cellId: CellId): Notebook => {
     }
   }
 }
+
+export const setCellCollapsed = (cell: Cell, collapsed: boolean): Cell => {
+  return {
+    ...cell,
+    metadata: {
+      ...cell.metadata,
+      collapsed
+    }
+  }
+}

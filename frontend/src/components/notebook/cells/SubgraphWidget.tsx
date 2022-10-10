@@ -114,7 +114,7 @@ export const SubgraphWidget = (props: {}) => {
             title="Subgraph Widget"
             subheader="Displays a subgraph consisting os triples around a chosen entity."
             action={
-              <IconButton aria-label="View source" onClick={() => setShowSource(true)}>
+              <IconButton sx={{ mr: 3 }} onClick={() => setShowSource(true)}>
                 <CodeIcon/>
               </IconButton>
             }

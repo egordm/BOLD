@@ -69,7 +69,7 @@ export const PlotBuilderWidget = (props: {}) => {
             title="Plot Builder Widget"
             subheader="Query and plot SPARQL data in a visual way"
             action={
-              <IconButton aria-label="View source" onClick={() => setShowSource(true)}>
+              <IconButton sx={{ mr: 3 }} onClick={() => setShowSource(true)}>
                 <CodeIcon/>
               </IconButton>
             }

@@ -52,7 +52,7 @@ export const QueryBuilderWidget = (props: {}) => {
             title="Query Builder Widget"
             subheader="Build sparql queries in a visual way"
             action={
-              <IconButton aria-label="View source" onClick={() => setShowSource(true)}>
+              <IconButton sx={{ mr: 3 }} onClick={() => setShowSource(true)}>
                 <CodeIcon/>
               </IconButton>
             }

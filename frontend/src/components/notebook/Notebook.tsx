@@ -1,10 +1,8 @@
-import { Card, CardContent, Divider, Paper, Stack } from "@mui/material";
+import { CardContent, Divider, Paper, Stack } from "@mui/material";
 import { Box } from "@mui/system";
 import { CellProvider } from "../../providers/CellProvider";
 import { useNotebookContext } from "../../providers/NotebookProvider";
-import { useReportContext } from "../../providers/ReportProvider";
 import { CellId } from "../../types/notebooks";
-import { TermInput } from "../input/TermInput";
 import { CellContainer } from "./CellContainer";
 import { NotebookHeader } from "./NotebookHeader";
 import { NotebookToolbar } from "./NotebookToolbar";

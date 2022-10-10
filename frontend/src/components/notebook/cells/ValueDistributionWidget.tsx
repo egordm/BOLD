@@ -370,7 +370,7 @@ export const ValueDistributionWidget = (props: {}) => {
             title="Value Distribution Query Builder"
             subheader="Plots distribution of values for a given predicate and a filter"
             action={
-              <IconButton aria-label="View source" onClick={() => setShowSource(true)}>
+              <IconButton sx={{ mr: 3 }} onClick={() => setShowSource(true)}>
                 <CodeIcon/>
               </IconButton>
             }

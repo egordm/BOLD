@@ -1,7 +1,8 @@
 import { LoadingButton } from "@mui/lab";
-import { Box, CircularProgress, Grid, Stack, useTheme } from "@mui/material";
+import { Box, Button, Chip, CircularProgress, Divider, Grid, Stack, useTheme } from "@mui/material";
 import PlayArrowIcon from '@mui/icons-material/PlayArrow';
-import { useMemo } from "react";
+import { makeStyles } from "@mui/styles";
+import { useCallback, useMemo } from "react";
 import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useCellContext } from "../../providers/CellProvider";
 import { ClassBrowserWidget } from "./cells/ClassBrowserWidget";
@@ -13,6 +14,15 @@ import { QueryBuilderWidget } from "./cells/QueryBuilderWidget";
 import { SubgraphWidget } from "./cells/SubgraphWidget";
 import { TripleMatchWidget } from "./cells/TripleMatchWidget";
 import { ValueDistributionWidget } from "./cells/ValueDistributionWidget";
+
+
+const useStyles = makeStyles((theme) => ({
+  collapseDivider: {
+    "&::before, &::after": {
+      top: 'initial!important',
+    }
+  }
+}));
 
 export const CELL_TYPES = {
   code: CodeWidget,
@@ -29,12 +39,23 @@ export const CELL_TYPES = {
 export const CellContainer = (props: {}) => {
   const theme = useTheme();
   const { focus } = useCellFocusContext();
-  const { cell, state, runCell } = useCellContext();
+  const { cell, cellIndex, cellRef, state, runCell, setCell } = useCellContext();
 
   const focused = focus === cell.metadata.id;
+  const collapsed = cell.metadata.collapsed ?? false;
   const Cell = CELL_TYPES[cell.cell_type];
 
-  // console.log(state)
+  const toggleCollapse = useCallback(() => {
+    setCell({
+      ...cellRef.current,
+      metadata: {
+        ...cellRef.current.metadata,
+        collapsed: !cellRef.current.metadata.collapsed,
+      }
+    })
+  }, []);
+
+  const styles = useStyles();
 
   const ActionButton = useMemo(() => {
     const running = state?.status === "RUNNING" || state?.status === "QUEUED";
@@ -64,11 +85,19 @@ export const CellContainer = (props: {}) => {
       borderRadius: '8px',
       position: 'relative',
     }}>
-      <Box>
+      <Stack direction="column" alignContent="center">
+        <Button size="small" variant="text" onClick={toggleCollapse}>[{cellIndex + 1}]</Button>
         {ActionButton}
-      </Box>
+      </Stack>
       <Stack spacing={2} sx={{ flex: 1 }}>
-        {Cell && <Cell/>}
+        {!collapsed && Cell && <Cell/>}
+        {collapsed && (
+          <Stack style={{ flex: 1 }} direction="column" justifyContent="center">
+            <Divider className={styles.collapseDivider}>
+              <Button variant="text" onClick={toggleCollapse}>EXPAND</Button>
+            </Divider>
+          </Stack>
+        )}
       </Stack>
     </Box>
   )

@@ -40,7 +40,7 @@ export const NotebookProvider = ({
   }
 
   // Unsaved changes warning when navigating away
-  usePrompt(UNSAVED_MESSAGE, true);
+  usePrompt(UNSAVED_MESSAGE, changed);
 
   // Unsaved changes warning when tab is closed
   useEffect(() => {

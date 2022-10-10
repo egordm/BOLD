@@ -118,7 +118,7 @@ export const TripleMatchWidget = (props: {}) => {
             title="Triple Match Builder"
             subheader="Displays all matching triples given a set of filters"
             action={
-              <IconButton aria-label="View source" onClick={() => setShowSource(true)}>
+              <IconButton sx={{ mr: 3 }} onClick={() => setShowSource(true)}>
                 <CodeIcon/>
               </IconButton>
             }
