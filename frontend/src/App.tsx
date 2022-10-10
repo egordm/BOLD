@@ -18,7 +18,7 @@ import { AuthProvider } from "./providers/AuthProvider";
 import { TasksProvider } from "./providers/TasksProvider";
 import { createEmotionCache } from './utils/create-emotion-cache';
 import { theme } from './theme';
-import { Link, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import LoginPage from "./pages/login";
 
 

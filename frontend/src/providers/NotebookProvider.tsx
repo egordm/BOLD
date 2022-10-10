@@ -1,5 +1,6 @@
 import _ from "lodash";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
+import { usePrompt } from "../hooks/usePrompt";
 import useNotification from "../hooks/useNotification";
 import {
   Cell,
@@ -24,12 +25,35 @@ const NotebookContext = React.createContext<{
   isFetching: boolean,
 }>(null);
 
+const UNSAVED_MESSAGE = 'You have unsaved changes. Are you sure you want to leave?';
 
-export const NotebookProvider = (props: {
+export const NotebookProvider = ({
+  children,
+}: {
   children: React.ReactNode,
 }) => {
-  const { children, } = props;
-  const [ changed, setChanged ] = React.useState(false);
+  const [ changed, setChangedInternal ] = React.useState(false);
+  const changedRef = useRef(changed);
+  const setChanged = (value: boolean) => {
+    changedRef.current = value;
+    setChangedInternal(value);
+  }
+
+  // Unsaved changes warning when navigating away
+  usePrompt(UNSAVED_MESSAGE, true);
+
+  // Unsaved changes warning when tab is closed
+  useEffect(() => {
+    const onUnload = (e: BeforeUnloadEvent) => {
+      if(changedRef.current) {
+        (e || window.event).returnValue = UNSAVED_MESSAGE; //Gecko + IE
+        return UNSAVED_MESSAGE; //Gecko + Webkit, Safari, Chrome etc.
+      }
+    }
+
+    window.addEventListener('beforeunload', onUnload);
+    return () => window.removeEventListener('beforeunload', onUnload);
+  }, []);
 
   const [ notebook, setNotebookInternal ] = React.useState<Notebook | null>(null);
   const notebookRef = useRef<Notebook | null>(null);
