@@ -133,7 +133,6 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
     case 'operator': {
       const value = rule.value ?? {};
       const op: OpType = value?.op?.value ?? 'eq';
-      const dtype = value?.dtype.value ?? 'term';
       const p1Val = value?.p1;
 
       const parentVar: FlexibleTerm = { type: 'variable', variable: parent.variable };
@@ -141,6 +140,7 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
       const extraBounds = [];
 
       if (OP_TO_SPARQL[op]) {
+        const dtype = value?.dtype?.value ?? 'term';
         const { varName: p1Var, bounds: p1Bounds } = dtypeValueToSparql(state, dtype, p1Val);
 
         const sparqlOp = OP_TO_SPARQL[op];
@@ -323,7 +323,7 @@ const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
         .map(t =>
           t.startsWith('?') ? variable(t)
             : t.startsWith("<") && t.endsWith(">") ? namedNode(t.slice(1, -1))
-              : literal(t)
+              : sparql`${t}` as any
         );
 
       const varName = variable(`tmp${state.tempVarCounter++}`);
@@ -340,6 +340,11 @@ const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
       const bounds = [valuesBound(varName, tokens)];
 
       return { varName, bounds }
+    }
+    case "any": {
+      const varName = variable(`any${state.tempVarCounter++}`);
+
+      return { varName, bounds: [] }
     }
     default:
       throw new Error(`Unknown term type ${term.type}`)

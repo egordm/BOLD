@@ -19,16 +19,26 @@ const collectVars = (group: RuleGroupType | any, vars: Set<string>) => {
     vars.add(group.variable.value);
   }
 
-  if (group?.value?.input?.variable?.value) {
-    vars.add(group.value.input.variable.value);
-    if (group.value.input.type === 'statement') {
-      vars.add(group.value.input.variable.value + 'Value');
+  if (group?.value) {
+    const gv = group.value;
+
+    if (gv.input?.variable?.value) {
+      vars.add(gv.input.variable.value);
+      if (gv.input.type === 'statement') {
+        vars.add(gv.input.variable.value + 'Value');
+      }
+    }
+
+    if (gv.predicate?.variable?.value) {
+      vars.add(gv.predicate.variable.value);
+    }
+
+    if (group?.operator === 'function' && gv.output) {
+      vars.add(gv.output.value);
     }
   }
 
-  if (group?.value?.predicate?.variable?.value) {
-    vars.add(group.value.predicate.variable.value);
-  }
+
 
   if (group.rules) {
     for (const rule of group.rules) {

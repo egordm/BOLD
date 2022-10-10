@@ -52,9 +52,18 @@ export default ({
       case 'null':
       case 'not_null':
         return null;
+      case 'raw':
+        return (<DatatypeInput
+          sx={{ flex: 1 }}
+          value={value?.p1}
+          setValue={(p1: any) => updateValue({ p1 })}
+          dtype="raw"
+          context={context}
+          label={`Input raw expression`}
+        />);
       default:
         return (
-          <Stack direction="row" sx={{flex: 1}}>
+          <Stack direction="row" sx={{ flex: 1 }}>
             {datatypeInput}
             <DatatypeInput
               sx={{ flex: 1 }}
