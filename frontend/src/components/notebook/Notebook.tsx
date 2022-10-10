@@ -39,7 +39,7 @@ export const Notebook = (props: {}) => {
         </Paper>
       </Stack>
       <Divider/>
-      <CardContent>
+      <CardContent sx={{ marginBottom: 11 }}>
         {cells}
       </CardContent>
     </Paper>
