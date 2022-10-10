@@ -27,7 +27,6 @@ export const buildQuery = (data: PlotBuilderData) => {
 
   const y_aggregate = data.y?.aggregate ?? 'COUNT';
 
-  const orderVars = y_vars.map(v => brackets(aggregateToSparql(null, v, y_aggregate)));
   const { bounds: labelBounds, vars: labelVars } = sparqlLabelsBound([ ...x_vars, ...z_vars ]);
 
   const xBound = x_vars.map(v => sparqlDTypeBound(v, data.x?.dtype));
@@ -41,20 +40,18 @@ export const buildQuery = (data: PlotBuilderData) => {
       ${zBound}
       ${yBound}
   `
-
   const { bounds: xBoundsD, vars: xVarsD } = sparqlDiscretize(
     x_vars, data.x?.dtype, queryBody, data.max_groups_x ?? 20,
-  )
+  );
   const xVarsSelect = _.zip(x_vars, xVarsD).map(([v, d]) => alias(d, suffix(v, RESULT_SUFFIX)));
   const { bounds: zBoundsD, vars: zVarsD } = sparqlDiscretize(
     z_vars, data.z?.dtype, queryBody, data.max_groups_z ?? 20,
-  )
+  );
   const zVarsSelect = _.zip(z_vars, zVarsD).map(([v, d]) => alias(d, suffix(v, RESULT_SUFFIX)));
 
   const aggregatedVars = y_vars.map(v => alias(aggregateToSparql(null, v, y_aggregate), suffix(v, RESULT_SUFFIX)));
   const aggregatedLabelVars = labelVars.map(v => alias(aggregateToSparql(null, v, "SAMPLE"), suffix(v, RESULT_SUFFIX)));
   const selectVars = [ ...xVarsSelect, ...aggregatedVars, ...zVarsSelect, ...aggregatedLabelVars ];
-  const groupVars = [ ...xVarsD, ...zVarsD ];
 
   let primaryQuery = SELECT`${selectVars}`
     .WHERE`
@@ -68,12 +65,14 @@ export const buildQuery = (data: PlotBuilderData) => {
       : (data.max_groups_x ?? 20) * (data.max_groups_z ?? 20)
     );
 
+  const groupVars = [ ...xVarsD, ...zVarsD ];
   const groupFirst = groupVars.shift();
   primaryQuery = groupVars.reduce(
     (query, varName) => query.THEN.BY(varName),
     primaryQuery.GROUP().BY(groupFirst)
   );
 
+  const orderVars = y_vars.map(v => brackets(aggregateToSparql(null, v, y_aggregate)));
   const orderFirst = orderVars.shift();
   primaryQuery = orderVars.reduce(
     (query, varName) => query.THEN.BY(varName as any),

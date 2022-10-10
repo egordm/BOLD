@@ -17,8 +17,9 @@ import {
   type ValueEditorProps,
 } from 'react-querybuilder';
 import { FlexibleTermInput } from "../../FlexibleTermInput";
-import { TermInput } from "../../TermInput";
+import { OperatorType } from "../types";
 import FilterOperator from "./operators/FilterOperator";
+import FunctionOperator from "./operators/FunctionOperator";
 import LogicalOperator from "./operators/LogicalOperator";
 
 export const ValueEditor = ({
@@ -45,24 +46,13 @@ export const ValueEditor = ({
     handleOnChange({ ...value, ...updateValue });
   };
 
-  switch (operator) {
+  switch (operator as OperatorType) {
     case 'filter':
       return (<FilterOperator
         value={value}
         setValue={updateValue}
         context={context}
         parent={parent}
-      />);
-    case 'filter_path':
-      return (<FilterOperator
-        value={value}
-        setValue={updateValue}
-        context={context}
-        parent={parent}
-        labels={{
-          predicate: 'Filter values of recursively',
-          object: 'Until matches value'
-      }}
       />);
     case 'datatype':
       return (
@@ -92,19 +82,26 @@ export const ValueEditor = ({
         onChange={(input) => updateValue({ input })}
         context={context}
       />);
+    case 'function':
+      return (<FunctionOperator
+        value={value}
+        setValue={updateValue}
+        context={context}
+        parent={parent}
+      />);
+    default:
+      return (<Input
+        type={'text'}
+        value={value}
+        title={title}
+        disabled={disabled}
+        className={className}
+        placeholder={'Test'}
+        onChange={e => handleOnChange(e.target.value)}
+      />);
   }
 
-  return (
-    <Input
-      type={'text'}
-      value={value}
-      title={title}
-      disabled={disabled}
-      className={className}
-      placeholder={'Test'}
-      onChange={e => handleOnChange(e.target.value)}
-    />
-  );
+
 };
 
 ValueEditor.displayName = 'MaterialValueEditor';

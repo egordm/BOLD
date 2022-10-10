@@ -276,6 +276,7 @@ export const sparqlJoin = (sparqls: SparqlValue[], separator: any) => {
     return null;
   }
 
-  const first = sparqls.shift();
-  return sparqls.reduce((acc, curr) => sparql`${acc} ${separator} ${curr}`, first)
+  const tokens = [...sparqls];
+  const first = tokens.shift();
+  return tokens.reduce((acc, curr) => sparql`${acc} ${separator} ${curr}`, first)
 }

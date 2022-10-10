@@ -6,6 +6,7 @@ import { ValueEditor } from "./custom/ValueEditor";
 import { materialControlElements } from './theme';
 import { defaultTranslations } from "react-querybuilder";
 import { Rule } from "./custom/Rule";
+import { OperatorType } from "./types";
 
 
 export const controlElements = {
@@ -40,14 +41,12 @@ export const controlClassnames = {
   dragHandle: clsx('qb-drag-handler', 'rule--drag-handler')
 }
 
-export const operators = [
+export const operators: { name: OperatorType, label: string }[] = [
   { name: 'filter', label: 'filter' },
-  { name: 'filter_path', label: 'filter path' },
   { name: 'datatype', label: 'datatype' },
   { name: 'operator', label: 'operator' },
   { name: 'subclass_of', label: 'subclass of' },
-  // { name: 'group_prim', label: 'group primary' },
-  // { name: 'group_sec', label: 'group secondary' },
+  { name: 'function', label: 'function' },
 ]
 
 

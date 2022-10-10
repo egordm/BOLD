@@ -161,8 +161,6 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
         }
       }
 
-      console.log('extraBounds', extraBounds, rule)
-
       return [
         ...(pBounds ?? []),
         ...extraBounds,
