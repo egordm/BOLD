@@ -1,74 +1,35 @@
-import {
-  CardHeader, Container, Grid,
-  IconButton
-} from "@mui/material";
-import { variable } from "@rdfjs/data-model";
-import { SELECT } from "@tpluscode/sparql-builder";
+import CodeIcon from "@mui/icons-material/Code";
+import { CardHeader, Container, Grid, IconButton } from "@mui/material";
 import React, { useEffect, useMemo } from "react";
-import { RuleGroupType } from "react-querybuilder";
-import { useCellWidgetData } from "../../../hooks/useCellWidgetData";
-import { useCellContext } from "../../../providers/CellProvider";
-import { usePrefixes } from "../../../providers/ReportProvider";
-import { Cell, CellOutput, WidgetCellType } from "../../../types/notebooks";
-import { sparqlLabelsBound } from "../../../utils/sparql";
-import { cellOutputToYasgui } from "../../../utils/yasgui";
-import { SourceViewModal } from "../../data/SourceViewModal";
-import CodeIcon from '@mui/icons-material/Code';
-import { Yasr } from "../../data/Yasr";
-import { NumberedSlider } from "../../input/NumberedSlider";
-import QueryBuilder from "../../input/QueryBuilder";
-import { queryToSparql } from "../../input/QueryBuilder/sparql";
-import { collectVarsFromGroup } from "../../input/QueryBuilder/utils";
-import { OptionType, VariableInput } from "../../input/VariableInput";
-import { CellOutputTabs } from "../outputs/CellOutputTabs";
+import { useCellWidgetData } from "../../../../hooks/useCellWidgetData";
+import { useCellContext } from "../../../../providers/CellProvider";
+import { WidgetCellType } from "../../../../types/notebooks";
+import { SourceViewModal } from "../../../data/SourceViewModal";
+import { NumberedSlider } from "../../../input/NumberedSlider";
+import QueryBuilder from "../../../input/QueryBuilder";
+import { collectVarsFromGroup } from "../../../input/QueryBuilder/utils";
+import { OptionType, VariableInput } from "../../../input/VariableInput";
+import { CellOutputTabs } from "../../outputs/CellOutputTabs";
+import { buildQuery } from "./query";
+import { ResultTab } from "./ResultTab";
+import { QueryBuilderData } from "./types";
 
 const MAX_RESULTS = 1000;
-
-interface DistributionData {
-  tree: RuleGroupType,
-  select: OptionType[],
-  limit?: number;
-  output_mode?: string;
-}
 
 const OUTPUT_TABS = [
   { value: 'table', label: 'Table' },
 ]
 
-const buildQuery = (data: DistributionData) => {
-  const vars = (data.select ?? []).map(v => variable(v.value));
-  if (!vars.length) {
-    return {};
-    // throw new Error('No variables selected');
-  }
-
-  const { bounds: labelBounds, vars: labelVars} = sparqlLabelsBound(vars);
-  const selectVars = [...vars, ...labelVars];
-
-  const body = queryToSparql(data.tree);
-  const query = SELECT`${selectVars}`
-    .WHERE`
-      ${body}
-      ${labelBounds}
-    `
-    .LIMIT(data.limit ?? 20);
-
-  return {
-    primaryQuery: query.build(),
-  };
-}
-
-
 export const QueryBuilderWidget = (props: {}) => {
   const { cell } = useCellContext();
-  const { data, source } = cell as WidgetCellType<DistributionData>;
+  const { data, source } = cell as WidgetCellType<QueryBuilderData>;
   const [ showSource, setShowSource ] = React.useState(false);
   const { setData } = useCellWidgetData(buildQuery);
 
   useEffect(() => {
     setData({
       select: [
-        { value: 'main', label: 'main'}
+        { value: 'main', label: 'main' }
       ],
       ...data,
     })
@@ -144,23 +105,5 @@ export const QueryBuilderWidget = (props: {}) => {
         onClose={() => setShowSource(false)}
       />
     </>
-  )
-}
-
-const ResultTab = ({
-  mode, cell, outputs
-}: {
-  mode: string,
-  cell: Cell,
-  outputs: CellOutput[] | null,
-}) => {
-  const prefixes = usePrefixes();
-  const result = cellOutputToYasgui(outputs[0]);
-
-  return (
-    <Yasr
-      result={result}
-      prefixes={prefixes}
-    />
   )
 }

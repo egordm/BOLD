@@ -3,6 +3,7 @@ import { Variable } from "@rdfjs/types";
 import { SparqlValue } from "@tpluscode/rdf-string";
 import { SELECT, sparql } from "@tpluscode/sparql-builder";
 import _ from "lodash";
+import { Dataset } from "../../../../types";
 import {
   alias,
   bind,
@@ -14,7 +15,7 @@ import {
 import { aggregateToSparql, queryToSparql } from "../../../input/QueryBuilder/sparql";
 import { PlotBuilderData, RESULT_SUFFIX } from "./types";
 
-export const buildQuery = (data: PlotBuilderData) => {
+export const buildQuery = (data: PlotBuilderData, dataset: Dataset) => {
   const x_vars: Variable[] = (data.x?.vars ?? []).map(v => variable(v.value));
   const y_vars: Variable[] = (data.y?.vars ?? []).map(v => variable(v.value));
   const z_vars: Variable[] = (data?.xy_only ?? true) ? [] : (data.z?.vars ?? []).map(v => variable(v.value));
@@ -33,7 +34,7 @@ export const buildQuery = (data: PlotBuilderData) => {
   const zBound = z_vars.map(v => sparqlDTypeBound(v, data.z?.dtype));
   const yBound = y_aggregate === 'COUNT' ? null : y_vars.map(v => sparqlDTypeBound(v, 'numeric'));
 
-  const body = queryToSparql(data.tree);
+  const body = queryToSparql(data.tree, dataset.search_mode === 'WIKIDATA');
   const queryBody = sparql`
       ${body}
       ${xBound}

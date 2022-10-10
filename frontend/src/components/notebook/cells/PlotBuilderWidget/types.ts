@@ -13,6 +13,7 @@ export interface PlotBuilderData {
   min_group_z_size?: number;
   xy_only: boolean;
 
+  wikidata?: boolean;
   output_mode?: string;
   output_config?: OutputConfig;
 }

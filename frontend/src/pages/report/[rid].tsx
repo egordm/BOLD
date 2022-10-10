@@ -4,6 +4,7 @@ import { useMatch } from "react-router";
 import { Layout } from '../../components/layout/layout';
 import { Notebook } from "../../components/notebook/Notebook";
 import { CellFocusProvider } from "../../providers/CellFocusProvider";
+import { DatasetProvider } from "../../providers/DatasetProvider";
 import { NotebookConnectionProvider } from "../../providers/NotebookConnectionProvider";
 import { NotebookProvider } from "../../providers/NotebookProvider";
 import { ReportProvider } from "../../providers/ReportProvider";
@@ -28,17 +29,19 @@ const NotebookPage = (props) => {
       <Box component="main">
         {rid && (
           <ReportProvider reportId={rid as string}>
-            <NotebookConnectionProvider reportId={rid as string}>
-              <NotebookProvider>
-                <UndoHistoryProvider>
-                  <CellFocusProvider>
-                    <RunQueueProvider>
-                      <Notebook/>
-                    </RunQueueProvider>
-                  </CellFocusProvider>
-                </UndoHistoryProvider>
-              </NotebookProvider>
-            </NotebookConnectionProvider>
+            <DatasetProvider>
+              <NotebookConnectionProvider reportId={rid as string}>
+                <NotebookProvider>
+                  <UndoHistoryProvider>
+                    <CellFocusProvider>
+                      <RunQueueProvider>
+                        <Notebook/>
+                      </RunQueueProvider>
+                    </CellFocusProvider>
+                  </UndoHistoryProvider>
+                </NotebookProvider>
+              </NotebookConnectionProvider>
+            </DatasetProvider>
           </ReportProvider>
         )}
       </Box>
