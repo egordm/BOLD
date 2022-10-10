@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef } from "react";
-import { Dataset } from "../types";
+import { Dataset, legacyNamespacesToPrefixes } from "../types";
+import { namespacesToPrefixes, WDT_PREFIXES } from "../utils/sparql";
 import { useReportContext } from "./ReportProvider";
 
 
@@ -19,7 +20,7 @@ export const DatasetProvider = ({
 
   useEffect(() => {
     datasetRef.current = report?.dataset;
-  }, [report?.dataset]);
+  }, [ report?.dataset ]);
 
   const contextValue = useMemo(() => ({
     dataset: report?.dataset,
@@ -40,3 +41,15 @@ export const useDatasetContext = () => {
   }
   return context;
 };
+
+export const usePrefixes = () => {
+  const { dataset } = useDatasetContext();
+
+  return React.useMemo(() => {
+    return {
+      ...legacyNamespacesToPrefixes(dataset?.namespaces),
+      ...(dataset.search_mode === 'WIKIDATA'
+        ? namespacesToPrefixes(WDT_PREFIXES) : {}),
+    };
+  }, [ dataset?.namespaces ]);
+}

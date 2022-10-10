@@ -8,7 +8,7 @@ import { SELECT, sparql } from "@tpluscode/sparql-builder";
 import React, { useEffect, useMemo } from "react";
 import { useCellWidgetData } from "../../../hooks/useCellWidgetData";
 import { useCellContext } from "../../../providers/CellProvider";
-import { usePrefixes } from "../../../providers/ReportProvider";
+import { usePrefixes } from "../../../providers/DatasetProvider";
 import { Cell, CellOutput, CellTypeWidget, WidgetCellType } from "../../../types/notebooks";
 import { formatBinding, formatIri } from "../../../utils/formatting";
 import { extractSparqlResult, PREFIXES, querySparqlLabel } from "../../../utils/sparql";

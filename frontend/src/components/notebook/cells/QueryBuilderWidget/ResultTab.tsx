@@ -1,5 +1,5 @@
 import React from "react";
-import { usePrefixes } from "../../../../providers/ReportProvider";
+import { usePrefixes } from "../../../../providers/DatasetProvider";
 import { Cell, CellOutput } from "../../../../types/notebooks";
 import { cellOutputToYasgui } from "../../../../utils/yasgui";
 import { Yasr } from "../../../data/Yasr";

@@ -1,28 +1,17 @@
-import {
-  Box,
-  Button,
-  Fab,
-  Grid,
-  InputAdornment, TextField,
-  Typography
-} from "@mui/material";
+import LightbulbIcon from "@mui/icons-material/Lightbulb";
+import { Button, Fab, InputAdornment, TextField, Typography } from "@mui/material";
 import { AxiosResponse } from "axios";
 import { useFormik } from "formik";
 import React, { useMemo, useState } from "react";
 import * as yup from "yup";
-import { useApi } from "../../../hooks/useApi";
-import useNotification from "../../../hooks/useNotification";
-import { useCellContext } from "../../../providers/CellProvider";
-import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
-import { CodeCellType} from "../../../types/notebooks";
-import { GPTOutput} from "../../../types/reports";
-import { fieldProps } from "../../../utils/forms";
-import { cellOutputToYasgui } from "../../../utils/yasgui";
-import { Yasr } from "../../data/Yasr";
-import { Yasqe } from "../../input/Yasqe";
-import { FormContainer } from "../../layout/FormContainer";
-import { ModalContainer } from "../../layout/ModalContainer";
-import LightbulbIcon from '@mui/icons-material/Lightbulb';
+import { useApi } from "../../../../hooks/useApi";
+import useNotification from "../../../../hooks/useNotification";
+import { useDatasetContext } from "../../../../providers/DatasetProvider";
+import { GPTOutput } from "../../../../types/reports";
+import { fieldProps } from "../../../../utils/forms";
+import { FormContainer } from "../../../layout/FormContainer";
+import { ModalContainer } from "../../../layout/ModalContainer";
+
 
 const GPTPromptModal = ({
   open,
@@ -111,53 +100,16 @@ const GPTPromptModal = ({
   )
 }
 
-export const CodeCell = (props:
-  {}
-) => {
-  const { cell, outputs, setCell } = useCellContext();
-  const { source } = cell as CodeCellType;
-  const editorRef = React.useRef(null);
-  const prefixes = usePrefixes();
 
-  const [ gptPromptOpen, setGptPromptOpen ] = useState(false);
+export const GPTModal = ({
+  setSource
+}: {
+  setSource: (source: string) => void;
+}) => {
+  const { dataset } = useDatasetContext();
 
-  const onChange = (value) => {
-    setCell({
-      ...cell,
-      source: value,
-    })
-  }
-
-  const Content = (
-    <Grid item xs={12}>
-      <Yasqe
-        value={source || ''}
-        onChange={onChange}
-        editorRef={editorRef}
-      />
-    </Grid>
-  )
-
-  const result = React.useMemo(() => {
-    if (!outputs?.length) {
-      return null;
-    }
-
-    return cellOutputToYasgui(outputs[0]);
-  }, [ outputs ]);
-
-  const Result = useMemo(() => !!outputs?.length && (
-    <Box sx={{ width: '100%' }}>
-      <Yasr
-        result={result}
-        prefixes={prefixes}
-      />
-    </Box>
-  ), [ outputs, prefixes ]);
-
-  const { report } = useReportContext();
   const { templatePrompt, templateOutput } = useMemo(() => {
-    const prefixes = (report.dataset?.namespaces ?? [])
+    const prefixes = (dataset?.namespaces ?? [])
       .filter((ns) => ns.prefix)
       .map(ns => `PREFIX ${ns.prefix}: <${ns.name}>`).join('\n');
 
@@ -174,38 +126,31 @@ export const CodeCell = (props:
         SELECT {{output}}
         `.replace(/^ +/gm, '').trim()
     }
-  }, [ report.dataset ]);
+  }, [ dataset ]);
 
-  const GPTModal = useMemo(() => (
+  const [ open, setOpen ] = useState(false);
+
+  return (
     <>
       <Fab size="small" color="secondary" sx={{
         position: 'absolute',
         right: 4,
         top: 4
-      }} onClick={() => setGptPromptOpen(true)}>
+      }} onClick={() => setOpen(true)}>
         <LightbulbIcon/>
       </Fab>
       <GPTPromptModal
-        open={gptPromptOpen}
+        open={open}
         templatePrompt={templatePrompt}
         templateOutput={templateOutput}
         onClose={(result) => {
-          setGptPromptOpen(false);
+          setOpen(false);
 
           if (result && result.output) {
-            editorRef.current?.setValue(result.output.trim());
+            setSource(result.output.trim())
           }
         }}
       />
-    </>
-  ), [ gptPromptOpen ]);
-
-
-  return (
-    <>
-      {Content}
-      {GPTModal}
-      {Result}
     </>
   )
 }

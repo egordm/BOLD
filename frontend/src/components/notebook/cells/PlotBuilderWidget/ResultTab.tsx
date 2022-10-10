@@ -3,7 +3,7 @@ import { variable } from "@rdfjs/data-model";
 import { Variable } from "@rdfjs/types";
 import _ from "lodash";
 import React, { useMemo } from "react";
-import { usePrefixes } from "../../../../providers/ReportProvider";
+import { usePrefixes } from "../../../../providers/DatasetProvider";
 import { CellExecuteOutput, CellOutput, OutputData, WidgetCellType } from "../../../../types/notebooks";
 import { Prefixes } from "../../../../types/sparql";
 import {

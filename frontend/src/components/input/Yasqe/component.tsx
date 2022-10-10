@@ -61,6 +61,7 @@ export class Yasqe extends React.Component<{
     this.editor.on('scroll', this.scrollChanged as any);
     this.editor.setValue(this.props.defaultValue || this.props.value || '');
     this.editor.addPrefixes(this.props.prefixes || {});
+    this.editor.collapsePrefixes(true)
 
     if (this.props.editorRef) {
       this.props.editorRef.current = this.editor;

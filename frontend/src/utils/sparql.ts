@@ -17,6 +17,40 @@ export const termToSparql = (term: Term) => {
   }
 }
 
+export const WDT_PREFIXES = {
+  bd: namespace('http://www.bigdata.com/rdf#'),
+  cc: namespace('http://creativecommons.org/ns#'),
+  dct: namespace('http://purl.org/dc/terms/'),
+  geo: namespace('http://www.opengis.net/ont/geosparql#'),
+  hint: namespace('http://www.bigdata.com/queryHints#'),
+  ontolex: namespace('http://www.w3.org/ns/lemon/ontolex#'),
+  owl: namespace('http://www.w3.org/2002/07/owl#'),
+  prov: namespace('http://www.w3.org/ns/prov#'),
+  rdf: namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
+  rdfs: namespace('http://www.w3.org/2000/01/rdf-schema#'),
+  schema: namespace('http://schema.org/'),
+  skos: namespace('http://www.w3.org/2004/02/skos/core#'),
+  xsd: namespace('http://www.w3.org/2001/XMLSchema#'),
+  p: namespace('http://www.wikidata.org/prop/'),
+  pq: namespace('http://www.wikidata.org/prop/qualifier/'),
+  pqn: namespace('http://www.wikidata.org/prop/qualifier/value-normalized/'),
+  pqv: namespace('http://www.wikidata.org/prop/qualifier/value/'),
+  pr: namespace('http://www.wikidata.org/prop/reference/'),
+  prn: namespace('http://www.wikidata.org/prop/reference/value-normalized/'),
+  prv: namespace('http://www.wikidata.org/prop/reference/value/'),
+  psv: namespace('http://www.wikidata.org/prop/statement/value/'),
+  ps: namespace('http://www.wikidata.org/prop/statement/'),
+  psn: namespace('http://www.wikidata.org/prop/statement/value-normalized/'),
+  wd: namespace('http://www.wikidata.org/entity/'),
+  wdata: namespace('http://www.wikidata.org/wiki/Special:EntityData/'),
+  wdno: namespace('http://www.wikidata.org/prop/novalue/'),
+  wdref: namespace('http://www.wikidata.org/reference/'),
+  wds: namespace('http://www.wikidata.org/entity/statement/'),
+  wdt: namespace('http://www.wikidata.org/prop/direct/'),
+  wdtn: namespace('http://www.wikidata.org/prop/direct-normalized/'),
+  wdv: namespace('http://www.wikidata.org/value/'),
+  wikibase: namespace('http://wikiba.se/ontology#'),
+}
 
 export const PREFIXES = {
   rdf: namespace('http://www.w3.org/1999/02/22-rdf-syntax-ns#'),
@@ -26,6 +60,13 @@ export const PREFIXES = {
   wdt: namespace('http://www.wikidata.org/prop/direct/'),
 }
 
+export const namespacesToPrefixes = (namespaces: Record<string, NamespaceBuilder>): Record<string, string> => {
+  return {
+    ...Object.fromEntries(
+      Object.entries(namespaces).map(([prefix, ns]) => [prefix, ns().value])
+    ),
+  }
+}
 
 export const extractSparqlResult = (output?: CellOutput): SPARQLResult | null => {
   if (output?.output_type === 'execute_result') {
@@ -205,7 +246,7 @@ export const sparqlDTypeBound = (v: Variable | string, dtype: string) => {
 
 export const sparqlPrefixes = (prefixes: Prefixes | Record<string, NamespaceBuilder>) => {
   return Object.entries(prefixes)
-    .map(([prefix, iri]) => typeof iri === 'string'
+    .map(([ prefix, iri ]) => typeof iri === 'string'
       ? `PREFIX ${prefix}: <${iri}>`
       : `PREFIX ${prefix}: <${iri.value}>`
     );
@@ -276,7 +317,7 @@ export const sparqlJoin = (sparqls: SparqlValue[], separator: any) => {
     return null;
   }
 
-  const tokens = [...sparqls];
+  const tokens = [ ...sparqls ];
   const first = tokens.shift();
   return tokens.reduce((acc, curr) => sparql`${acc} ${separator} ${curr}`, first)
 }

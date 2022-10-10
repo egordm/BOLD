@@ -1,3 +1,5 @@
+import { NamespaceBuilder } from "@rdfjs/namespace";
+
 export interface Dataset {
   id: string;
   name: string;
@@ -21,8 +23,9 @@ export interface Dataset {
 }
 
 
-export const namespacesToPrefixes = (namespaces: null | { prefix: string; name: string; }[]) => {
+export const legacyNamespacesToPrefixes = (namespaces: null | { prefix: string; name: string; }[]) => {
   return {
     ...Object.fromEntries(namespaces.map(({ prefix, name }) => [ prefix, name ])),
   }
 }
+

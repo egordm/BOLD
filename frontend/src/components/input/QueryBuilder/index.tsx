@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import type { Field, RuleGroupType } from 'react-querybuilder';
 import { formatQuery, QueryBuilder } from 'react-querybuilder';
-import { usePrefixes, useReportContext } from "../../../providers/ReportProvider";
+import { usePrefixes } from "../../../providers/DatasetProvider";
+import { useReportContext } from "../../../providers/ReportProvider";
 import { controlClassnames, controlElements, operators, translations } from "./config";
 import './styles.css';
 import { queryToSparql } from "./sparql";

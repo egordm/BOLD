@@ -6,7 +6,7 @@ import { useCellFocusContext } from "../../providers/CellFocusProvider";
 import { useCellContext } from "../../providers/CellProvider";
 import { ClassBrowserWidget } from "./cells/ClassBrowserWidget";
 import { ClassTreeWidget } from "./cells/ClassTreeWidget";
-import { CodeCell } from "./cells/CodeCell";
+import { CodeWidget } from "./cells/CodeWidget";
 import { PlotBuilderWidget } from "./cells/PlotBuilderWidget";
 import { PropertiesPreviewWidget } from "./cells/PropertiesPreviewWidget";
 import { QueryBuilderWidget } from "./cells/QueryBuilderWidget";
@@ -15,7 +15,7 @@ import { TripleMatchWidget } from "./cells/TripleMatchWidget";
 import { ValueDistributionWidget } from "./cells/ValueDistributionWidget";
 
 export const CELL_TYPES = {
-  code: CodeCell,
+  code: CodeWidget,
   widget_valuedistribution: ValueDistributionWidget,
   widget_triplematch: TripleMatchWidget,
   widget_classtree: ClassTreeWidget,

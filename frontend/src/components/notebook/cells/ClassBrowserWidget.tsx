@@ -8,7 +8,7 @@ import React, { useEffect, useMemo, useRef } from "react";
 import Plot from "react-plotly.js";
 import { useCellWidgetData } from "../../../hooks/useCellWidgetData";
 import { useCellContext } from "../../../providers/CellProvider";
-import { usePrefixes } from "../../../providers/ReportProvider";
+import { usePrefixes } from "../../../providers/DatasetProvider";
 import { Cell, CellOutput, WidgetCellType } from "../../../types/notebooks";
 import { extractIriLabel } from "../../../utils/formatting";
 import { extractSparqlResult, PREFIXES } from "../../../utils/sparql";
