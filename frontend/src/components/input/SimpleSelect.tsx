@@ -8,6 +8,7 @@ export const SimpleSelect = ({
   onChange,
   formControlProps,
   label,
+  variant,
   ...props
 }: {
   value?: string,
@@ -18,12 +19,14 @@ export const SimpleSelect = ({
 } & Omit<SelectProps<OptionType>, 'onChange'|'value'>) => {
   return (
     <FormControl
+      variant={variant}
       {...formControlProps}
     >
       {label && <InputLabel>{label}</InputLabel>}
       <Select
         value={value as any}
         label={label}
+        variant={variant}
         onChange={(event) => onChange(
           typeof event.target.value === 'string' ? event.target.value : event.target.value.value
         )}

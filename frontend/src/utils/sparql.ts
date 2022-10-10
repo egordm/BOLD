@@ -3,6 +3,7 @@ import namespace, { NamespaceBuilder } from "@rdfjs/namespace";
 import { NamedNode, Variable, Term as RdfTerm } from "@rdfjs/types";
 import { SparqlValue } from "@tpluscode/rdf-string";
 import { sparql } from "@tpluscode/sparql-builder";
+import { Quantifier } from "../components/input/QueryBuilder/types";
 import { CellOutput } from "../types/notebooks";
 import { SPARQLValue, SPARQLResult, Prefixes } from "../types/sparql";
 import { Term } from "../types/terms";
@@ -235,22 +236,37 @@ export const sparqlDTypeContinuizeRev = (v: Variable | string, dtype: string) =>
   }
 }
 
-export const sparqlConjunctionBuilder = (terms: SparqlValue[], combinator: 'AND' | 'OR', not: boolean = false) => ({
+export const sparqlConjunctionBuilder = (terms: SparqlValue[], combinator: 'AND' | 'OR', quantifier: Quantifier = 'must') => ({
   combinator,
   terms,
-  not,
+  quantifier,
   _toPartialString(options) {
+    let rules = null;
+
     switch (combinator) {
-      case 'AND':
-        return not
-          ? sparql`MINUS { ${sparqlJoin(terms, '\n')} }`._toPartialString(options)
-          : sparql`${sparqlJoin(terms, '\n')}`._toPartialString(options);
-      case 'OR':
-        return not
-          ? sparql`MINUS { ${sparqlJoin(terms, '\nUNION\n')} }`._toPartialString(options)
-          : sparql`${sparqlJoin(terms, '\nUNION\n')}`._toPartialString(options)
+      case 'AND': {
+        rules = sparql`${sparqlJoin(terms, '\n')}`;
+        break;
+      }
+      case 'OR': {
+        rules = sparql`${sparqlJoin(terms, '\nUNION\n')}`;
+        break;
+      }
       default:
         throw new Error(`Unknown combinator ${combinator}`)
+    }
+
+    switch (quantifier) {
+      case 'must': {
+        return rules._toPartialString(options);
+      }
+      case 'must_not': {
+        return sparql`MINUS { ${rules} }`._toPartialString(options);
+      }
+      case 'optional':
+        return sparql`OPTIONAL { ${rules} }`._toPartialString(options);
+      default:
+        throw new Error(`Unknown quantifier ${quantifier}`)
     }
   }
 })

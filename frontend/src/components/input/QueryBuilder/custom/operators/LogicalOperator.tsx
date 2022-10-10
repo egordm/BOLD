@@ -37,7 +37,7 @@ export default ({
   const datatypeInput = useMemo(() => (
     <Autocomplete
       disablePortal
-      options={DATA_TYPES}
+      options={DTYPES_OPTIONS}
       sx={{ width: 130 }}
       value={dtype}
       isOptionEqualToValue={(option, value) => (option?.value ?? option) === (value?.value ?? value)}
@@ -73,7 +73,7 @@ export default ({
     <Stack direction="row" sx={{ flex: 1 }}>
       <Autocomplete
         disablePortal
-        options={OPERATORS}
+        options={LOGICAL_OPERATORS_OPTIONS}
         sx={{ width: 120 }}
         value={op}
         isOptionEqualToValue={(option, value) => (option?.value ?? option) === (value?.value ?? value)}
@@ -86,7 +86,7 @@ export default ({
   );
 }
 
-const DATA_TYPES: OptionType<DType>[] = [
+const DTYPES_OPTIONS: OptionType<DType>[] = [
   { label: 'String', value: 'string' },
   { label: 'Boolean', value: 'boolean' },
   { label: 'Integer', value: 'integer' },
@@ -96,7 +96,7 @@ const DATA_TYPES: OptionType<DType>[] = [
   { label: 'Term', value: 'term' },
 ];
 
-const OPERATORS: OptionType<OpType>[] = [
+const LOGICAL_OPERATORS_OPTIONS: OptionType<OpType>[] = [
   { label: '==', value: 'eq' },
   { label: '!=', value: 'neq' },
   { label: '>', value: 'gt' },
@@ -106,7 +106,7 @@ const OPERATORS: OptionType<OpType>[] = [
   { label: 'null', value: 'null' },
   { label: 'not null', value: 'not_null' },
   { label: 'raw', value: 'raw' },
-]
+];
 
 const DatatypeInput = ({
   value: valueProp,

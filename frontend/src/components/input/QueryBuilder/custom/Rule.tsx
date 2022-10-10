@@ -230,20 +230,6 @@ export const Rule = ({
           )}
 
           <div className="filter-input">
-            {/*<FieldSelectorControlElement
-          testID={TestID.fields}
-          options={fields}
-          title={translations.fields.title}
-          value={field}
-          operator={operator}
-          className={c(standardClassnames.fields, classNames.fields)}
-          handleOnChange={generateOnChangeHandler('field')}
-          level={level}
-          path={path}
-          disabled={disabled}
-          context={context}
-          validation={validationResult}
-        />*/}
             {(autoSelectOperator || operator !== translations.operators.placeholderName) && (
               <>
                 <ValueEditorControlElement

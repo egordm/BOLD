@@ -11,7 +11,9 @@ import {
   TestID,
   InlineCombinator,
 } from 'react-querybuilder';
+import { SimpleSelect } from "../../SimpleSelect";
 import { VariableInput } from "../../VariableInput";
+import { Quantifier, QUANTIFIER_OPTIONS } from "../types";
 
 const c = (...classNames: string[]) => classNames.filter(Boolean).join(' ');
 
@@ -59,7 +61,7 @@ export const RuleGroup = ({
   const { onGroupAdd, onGroupRemove, onPropChange, onRuleAdd, moveRule } = actions;
   const disabled = !!parentDisabled || !!disabledProp;
 
-  const { rules, not } = ruleGroup ? ruleGroup : { rules: rulesProp, not: notProp };
+  const { rules, not, quantifier = 'must' } = ruleGroup ? ruleGroup as any : { rules: rulesProp, not: notProp, quantifier: 'must' };
   let combinator: string = defaultCombinators[0].name;
   if (ruleGroup && 'combinator' in ruleGroup) {
     combinator = ruleGroup.combinator;
@@ -136,7 +138,15 @@ export const RuleGroup = ({
     }
   };
 
+  const onQuantifierToggleChange = (quantifier: Quantifier) => {
+    if (!disabled) {
+      onPropChange('quantifier' as any, quantifier, path);
+    }
+  };
+
   const addRule = (event: ReactMouseEvent) => {
+    if (disabled) return;
+
     event.preventDefault();
     event.stopPropagation();
 
@@ -244,18 +254,13 @@ export const RuleGroup = ({
               />
             )}
             {showNotToggle && (
-              <NotToggleControlElement
-                testID={TestID.notToggle}
-                className={c(standardClassnames.notToggle, classNames.notToggle)}
-                title={translations.notToggle.title}
-                label={translations.notToggle.label}
-                checked={not}
-                handleOnChange={onNotToggleChange}
-                level={level}
+              <SimpleSelect
+                variant="filled"
+                value={quantifier}
+                options={QUANTIFIER_OPTIONS}
+                onChange={onQuantifierToggleChange}
+                label="Quantifier"
                 disabled={disabled}
-                path={path}
-                context={context}
-                validation={validationResult}
               />
             )}
             <VariableInput

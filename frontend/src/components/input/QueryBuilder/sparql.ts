@@ -76,14 +76,14 @@ export const partialToSparql = (state: QueryState, rule: Rule | RuleGroup, paren
 
 const ruleGroupToSparql = (state: QueryState, ruleGroup: RuleGroup) => {
   const combinator = (ruleGroup.combinator ?? 'AND').toUpperCase();
-  const not = !!ruleGroup.not;
+  const quantifier = (ruleGroup as any).quantifier ?? 'must';
   const rules = ruleGroup.rules.map(rule => partialToSparql(state, rule, ruleGroup));
 
   const cleanedRules = [];
   if(combinator === 'AND') {
     for (const rule of rules) {
       if ((rule as any)?.combinator) {
-        if ((rule as any)?.combinator === combinator && (rule as any)?.not === not) {
+        if ((rule as any)?.combinator === combinator && (rule as any)?.quantifier === quantifier) {
           cleanedRules.push(...(rule as any).terms);
         } else {
           cleanedRules.push(sparql`{ ${rule} }`);
@@ -99,7 +99,7 @@ const ruleGroupToSparql = (state: QueryState, ruleGroup: RuleGroup) => {
     cleanedRules.push(...rules.map(rule => brackets(rule, true)));
   }
 
-  return sparqlConjunctionBuilder(cleanedRules, combinator as any, not);
+  return sparqlConjunctionBuilder(cleanedRules, combinator as any, quantifier);
 }
 
 
@@ -217,8 +217,10 @@ const dtypeValueToSparql = (state: QueryState, dtype: DType, value: FlexibleTerm
       return { varName: literal(value, xsd.integer), bounds: [] };
     case 'decimal':
       return { varName: literal(value, xsd.decimal), bounds: [] };
-    case 'datetime':
-      return { varName: literal(value?.toISOString(), xsd.dateTime), bounds: [] };
+    case 'datetime': {
+      const dval = typeof value === 'string' ? new Date(value) : value;
+      return { varName: literal(dval?.toISOString(), xsd.dateTime), bounds: [] };
+    }
     case 'url':
       return { varName: literal(value, xsd.anyURI), bounds: [] };
     default:
