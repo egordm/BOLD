@@ -86,7 +86,8 @@ const ruleGroupToSparql = (state: QueryState, ruleGroup: RuleGroup) => {
         if ((rule as any)?.combinator === combinator && (rule as any)?.quantifier === quantifier) {
           cleanedRules.push(...(rule as any).terms);
         } else {
-          cleanedRules.push(sparql`{ ${rule} }`);
+          // cleanedRules.push(sparql`{ ${rule} }`);
+          cleanedRules.push(rule);
         }
       } else if (_.isArray(rule)) {
         cleanedRules.push(...rule);
@@ -207,6 +208,16 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
             ...(oBounds ?? []),
             ...(iBounds ?? []),
             bind(sparql`lang(${iVar})`, oVar)
+          ];
+        }
+        case 'is_bound': {
+          const inputVar: FlexibleTerm = { type: 'variable', variable: rule.value.input };
+          const { varName: iVar, bounds: iBounds } = flexTermToSparql(state, inputVar);
+
+          return [
+            ...(oBounds ?? []),
+            ...(iBounds ?? []),
+            bind(sparql`str(BOUND(${iVar}))`, oVar)
           ];
         }
         case 'simplify': {

@@ -14,12 +14,13 @@ export const QUANTIFIER_OPTIONS: OptionType<Quantifier>[] = [
   { label: 'Optional', value: 'optional' },
 ];
 
-export type FunctionType = 'raw' | 'lang' | 'simplify' | 'startswith' | 'is_statement';
+export type FunctionType = 'raw' | 'lang' | 'simplify' | 'is_bound';
 
 export const FUNCTION_OPTIONS: OptionType<FunctionType>[] = [
   { label: 'Raw expr', value: 'raw' },
   { label: 'Language', value: 'lang' },
   { label: 'Simplify', value: 'simplify' },
+  { label: 'IsBound', value: 'is_bound' },
 ];
 
 export type DTypeFilterType = 'string' | 'number' | 'boolean' | 'integer' | 'float' | 'datetime' | 'duration' | 'iri' | 'url' | 'literal' | 'null' | 'non_null' | 'property';

@@ -36,7 +36,7 @@ export default ({
   const output = value?.output ?? { value: 'main', label: 'main' };
 
   const Input = useMemo(() => {
-    switch (func?.value) {
+    switch (func?.value as FunctionType) {
       case 'raw':
         return (<TextField
           className={styles.manualField}
@@ -48,6 +48,7 @@ export default ({
         />)
       case 'lang':
       case 'simplify':
+      case 'is_bound':
         return (<VariableInput
           sx={{ flex: 1 }}
           allowAny={false}

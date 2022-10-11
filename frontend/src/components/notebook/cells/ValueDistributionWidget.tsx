@@ -367,7 +367,7 @@ export const ValueDistributionWidget = (props: {}) => {
         <Grid item xs={12}>
           <CardHeader
             sx={{ p: 0 }}
-            title="Value Distribution Query Builder"
+            title="Histogram Builder"
             subheader="Plots distribution of values for a given predicate and a filter"
             action={
               <IconButton sx={{ mr: 3 }} onClick={() => setShowSource(true)}>
