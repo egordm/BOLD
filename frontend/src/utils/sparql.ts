@@ -1,4 +1,4 @@
-import { literal, namedNode, variable } from "@rdfjs/data-model";
+import { literal, namedNode, triple, variable } from "@rdfjs/data-model";
 import namespace, { NamespaceBuilder } from "@rdfjs/namespace";
 import { NamedNode, Variable, Term as RdfTerm } from "@rdfjs/types";
 import { SparqlValue } from "@tpluscode/rdf-string";
@@ -63,7 +63,7 @@ export const PREFIXES = {
 export const namespacesToPrefixes = (namespaces: Record<string, NamespaceBuilder>): Record<string, string> => {
   return {
     ...Object.fromEntries(
-      Object.entries(namespaces).map(([prefix, ns]) => [prefix, ns().value])
+      Object.entries(namespaces).map(([ prefix, ns ]) => [ prefix, ns().value ])
     ),
   }
 }
@@ -120,29 +120,46 @@ export const valuesBound = (variable: Variable, values: RdfTerm[]) => ({
   }
 });
 
-export const optionalBound = (expr: SparqlValue) => ({
+export const optionalBound = (expr: SparqlValue | SparqlValue[]) => ({
   expr,
   _toPartialString(options) {
     return sparql`OPTIONAL { ${expr} }`._toPartialString(options)
   }
 })
 
-export const sparqlLabelBound = (v: Variable | string) => {
-  const { rdfs } = PREFIXES;
+export const sparqlLabelBound = (v: Variable | string, wikidata = false) => {
+  const { wikibase, rdfs } = WDT_PREFIXES;
   const varName = typeof v === 'string' ? variable(v) : v;
   const varLabel = variable(`${varName.value}Label`);
 
+  let labelSelect;
+  if (wikidata) {
+    const varClaim = suffix(varName, 'Claim');
+    labelSelect = sparqlConjunctionBuilder([
+      brackets([
+        triple(varClaim, wikibase.directClaim, varName),
+        triple(varClaim, rdfs.label, varLabel),
+      ], true),
+      brackets([
+        triple(varName, rdfs.label, varLabel)
+      ], true),
+    ], 'OR', 'must');
+  } else {
+    labelSelect = triple(varName, rdfs.label, varLabel);
+  }
+
+  const labelFilter = sparql`FILTER (BOUND(${varLabel}) && lang(${varLabel}) = "en").`;
+  const bound = optionalBound([ labelSelect, labelFilter ]);
+
   return {
-    bounds: [
-      sparql`OPTIONAL { ${varName} ${rdfs.label} ${varLabel} FILTER (BOUND(${varLabel}) && lang(${varLabel}) = "en"). }.`
-    ],
+    bounds: [ bound ],
     varLabel
   }
 }
 
-export const sparqlLabelsBound = (v: (Variable | string)[]) => {
+export const sparqlLabelsBound = (v: (Variable | string)[], wikidata = false) => {
   return v.reduce((acc: any, v) => {
-    const { bounds, varLabel } = sparqlLabelBound(v);
+    const { bounds, varLabel } = sparqlLabelBound(v, wikidata);
     acc.bounds.push(...bounds);
     acc.vars.push(varLabel);
     return acc;

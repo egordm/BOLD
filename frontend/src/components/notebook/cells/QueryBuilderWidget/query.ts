@@ -7,16 +7,18 @@ import { QueryBuilderData } from "./types";
 
 
 export const buildQuery = (data: QueryBuilderData, dataset: Dataset) => {
+  const wikidata = dataset.search_mode === 'WIKIDATA';
+
   const vars = (data.select ?? []).map(v => variable(v.value));
   if (!vars.length) {
     return {};
     // throw new Error('No variables selected');
   }
 
-  const { bounds: labelBounds, vars: labelVars } = sparqlLabelsBound(vars);
+  const { bounds: labelBounds, vars: labelVars } = sparqlLabelsBound(vars, wikidata);
   const selectVars = [ ...vars, ...labelVars ];
 
-  const body = queryToSparql(data.tree, dataset.search_mode === 'WIKIDATA');
+  const body = queryToSparql(data.tree, wikidata);
   const query = SELECT`${selectVars}`
     .WHERE`
       ${body}

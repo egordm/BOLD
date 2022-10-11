@@ -102,7 +102,6 @@ const ruleGroupToSparql = (state: QueryState, ruleGroup: RuleGroup) => {
   return sparqlConjunctionBuilder(cleanedRules, combinator as any, quantifier);
 }
 
-
 const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
   switch (rule.operator) {
     case 'filter': {
