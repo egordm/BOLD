@@ -8,9 +8,8 @@ export interface PlotBuilderData {
   z: VariableSelectorValue,
 
   max_groups_x?: number;
-  min_group_x_size?: number;
   max_groups_z?: number;
-  min_group_z_size?: number;
+  min_group_size?: number;
   xy_only: boolean;
 
   wikidata?: boolean;

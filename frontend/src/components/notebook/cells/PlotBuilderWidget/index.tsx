@@ -124,15 +124,24 @@ export const PlotBuilderWidget = (props: {}) => {
               <NumberedSlider
                 label={'Limit number of X groups'}
                 value={data?.max_groups_x ?? 20}
-                valueLabelFormat={(value) => value !== MAX_GROUPS_LIMIT ? value.toString() : 'Unlimited'}
+                valueLabelFormat={(value) => value !== 300 ? value.toString() : 'Unlimited'}
                 onChange={(event, max_groups: number) => setData({ max_groups_x: max_groups })}
                 min={1} max={300} step={10}
               />
+              {data.y?.aggregate === 'COUNT' && (
+                <NumberedSlider
+                  label={'Min count for a group'}
+                  value={data?.min_group_size ?? 1}
+                  valueLabelFormat={(value) => value.toString()}
+                  onChange={(event, min_group_size: number) => setData({ min_group_size })}
+                  min={1} max={100} step={5}
+                />
+              )}
               {!xy_only && (
                 <NumberedSlider
                   label={'Limit number of Z groups'}
                   value={data?.max_groups_z ?? 20}
-                  valueLabelFormat={(value) => value !== MAX_GROUPS_LIMIT ? value.toString() : 'Unlimited'}
+                  valueLabelFormat={(value) => value !== 300 ? value.toString() : 'Unlimited'}
                   onChange={(event, max_groups: number) => setData({ max_groups_z: max_groups })}
                   min={1} max={300} step={10}
                 />

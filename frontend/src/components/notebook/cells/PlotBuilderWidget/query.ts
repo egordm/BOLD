@@ -81,6 +81,14 @@ export const buildQuery = (data: PlotBuilderData, dataset: Dataset) => {
     primaryQuery.ORDER().BY(orderFirst as any, true)
   );
 
+  if (data.y.aggregate === 'COUNT') {
+    const havingVars = y_vars.map(v => brackets(aggregateToSparql(null, v, y_aggregate)));
+    primaryQuery = havingVars.reduce(
+      (query, varName) => query.HAVING`${varName} >= ${data.min_group_size ?? 1}`,
+      primaryQuery
+    );
+  }
+
   return {
     primaryQuery: primaryQuery.build(),
   };
