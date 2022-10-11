@@ -5,9 +5,9 @@ import { sparql } from "@tpluscode/sparql-builder";
 import _ from "lodash";
 import { RuleGroupType, RuleType } from "react-querybuilder/dist/types/types/ruleGroups";
 import { Term } from "../../../types/terms";
-import { bind, brackets, PREFIXES, sparqlConjunctionBuilder, valuesBound } from "../../../utils/sparql";
+import { bind, brackets, PREFIXES, sparqlConjunctionBuilder, valuesBound, WDT_PREFIXES } from "../../../utils/sparql";
 import { FlexibleTerm } from "../FlexibleTermInput";
-import { DType, OpType } from "./types";
+import { DType, DTypeFilterType, FunctionType, OpType } from "./types";
 import { collectStatements } from "./utils";
 
 export interface RuleGroup extends RuleGroupType<Rule> {
@@ -121,7 +121,7 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
       return tripleToSparql(state, subject, predicate, object);
     }
     case 'datatype': {
-      const type = rule.value?.value;
+      const type: DTypeFilterType = rule.value?.value;
       const parentVar: FlexibleTerm = { type: 'variable', variable: parent.variable };
 
       state.globalBounds.push(
@@ -192,12 +192,40 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
       const outputVar: FlexibleTerm = { type: 'variable', variable: output };
       const { varName: oVar, bounds: oBounds } = flexTermToSparql(state, outputVar);
 
-      switch (func) {
+      switch (func as FunctionType) {
         case 'raw': {
           return [
             ...(oBounds ?? []),
             bind(sparql`${rawFn}`, oVar)
           ];
+        }
+        case 'lang': {
+          const inputVar: FlexibleTerm = { type: 'variable', variable: rule.value.input };
+          const { varName: iVar, bounds: iBounds } = flexTermToSparql(state, inputVar);
+
+          return [
+            ...(oBounds ?? []),
+            ...(iBounds ?? []),
+            bind(sparql`lang(${iVar})`, oVar)
+          ];
+        }
+        case 'simplify': {
+          const inputVar: FlexibleTerm = { type: 'variable', variable: rule.value.input };
+          const { varName: iVar, bounds: iBounds } = flexTermToSparql(state, inputVar);
+
+          if (state.wikidata) {
+            return [
+              ...(oBounds ?? []),
+              ...(iBounds ?? []),
+              bind(sparql`${iVar}`, oVar)
+            ];
+          } else {
+            return [
+              ...(oBounds ?? []),
+              ...(iBounds ?? []),
+              bind(sparql`${iVar}`, oVar)
+            ];
+          }
         }
         default: {
           throw new Error(`Unknown function ${func}`);
@@ -250,6 +278,7 @@ const tripleToSparql = (state: QueryState, subject: FlexibleTerm, predicate: Fle
   const { varName: oVar, bounds: oBounds } = flexTermToSparql(state, object);
   const extra = [];
 
+  // Support for wikidata statements
   if (isStmt(state, sVar) || isStmt(state, oVar)) {
     let pBoundVals = pBounds?.[0]?.values;
 
@@ -277,6 +306,12 @@ const tripleToSparql = (state: QueryState, subject: FlexibleTerm, predicate: Fle
       });
       pBounds[0] = valuesBound(pBounds[0].variable, pBoundVals.filter(t => !isWikiDirect(t)))
     }
+
+    if (isStmt(state, oVar)) {
+      // Ensure predicate is (not direct) wikidata property
+      const { wikibase } = WDT_PREFIXES;
+      extra.push(triple(newVar(state), wikibase.claim, pVar))
+    }
   }
 
   return [
@@ -292,10 +327,14 @@ const isStmt = (state: QueryState, v: Variable) => v.termType === 'Variable' && 
 
 const isWikiDirect = (t: RdfTerm) => t.termType === 'NamedNode' && t.value.startsWith(WIKIDATA_PREFIX_DIRECT);
 
+const isVariable = (t: RdfTerm) => t.termType === 'Variable';
+
 const wikiDirectToValueProps = (t: RdfTerm) => [
   namedNode(WIKIDATA_PREFIX_VAL_SIMPLE + t.value.slice(WIKIDATA_PREFIX_DIRECT.length)),
   namedNode(WIKIDATA_PREFIX_VAL_QUALIFIER + t.value.slice(WIKIDATA_PREFIX_DIRECT.length))
 ]
+
+const newVar = (state: QueryState, prefix = 'tmp') => variable(`${prefix}${state.tempVarCounter++}`);
 
 
 const WIKIDATA_PREFIX_DIRECT = 'http://www.wikidata.org/prop/direct/';
@@ -392,6 +431,14 @@ const boundDatatypeSparql = (state: QueryState, term: FlexibleTerm, datatype: st
 
   let datatypeIri = [];
   switch (datatype) {
+    case 'property':
+      const {rdf, wikibase} = WDT_PREFIXES;
+      if (state.wikidata) {
+        const varAny = variable(`any${state.tempVarCounter++}`);
+        return triple(varAny, wikibase.directClaim, varName)
+      } else {
+        return triple(varName, rdf.type, rdf.Property);
+      }
     case 'string':
       datatypeIri = [ `<http://www.w3.org/2001/XMLSchema#string>` ];
       break;

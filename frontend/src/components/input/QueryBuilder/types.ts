@@ -14,8 +14,28 @@ export const QUANTIFIER_OPTIONS: OptionType<Quantifier>[] = [
   { label: 'Optional', value: 'optional' },
 ];
 
-export type FunctionType = 'raw';
+export type FunctionType = 'raw' | 'lang' | 'simplify' | 'startswith' | 'is_statement';
 
 export const FUNCTION_OPTIONS: OptionType<FunctionType>[] = [
-  { label: 'Raw', value: 'raw' },
+  { label: 'Raw expr', value: 'raw' },
+  { label: 'Language', value: 'lang' },
+  { label: 'Simplify', value: 'simplify' },
+];
+
+export type DTypeFilterType = 'string' | 'number' | 'boolean' | 'integer' | 'float' | 'datetime' | 'duration' | 'iri' | 'url' | 'literal' | 'null' | 'non_null' | 'property';
+
+export const DTYPE_FILTER_OPTIONS: OptionType<DTypeFilterType>[] = [
+  { label: 'String', value: 'string' },
+  { label: 'Number', value: 'number' },
+  { label: 'Boolean', value: 'boolean' },
+  { label: 'Integer', value: 'integer' },
+  { label: 'Float', value: 'float' },
+  { label: 'Datetime', value: 'datetime' },
+  { label: 'Duration', value: 'duration' },
+  { label: 'IRI', value: 'iri' },
+  { label: 'URL', value: 'url' },
+  { label: 'Any Literal', value: 'literal' },
+  { label: 'NULL', value: 'null' },
+  { label: 'Non NULL', value: 'non_null' },
+  { label: 'Property (direct)', value: 'property' },
 ];

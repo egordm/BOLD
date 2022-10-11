@@ -36,9 +36,11 @@ const collectVars = (group: RuleGroupType | any, vars: Set<string>) => {
     if (group?.operator === 'function' && gv.output) {
       vars.add(gv.output.value);
     }
+
+    if (group?.operator === 'function' && gv.input) {
+      vars.add(gv.input.value);
+    }
   }
-
-
 
   if (group.rules) {
     for (const rule of group.rules) {

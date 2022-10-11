@@ -32,9 +32,10 @@ export default ({
   const styles = useStyles();
   const func = value?.func ?? FUNCTION_OPTIONS[0];
 
+  const input = value?.input ?? { value: 'main', label: 'main' };
   const output = value?.output ?? { value: 'main', label: 'main' };
 
-  const input = useMemo(() => {
+  const Input = useMemo(() => {
     switch (func?.value) {
       case 'raw':
         return (<TextField
@@ -44,6 +45,16 @@ export default ({
           variant="filled"
           label="Raw transform"
           placeholder={"Valid SPARQL expression"}
+        />)
+      case 'lang':
+      case 'simplify':
+        return (<VariableInput
+          sx={{ flex: 1 }}
+          allowAny={false}
+          value={input}
+          label="Input variable"
+          options={context?.variables}
+          onChange={(input: OptionType) => updateValue({ input })}
         />)
       default:
         return null;
@@ -55,16 +66,16 @@ export default ({
       <Autocomplete
         disablePortal
         options={FUNCTION_OPTIONS}
-        sx={{ width: 120 }}
+        sx={{ width: 140 }}
         value={func}
         isOptionEqualToValue={(option, value) => (option?.value ?? option) === (value?.value ?? value)}
         renderInput={(params) => <TextField {...params} variant="filled" label="Function"/>}
         onChange={(event: any, func: FunctionType | null) => updateValue({ func })}
         disableClearable={true}
       />
-      {input}
+      {Input}
       <VariableInput
-        sx={{ width: 120 }}
+        sx={Input ? { width: 120 } : { flex: 1 }}
         allowAny={false}
         value={output}
         label="Store output in"
