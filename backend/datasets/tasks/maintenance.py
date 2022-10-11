@@ -33,7 +33,7 @@ def update_dataset_info(dataset_id: UUID):
                 raise Exception("Dataset has no database")
 
             namespaces = []
-            triple_count = int(dataset.get_query_service().select_query('''
+            triple_count = int(dataset.get_query_service().query_select('''
                 SELECT (COUNT(*) AS ?count)
                 WHERE { ?s ?p ?o }
             ''', limit=1, ignore_limit=True).get('results').get('bindings')[0].get('count').get('value'))
