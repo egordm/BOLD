@@ -1,21 +1,16 @@
-import { TabContext, TabList, TabPanel } from "@mui/lab";
 import {
-  Backdrop,
-  Box,
   Button, Checkbox,
-  CircularProgress, FormControl, FormControlLabel, FormGroup, FormHelperText, FormLabel,
+  FormControl, FormControlLabel, FormGroup, FormLabel,
   Grid, InputLabel, Link, ListItem, ListItemText, MenuItem, Select,
-  Tab,
   TextField, Typography
 } from "@mui/material"
 import OpenInNewIcon from '@mui/icons-material/OpenInNew';
-import { AxiosResponse } from "axios";
 import { useFormik } from "formik";
 import React, { useCallback, useState } from "react";
 import { FormContainer } from "../../components/layout/FormContainer";
 import { useApi } from "../../hooks/useApi";
 import useNotification from "../../hooks/useNotification";
-import { LODCDataset, LODCDownload } from "../../services/lodc";
+import { LODCDownload } from "../../services/lodc";
 import { TDBDataset } from "../../services/triplydb";
 import { Dataset } from "../../types/datasets";
 import * as yup from 'yup';

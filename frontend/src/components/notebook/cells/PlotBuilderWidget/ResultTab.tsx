@@ -34,14 +34,13 @@ export const ResultTab = ({
 }) => {
   try {
     const prefixes = usePrefixes();
-
     const snapshot: PlotBuilderData = (outputs[0] as CellExecuteOutput).snapshot;
 
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const plotData = useMemo(() => {
       const result = extractSparqlResult(outputs[0]);
       if (!result) return null;
-      const df = sparqlTransposeResult(extractSparqlResult(outputs[0]));
+      const df = sparqlTransposeResult(result);
       if (!df) return null;
 
       const xVar = variable(snapshot.x.vars[0].value);

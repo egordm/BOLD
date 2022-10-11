@@ -31,6 +31,8 @@ const OUTPUT_TABS = [
   { value: 'tableCounts', label: 'Show Counts Data' },
 ]
 
+const DEFAULT_LIMIT = 200;
+
 const buildQuery = (data: ClassBrowserData) => {
   const { rdf, rdfs } = PREFIXES;
 
@@ -45,7 +47,7 @@ const buildQuery = (data: ClassBrowserData) => {
     `
     .GROUP().BY('type')
     .ORDER().BY(variable('count'), true)
-    .LIMIT(data.limit ?? 20);
+    .LIMIT(data.limit ?? DEFAULT_LIMIT);
 
   return {
     primaryQuery: primaryQuery.build(),
@@ -86,7 +88,7 @@ export const ClassBrowserWidget = (props: {}) => {
           <Container maxWidth="md">
             <NumberedSlider
               label={'Limit results'}
-              value={data?.limit ?? 100}
+              value={data?.limit ?? DEFAULT_LIMIT}
               valueLabelFormat={(value) => value.toString()}
               onChange={(event, value) => setData({ limit: value as number })}
               min={100} max={5000} step={200}

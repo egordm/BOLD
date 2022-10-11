@@ -9,10 +9,9 @@ import { ClassBrowserWidget } from "./cells/ClassBrowserWidget";
 import { ClassTreeWidget } from "./cells/ClassTreeWidget";
 import { CodeWidget } from "./cells/CodeWidget";
 import { PlotBuilderWidget } from "./cells/PlotBuilderWidget";
-import { PropertiesPreviewWidget } from "./cells/PropertiesPreviewWidget";
+import { PropertiesWidget } from "./cells/PropertiesWidget";
 import { QueryBuilderWidget } from "./cells/QueryBuilderWidget";
 import { SubgraphWidget } from "./cells/SubgraphWidget";
-import { TripleMatchWidget } from "./cells/TripleMatchWidget";
 import { ValueDistributionWidget } from "./cells/ValueDistributionWidget";
 
 
@@ -27,9 +26,8 @@ const useStyles = makeStyles((theme) => ({
 export const CELL_TYPES = {
   code: CodeWidget,
   widget_valuedistribution: ValueDistributionWidget,
-  widget_triplematch: TripleMatchWidget,
   widget_classtree: ClassTreeWidget,
-  widget_propertiespreview: PropertiesPreviewWidget,
+  widget_propertiespreview: PropertiesWidget,
   widget_subgraph: SubgraphWidget,
   widget_classbrowser: ClassBrowserWidget,
   widget_plotbuilder: PlotBuilderWidget,

@@ -1,15 +1,7 @@
 import {
-  Autocomplete, Checkbox,
-  FormControl, FormControlLabel,
-  FormHelperText,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select, Stack,
-  TextField, Typography
+  Autocomplete, TextField
 } from "@mui/material";
 import Input from '@mui/material/Input';
-import { SelectChangeEvent } from "@mui/material/Select";
 import React from "react";
 import {
   RuleGroupType,

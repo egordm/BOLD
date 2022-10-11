@@ -54,7 +54,7 @@ export const tryQueryToSparql = (query: RuleGroup, wikidata = true) => {
 
 export const queryToSparql = (query: RuleGroup, wikidata = true) => {
   try {
-    return tryQueryToSparql(query);
+    return tryQueryToSparql(query, wikidata);
   } catch (e) {
     console.error(e)
     return '';

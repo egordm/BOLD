@@ -145,10 +145,9 @@ export const NotebookToolbar = (props: {}) => {
           <MenuItem value={'widget_valuedistribution'}>Histogram Builder</MenuItem>
           <MenuItem value={'widget_plotbuilder'}>Plot Builder</MenuItem>
           <MenuItem value={'widget_querybuilder'}>Query Builder</MenuItem>
-          <MenuItem value={'widget_triplematch'}>Triple Search</MenuItem>
-          <MenuItem value={'widget_classtree'}>Class Statistics</MenuItem>
           <MenuItem value={'widget_propertiespreview'}>Entity Properties</MenuItem>
           <MenuItem value={'widget_subgraph'}>Subgraph View</MenuItem>
+          <MenuItem value={'widget_classtree'}>Class Statistics</MenuItem>
         </Select>
       </FormControl>
       <Autocomplete

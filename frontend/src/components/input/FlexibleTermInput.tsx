@@ -36,6 +36,7 @@ export const FlexibleTermInput = ({
   labels: partialLabels,
   label,
   allowVars, allowAny,
+  sx,
   ...props
 }: {
   value?: FlexibleTerm,
@@ -48,6 +49,7 @@ export const FlexibleTermInput = ({
   context?: Partial<QueryContext>,
   allowVars?: boolean,
   allowAny?: boolean,
+  sx?: any,
 } & Partial<Omit<TextFieldProps, 'onChange'>>) => {
   const {
     type = 'search',
@@ -136,6 +138,7 @@ export const FlexibleTermInput = ({
   return (
     <GutterInput
       padGutter={false}
+      sx={sx}
       gutter={(<>
         {beforeGutter}
         <GutterSelect
