@@ -345,7 +345,7 @@ const wikiDirectToValueProps = (t: RdfTerm) => [
   namedNode(WIKIDATA_PREFIX_VAL_QUALIFIER + t.value.slice(WIKIDATA_PREFIX_DIRECT.length))
 ]
 
-const newVar = (state: QueryState, prefix = 'tmp') => variable(`${prefix}${state.tempVarCounter++}`);
+export const newVar = (state: QueryState, prefix = 'tmp') => variable(`${prefix}${state.tempVarCounter++}`);
 
 
 const WIKIDATA_PREFIX_DIRECT = 'http://www.wikidata.org/prop/direct/';
@@ -353,7 +353,7 @@ const WIKIDATA_PREFIX_PROP = 'http://www.wikidata.org/prop/';
 const WIKIDATA_PREFIX_VAL_SIMPLE = 'http://www.wikidata.org/prop/statement/';
 const WIKIDATA_PREFIX_VAL_QUALIFIER = 'http://www.wikidata.org/prop/qualifier/';
 
-const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
+export const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
   switch (term.type) {
     case 'statement':
     case 'variable': {

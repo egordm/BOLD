@@ -1,3 +1,5 @@
+import json
+
 import stardog
 from requests import Session
 
@@ -15,6 +17,10 @@ class QueryService(ABC):
     def query(self, query: str, limit: int = 10, timeout: int = None, **options) -> dict:
         pass
 
+    def query_select(self, query: str, limit: int = 10, timeout: int = None, **options) -> dict:
+        data = self.query(query, limit, timeout, **options)
+        return json.loads(data['application/sparql-results+json'])
+
 
 class LocalQueryService(QueryService):
     database: str
@@ -26,10 +32,18 @@ class LocalQueryService(QueryService):
         try:
             with StardogApi.connection(self.database) as conn:
                 if 'LIMIT' in query:
-                    limit=None
-                output = conn.select(query, limit=limit, timeout=timeout)
+                    limit = None
 
-            return output
+                if is_graph_query(query):
+                    return {
+                        'application/n-triples': conn.graph(query, 'application/n-triples', limit=limit,
+                            timeout=timeout).decode('utf-8')
+                    }
+                else:
+                    output = conn.select(query, limit=limit, timeout=timeout)
+                    return {
+                        'application/sparql-results+json': json.dumps(output)
+                    }
         except stardog.exceptions.StardogException as e:
             raise QueryExecutionException(str(e))
 
@@ -44,6 +58,8 @@ class SPARQLQueryService(QueryService):
         if 'LIMIT' not in query.upper() and not ignore_limit:
             raise QueryExecutionException(f'SPARQL queries must specify a LIMIT')
 
+        accept = 'application/n-triples' if is_graph_query(query) else 'application/sparql-results+json'
+
         with Session() as session:
             response = session.post(
                 self.endpoint,
@@ -55,7 +71,7 @@ class SPARQLQueryService(QueryService):
                 headers={
                     'User-Agent': 'https://github.com/EgorDm/BOLD',
                     'Content-Type': 'application/sparql-query',
-                    'Accept': 'application/sparql-results+json',
+                    'Accept': accept,
                 },
                 timeout=timeout,
                 allow_redirects=False
@@ -71,4 +87,11 @@ class SPARQLQueryService(QueryService):
         if response.status_code != 200:
             raise QueryExecutionException(f'{response.status_code} {response.reason}\n{response.text}')
 
-        return response.json()
+        if accept == 'application/n-triples':
+            return {'application/n-triples': response.text}
+        else:
+            return {'application/sparql-results+json': response.text}
+
+
+def is_graph_query(query: str) -> bool:
+    return 'CONSTRUCT' in query.upper().strip() or 'DESCRIBE' in query.upper().strip()

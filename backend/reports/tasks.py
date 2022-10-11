@@ -84,9 +84,7 @@ def run_sparql(dataset: Dataset, source: str, timeout: int = None, limit: int = 
         outputs.append({
             'output_type': 'execute_result',
             'execute_count': 1,
-            'data': {
-                'application/sparql-results+json': json.dumps(output)
-            },
+            'data': output,
             'execution_time': float(timer() - start_time)
         })
     except QueryExecutionException as e:

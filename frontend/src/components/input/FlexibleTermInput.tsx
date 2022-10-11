@@ -1,4 +1,4 @@
-import { FormControl, MenuItem, Select, Stack, TextField } from "@mui/material";
+import { FormControl, MenuItem, Select, Stack, TextField, TextFieldProps } from "@mui/material";
 import { AutocompleteProps } from "@mui/material/Autocomplete/Autocomplete";
 import { makeStyles } from "@mui/styles";
 import { Box } from "@mui/system";
@@ -7,7 +7,7 @@ import { Term, TermPos } from "../../types/terms";
 import { GutterInput, GutterSelect } from "./GutterInput";
 import { QueryContext } from "./QueryBuilder/config";
 import { TermInput } from "./TermInput";
-import { VariableInput } from "./VariableInput";
+import { OptionType, VariableInput } from "./VariableInput";
 import './styles.css';
 
 const useStyles = makeStyles((theme) => ({
@@ -35,6 +35,7 @@ export const FlexibleTermInput = ({
   afterGutter,
   labels: partialLabels,
   label,
+  allowVars, allowAny,
   ...props
 }: {
   value?: FlexibleTerm,
@@ -44,8 +45,10 @@ export const FlexibleTermInput = ({
   pos: TermPos,
   labels?: Partial<typeof LABELS>,
   label?: string,
-  context?: Partial<QueryContext>
-} & Partial<Omit<AutocompleteProps<any, false, false, true>, 'onChange'>>) => {
+  context?: Partial<QueryContext>,
+  allowVars?: boolean,
+  allowAny?: boolean,
+} & Partial<Omit<TextFieldProps, 'onChange'>>) => {
   const {
     type = 'search',
     variable,
@@ -58,11 +61,22 @@ export const FlexibleTermInput = ({
   const labels = { ...LABELS, ...partialLabels, label };
   const classes = useStyles();
 
-  const type_options = useMemo(() => wikidata && pos === 'OBJECT'
-      ? [ ...TYPE_OPTIONS, { value: 'statement', label: 'Statement Variable' } ]
-      : TYPE_OPTIONS,
-    [ wikidata, pos ]
-  );
+  const type_options = useMemo(() => {
+    const result = [
+      { value: 'search', label: 'Search' },
+      { value: 'manual', label: 'Manual' },
+    ]
+    if (allowVars ?? true) {
+      result.push({ value: 'variable', label: 'Variable' });
+    }
+    if (wikidata && pos === 'OBJECT') {
+      result.push({ value: 'statement', label: 'Statement Variable' })
+    }
+    if (allowAny ?? true) {
+      result.push({ value: 'any', label: 'Any' })
+    }
+    return result;
+  }, [ wikidata, pos, allowVars, allowAny ]);
 
   let input = null;
   switch (type) {
@@ -73,8 +87,9 @@ export const FlexibleTermInput = ({
         sx={{ flex: 1 }}
         options={variables as any}
         value={variable}
-        onChange={(variable) => onChange({ ...value, type, variable })}
+        onChange={(variable: OptionType) => onChange({ ...value, type, variable })}
         allowAny={false}
+        {...props as any}
       />)
       break;
     case 'search':
@@ -86,6 +101,7 @@ export const FlexibleTermInput = ({
         value={search ?? []}
         onChange={(search) => onChange({ ...value, type, search })}
         prefixes={prefixes}
+        {...props as any}
       />)
       break;
     case 'manual':
@@ -98,6 +114,7 @@ export const FlexibleTermInput = ({
           placeholder="Enter a valid SPARQL term"
           value={manual ?? ''}
           onChange={(e) => onChange({ ...value, type, manual: e.target.value })}
+          {...props}
         />
       );
       break;
@@ -110,6 +127,7 @@ export const FlexibleTermInput = ({
           variant="filled"
           value={'Any'}
           disabled={true}
+          {...props}
         />
       );
       break;
@@ -122,12 +140,12 @@ export const FlexibleTermInput = ({
         {beforeGutter}
         <GutterSelect
           value={type}
-          onChange={(type) => onChange({ ...value, type })}
+          onChange={(type: FlexibleTermType) => onChange({ ...value, type })}
           options={type_options}
+          disabled={props.disabled ?? false}
         />
         {afterGutter}
       </>)}
-      {...props}
     >
       {input}
     </GutterInput>
@@ -141,14 +159,5 @@ export interface FlexibleTerm {
   type: FlexibleTermType;
   search?: Term[];
   manual?: string;
-  variable?: {
-    value: string,
-  };
+  variable?: Partial<OptionType>;
 }
-
-const TYPE_OPTIONS = [
-  { value: 'search', label: 'Search' },
-  { value: 'manual', label: 'Manual' },
-  { value: 'variable', label: 'Variable' },
-  { value: 'any', label: 'Any' },
-]

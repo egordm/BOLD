@@ -73,7 +73,11 @@ export const extractSparqlResult = (output?: CellOutput): SPARQLResult | null =>
     const contentType = Object.keys(output.data)[0];
     const data = output.data[contentType];
 
-    return JSON.parse(data);
+    if (contentType === 'application/n-triples') {
+      return data;
+    } else {
+      return JSON.parse(data);
+    }
   }
 
   return null;
@@ -153,6 +157,22 @@ export const sparqlLabelBound = (v: Variable | string, wikidata = false) => {
 
   return {
     bounds: [ bound ],
+    varLabel
+  }
+}
+
+export const sparqlSimpleLabelBound = (v: Variable | string) => {
+  const { rdfs } = PREFIXES;
+  const varName = typeof v === 'string' ? variable(v) : v;
+  const varLabel = suffix(varName, 'Label');
+
+  return {
+    bounds: [
+      optionalBound([
+        triple(varName, rdfs.label, varLabel),
+        sparql`FILTER (BOUND(${varLabel}) && lang(${varLabel}) = "en").`,
+      ]),
+    ],
     varLabel
   }
 }
