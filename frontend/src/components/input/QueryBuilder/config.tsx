@@ -46,6 +46,7 @@ export const operators: { name: OperatorType, label: string }[] = [
   { name: 'datatype', label: 'datatype' },
   { name: 'operator', label: 'operator' },
   { name: 'subclass_of', label: 'subclass of' },
+  { name: 'instance_of', label: 'instance of' },
   { name: 'function', label: 'function' },
 ]
 

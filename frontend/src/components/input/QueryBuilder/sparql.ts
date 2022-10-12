@@ -7,7 +7,7 @@ import { RuleGroupType, RuleType } from "react-querybuilder/dist/types/types/rul
 import { Term } from "../../../types/terms";
 import { bind, brackets, PREFIXES, sparqlConjunctionBuilder, valuesBound, WDT_PREFIXES } from "../../../utils/sparql";
 import { FlexibleTerm } from "../FlexibleTermInput";
-import { DType, DTypeFilterType, FunctionType, OpType } from "./types";
+import { DType, DTypeFilterType, FunctionType, OperatorType, OpType } from "./types";
 import { collectStatements } from "./utils";
 
 export interface RuleGroup extends RuleGroupType<Rule> {
@@ -48,7 +48,7 @@ export const tryQueryToSparql = (query: RuleGroup, wikidata = true) => {
 
   return [
     ruleGroupToSparql(state, query),
-      ...state.globalBounds
+    ...state.globalBounds
   ]
 }
 
@@ -80,7 +80,7 @@ const ruleGroupToSparql = (state: QueryState, ruleGroup: RuleGroup) => {
   const rules = ruleGroup.rules.map(rule => partialToSparql(state, rule, ruleGroup));
 
   const cleanedRules = [];
-  if(combinator === 'AND') {
+  if (combinator === 'AND') {
     for (const rule of rules) {
       if ((rule as any)?.combinator) {
         if ((rule as any)?.combinator === combinator && (rule as any)?.quantifier === quantifier) {
@@ -104,16 +104,8 @@ const ruleGroupToSparql = (state: QueryState, ruleGroup: RuleGroup) => {
 }
 
 const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
-  switch (rule.operator) {
+  switch (rule.operator as OperatorType) {
     case 'filter': {
-      const { predicate, input, reverse } = rule.value;
-      const parentVar = { type: 'variable', variable: parent.variable };
-      const subject = reverse ? input : parentVar;
-      const object = reverse ? parentVar : input;
-
-      return tripleToSparql(state, subject, predicate, object);
-    }
-    case 'filter_path': {
       const { predicate, input, reverse } = rule.value;
       const parentVar = { type: 'variable', variable: parent.variable };
       const subject = reverse ? input : parentVar;
@@ -166,6 +158,7 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
         ...extraBounds,
       ];
     }
+    case 'instance_of':
     case 'subclass_of': {
       const { input } = rule.value;
       const parentVar: FlexibleTerm = { type: 'variable', variable: parent.variable };
@@ -175,10 +168,14 @@ const ruleToSparql = (state: QueryState, rule: Rule, parent: RuleGroup) => {
 
       const { wdt, rdf, rdfs } = PREFIXES;
       let pPath = null;
-      if (state.wikidata) {
-        pPath = sparql`${wdt.P31}/${wdt.P279}*`;
+      if (rule.operator === 'instance_of') {
+        pPath = state.wikidata
+          ? sparql`${wdt.P31}/${wdt.P279}*`
+          : sparql`${rdf.type}/${rdfs.subClassOf}*`;
       } else {
-        pPath = sparql`${rdf.type}/${rdfs.subClassOf}*`;
+        pPath = state.wikidata
+          ? sparql`${wdt.P279}+`
+          : sparql`${rdfs.subClassOf}+`;
       }
       return [
         ...(oBounds ?? []),
@@ -306,8 +303,10 @@ const tripleToSparql = (state: QueryState, subject: FlexibleTerm, predicate: Fle
 
       // Bind the statement value to the to similar triple
       const varName = variable(`tmp${state.tempVarCounter++}`);
-      let varProps = [...pBoundVals];
-      varProps.filter(isWikiDirect).forEach(t => { varProps.push(...wikiDirectToValueProps(t)) });
+      let varProps = [ ...pBoundVals ];
+      varProps.filter(isWikiDirect).forEach(t => {
+        varProps.push(...wikiDirectToValueProps(t))
+      });
       extra.push(valuesBound(varName, varProps));
       extra.push(triple(oVar, varName, variable(`${oVar.value}Value`)));
 
@@ -376,7 +375,7 @@ export const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
         );
 
       const varName = variable(`tmp${state.tempVarCounter++}`);
-      const bounds = [valuesBound(varName, tokens)];
+      const bounds = [ valuesBound(varName, tokens) ];
 
       return { varName, bounds }
     }
@@ -386,7 +385,7 @@ export const flexTermToSparql = (state: QueryState, term: FlexibleTerm) => {
       }
       let tokens = term.search.map(t => termToSparql(state, t));
       const varName = variable(`tmp${state.tempVarCounter++}`);
-      const bounds = [valuesBound(varName, tokens)];
+      const bounds = [ valuesBound(varName, tokens) ];
 
       return { varName, bounds }
     }
@@ -443,7 +442,7 @@ const boundDatatypeSparql = (state: QueryState, term: FlexibleTerm, datatype: st
   let datatypeIri = [];
   switch (datatype) {
     case 'property':
-      const {rdf, wikibase} = WDT_PREFIXES;
+      const { rdf, wikibase } = WDT_PREFIXES;
       if (state.wikidata) {
         const varAny = variable(`any${state.tempVarCounter++}`);
         return triple(varAny, wikibase.directClaim, varName)

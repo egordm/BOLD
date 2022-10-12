@@ -66,11 +66,12 @@ export const ValueEditor = ({
         context={context}
         parent={parent}
       />);
+    case 'instance_of':
     case 'subclass_of':
       return (<FlexibleTermInput
         sx={{ flex: 1 }}
         pos={'OBJECT'}
-        label={'Subclass of'}
+        label={operator === 'subclass_of' ? 'Subclass of' : 'Instance of'}
         value={value.input}
         onChange={(input) => updateValue({ input })}
         context={context}

@@ -6,7 +6,7 @@ export type DType = 'string' | 'boolean' | 'integer' | 'decimal' | 'datetime' | 
 
 export type Quantifier = 'must' | 'must_not' | 'optional';
 
-export type OperatorType = 'filter' | 'datatype' | 'operator' | 'subclass_of' | 'function';
+export type OperatorType = 'filter' | 'datatype' | 'operator' | 'instance_of' | 'subclass_of' | 'function';
 
 export const QUANTIFIER_OPTIONS: OptionType<Quantifier>[] = [
   { label: 'Must', value: 'must' },
