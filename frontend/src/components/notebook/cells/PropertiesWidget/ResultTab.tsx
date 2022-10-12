@@ -20,6 +20,9 @@ const columns: GridColDef[] = [
         href={params.value.value}
         target="_blank">{params.value.label}</Link>
     ) : params.value.label,
+    sortComparator: (v1, v2, param1, param2) => {
+      return param1.value.label.localeCompare(param2.value.label);
+    }
   },
   {
     flex: 1,
@@ -35,12 +38,12 @@ const columns: GridColDef[] = [
               maxWidth: { xs: 240, md: 240 },
             }}
             alt={params.value.label}
-            src={params.value.value}
+            src={params.value.value.toString()}
           />
         )
         : validURL(params.value.value)
-          ? (<Link href={params.value.value} target="_blank">{params.value.label}</Link>)
-          : params.value.label,
+          ? (<Link href={params.value.value.toString()} target="_blank">{params.value.label}</Link>)
+          : params.value.label.toString(),
   }
 ];
 
@@ -91,9 +94,13 @@ export const ResultTab = ({
           checkboxSelection={false}
           rows={rows}
           columns={columns}
-          pageSize={20}
-          rowsPerPageOptions={[ 20, 50, 100 ]}
           getRowHeight={() => 'auto'}
+          autoPageSize={true}
+          initialState={{
+            sorting: {
+              sortModel: [{ field: 'p', sort: 'asc' }],
+            },
+          }}
         />
       </Box>
     )

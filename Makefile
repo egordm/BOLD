@@ -23,3 +23,8 @@ release-frontend:
 	cd frontend && yarn build
 	rm -rf backend/frontend/static
 	cp -r frontend/build backend/frontend/static
+
+deploy:
+	docker-compose -f docker-compose.prod.yml down
+	docker image rm egordm/ankc
+	docker-compose -f docker-compose.prod.yml up -d
