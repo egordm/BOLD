@@ -42,10 +42,7 @@ services:
 
 volumes:
   data-stardog:
-  data-rabbitmq:
-  data-redis:
   data-postgres:
-  data-elastic:
 
 networks:
   bold-net:

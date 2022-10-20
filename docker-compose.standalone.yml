@@ -1,7 +1,7 @@
 version: '3'
 services:
   bold:
-    image: egordm/ankc:latest
+    image: egordm/bold:latest
     build: .
     ports:
       - 8000:8000

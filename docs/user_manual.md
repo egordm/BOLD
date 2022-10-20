@@ -36,6 +36,11 @@ Filter the entities by defining custom filters and select specific columns to di
 
 ![Navigation Filtering](resources/user_guide/navigation_filter.gif)
 
+## Task bar
+The task bar is located in the bottom right corner of the screen and shows the progress of currently running tasks. You can expand it to view the details of the running or completed tasks.
+
+![Task bar](resources/user_guide/tasks.png)
+
 ## Importing Datasets
 The datasets can be imported a multitude of sources.
 There are two main ways to import datasets in BOLD.
@@ -92,8 +97,17 @@ To make it easier to write SPARQL queries, BOLD provides a utility to promt GPT 
 
 ![GPT Code Generation](resources/user_guide/widget_codegpt.gif)
 
-### Histogram Cell
-The histogram cell displays the distribution of values for a certain property given a set of filters. 
+### Class Browser Widget
+
+Class browser counts the number of instances for each class and displays them in a hierarchical structure. Each type in the plot is sized proportionally to the number of instances it contains.
+
+For larger datasets, it may be useful to increase the limit of the query to get a better overview of the class hierarchy.
+
+![Class Browser](resources/user_guide/widget_classbrowser.gif)
+
+
+### Histogram Widget
+The histogram widget displays the distribution of values for a certain property given a set of filters. 
 This cell is perfect for finding biases in the data or getting important insights.
 
 Various options are available to customize the histogram:
@@ -114,14 +128,44 @@ The results are displayed in four tabs:
 * **Examples** - List of examples of entities that match the filters
 * **Completeness Analysis** - Displays a ratio of entities that match the filters and have a defined property value versus the entities that dont have the property value.
 
-### Triple Cell
-The triple cell displays the triples that match the defined filters.
+### Query Builder
 
-* **Limit number of results** - limits the number of entities displayed
+Query Builder provides a simple interface to create SPARQL queries. The default search input allows you to fuzzy search for relevant entities and properties.
+Create filters to filter resulting entities and select the properties to be used in the plot.
 
-![Triple Cell](resources/user_guide/widget_triple.gif)
+The results are displayed in a table below.
 
-### Class Tree Cell
+![Query Builder](resources/user_guide/widget_querybuilder.gif)
+
+### Plot Builder
+
+The plot builder widget allows you to create custom plots using the data from the dataset.
+
+Create filters to filter resulting entities and select the properties to be used in the plot.
+If you want to build a 3d plot (x, y and groups) select the "Is XYZ" option. 
+
+This widget is compatible with Query Builder widget and can be converted from/to Query Builder widget.
+
+![Plot Builder](resources/user_guide/widget_plotbuilder.gif)
+
+### Entity Properties
+The properties cell displays the properties of a given entity.
+
+![Properties Cell](resources/user_guide/widget_properties.gif)
+
+### Subgraph View
+The subgraph cell displays arbitrary depth the subgraph of a given entity by using properties as egdes.
+
+Various options are available to customize the subgraph:
+
+* **Target Entity** - The entity to start the subgraph from
+* **Use any property** - Include all applicable properties in the subgraph or specify specific properties to use
+* **Limit results** - Limits the number of nodes displayed
+* **Limit depth** - Limits the depth of the subgraph
+
+![Subgraph Cell](resources/user_guide/widget_subgraph.gif)
+
+### Class Statistics
 The class tree cell displays the class hierarchy of the classes and properties in the dataset.
 It can be used to get important insights in new data user wants to explore.
 
@@ -138,19 +182,5 @@ Various options are available to customize the class tree:
 
 ![Class Tree Cell](resources/user_guide/dataset_delete.gif)
 
-### Properties Cell
-The properties cell displays the properties of a given entity.
 
-![Properties Cell](resources/user_guide/widget_properties.gif)
 
-### Subgraph Cell
-The subgraph cell displays arbitrary depth the subgraph of a given entity by using properties as egdes.
-
-Various options are available to customize the subgraph:
-
-* **Target Entity** - The entity to start the subgraph from
-* **Use any property** - Include all applicable properties in the subgraph or specify specific properties to use
-* **Limit results** - Limits the number of nodes displayed
-* **Limit depth** - Limits the depth of the subgraph
-
-![Subgraph Cell](resources/user_guide/widget_subgraph.gif)

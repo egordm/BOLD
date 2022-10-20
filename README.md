@@ -8,66 +8,89 @@
 </div>
 <p align="center">
   <a href="#features">Features</a> •
-  <a href="#installation">Installation</a> •
+  <a href="#quick-installation">Quick Installation</a> •
+  <a href="https://egordm.github.io/BOLD/">Documentation</a> •
+  <a href="#demo">Demo</a>
 </p>
 <!-- markdownlint-enable -->
 
 ## Features
-TODO
+* Seamless import of Knowledge Bases from [LOD Cloud](https://lod-cloud.net/) and [Triply DB](https://triplydb.com/)
+* Interact with external SPARQL endpoints
+* Create persistent reports and share them with others
+* Run SPARQL or pre-built analysis queries
+* Explore knowledge graph with interactive visualizations
+* Pick unseen terms with fuzzy search
 
-## Installation
-The BOLD platform depends on [postgresql](https://www.postgresql.org/) and [stardog](https://www.stardog.com/) databases for knowledge graph storage.
-In the following steps we discuss their setup as well as necessary steps to get BOLD up and running.
+## Demo
+A live demo of BOLD can be found [here](https://bold-demo.ml/).
 
-### Database Setup
-If you have already postgresql and stardog databases installed, you can skip this step.
-In this step we discuss their setup as docker containers.
+Log in with the following credentials:
+* Username: `demo`
+* Password: `demodemo`
 
-* Install [Docker](https://www.docker.com/community-edition) and [Docker Compose](https://docs.docker.com/compose/install/)
-* Build the Docker images: `docker-compose build`
-* Start the database services: `docker-compose up`
+## Documentation
+Visit [BOLD documentation](https://egordm.github.io/BOLD/) for more information.
 
-### Docker setup
-If you want to install BOLD for development purposes, we refer you to the [next section](#development-setup).
-In this step we describe steps on how to run BOLD as a docker container.'
+## Quick Installation
+> Note: StarDog is free but requires a license. Request a free license at [stardog.com](https://www.stardog.com/download-free//).
+> Place the license at `dev/stardog/stardog-license-key.bin` in the project root.
 
-* Build docker images: `docker-compose -f docker-compose.full.yml build`
-* Start BOLD and the relevant services: `docker-compose -f docker-compose.full.yml up`
-* Open the BOLD web interface: [http://127.0.0.1:8000/](http://localhost:8000/)
+You can quickly spin up a BOLD instance using [Docker](https://www.docker.com/).
+Create a `docker-compose.yml` file with the following contents:
+```yaml
+version: '3'
+services:
+  bold:
+    image: egordm/bold:latest
+    ports:
+      - 8000:8000
+    volumes:
+      - ./storage:/storage
+      - ./backend/.env:/app/.env
+    networks:
+      - bold-net
+    links:
+      - postgres
+      - stardog
+    depends_on:
+      - postgres
+      - stardog
 
-### Development setup
-For development purposes, you need to have a working python and rust installation.
+  postgres:
+    image: egordm/postgres-multidb:latest
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: helloworld
+      POSTGRES_MULTIPLE_DATABASES: test,develop,production
+    ports:
+      - 5432:5432
+    volumes:
+      - data-postgres:/var/lib/postgresql/data
+    networks:
+      - bold-net
 
-* Install [Rust](https://www.rust-lang.org/tools/install) and [Python](https://www.python.org/)
-* Build BOLD cli tools: `make release-tools`
-* Install [Poetry](https://python-poetry.org/docs/#installation)
-* Install necessary dependencies: `poetry install`
-* Run worker application: `make start_worker`
-* Run backend server: `make start_backend`
-* Open the BOLD web interface: [http://localhost:8000/](http://localhost:8000/)
+  stardog:
+    image: stardog/stardog:7.9.1-java11-preview
+    userns_mode: host
+    ports:
+      - 5820:5820
+    volumes:
+      - data-stardog:/var/opt/stardog
+      - ./dev/stardog/stardog-license-key.bin:/var/opt/stardog/stardog-license-key.bin
+      - ./storage/import:/var/data/import
+      - ./storage/downloads:/var/data/downloads
+      - ./storage/export:/var/data/export
+    environment:
+      STARDOG_SERVER_JAVA_ARGS: "-Xmx8g -Xms8g -XX:MaxDirectMemorySize=12g"
+    networks:
+      - bold-net
 
-### Hybrid Setup
-Use hybrid set up if you wnat to build the newest docker image of BOLD yourself.
-In this step we describe steps on how to run BOLD as a docker container.'
+volumes:
+  data-stardog:
+  data-postgres:
 
-* Build docker images: `docker-compose -f docker-compose.yml -f docker-compose.standalone.yml build`
-* Start BOLD and the relevant services: `docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up`
-* Open the BOLD web interface: [http://127.0.0.1:8000/](http://localhost:8000/)
-
-
-## System Requirements
-The server requirements are mostly bound by the Stardog database.
-
-You can choose to not use the Stardog database, but you will not be able to import the full datasets (only external SPARQL endpoints are allowed).
-
-* You must have twice the amount of storage your datasets require. (YAGO is 60Gb thus 120Gb)
-* You must allocate at least 2 cores for the server.
-* Memory requirements are found below:
-
-| Number of Triples | Total System Memory |
-|-------------------|---------------------|
-| 100 million       | 8G                  |
-| 1 billion         | 32G                 |
-| 10 billion        | 128G                |
-| 25 billion        | 256G                |
-| 50 billion        | 512G                |
+networks:
+  bold-net:
+```
+Then run `docker-compose up -d` to start the container. You can now access BOLD at `http://localhost:8000`.
