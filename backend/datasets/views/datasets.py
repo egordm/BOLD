@@ -19,7 +19,8 @@ from datasets.models import Dataset
 from datasets.serializers import DatasetSerializer
 from datasets.services.search import TermPos, LocalSearchService, merge_results
 from datasets.tasks.pipeline import import_dataset, delete_dataset
-from shared.paths import DEFAULT_SEARCH_INDEX
+from shared.paths import DEFAULT_SEARCH_INDEX, DOWNLOAD_DIR
+from shared.random import random_string
 from users.permissions import IsOwner
 
 
@@ -55,9 +56,22 @@ class DatasetViewSet(viewsets.ModelViewSet):
         instance.creator = self.request.user
         instance.save()
 
+        files = None
+        # If a files are uploaded, store them in a temporary folder
+        if instance.source.get('source_type') == 'upload':
+            tmp_dir = DOWNLOAD_DIR / random_string(10)
+            tmp_dir.mkdir(parents=True)
+            files = []
+            for file in self.request.FILES.getlist('files'):
+                file_path = tmp_dir / file.name
+                with file_path.open('wb+') as destination:
+                    for chunk in file.chunks():
+                        destination.write(chunk)
+                files.append(str(file_path.absolute()))
+
         instance.apply_async(
             import_dataset,
-            (instance.id,),
+            (instance.id, files),
             creator=self.request.user,
             name=f'Import dataset {instance.name}'
         )

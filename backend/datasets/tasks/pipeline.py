@@ -1,4 +1,6 @@
 import shutil
+from pathlib import Path
+from typing import List
 from uuid import UUID
 
 from celery import shared_task
@@ -15,7 +17,7 @@ logger = get_logger()
 
 
 @shared_task()
-def import_dataset(dataset_id: UUID) -> str:
+def import_dataset(dataset_id: UUID, files: List[str] = None) -> str:
     dataset = Dataset.objects.get(id=dataset_id)
     source = dataset.source
     logger.info(f"Importing dataset {dataset.name}")
@@ -26,6 +28,9 @@ def import_dataset(dataset_id: UUID) -> str:
     )
     tmp_dir = DOWNLOAD_DIR / random_string(10)
     tmp_dir.mkdir(parents=True)
+
+    files = files or []
+    files = list(map(Path, files))
 
     try:
         source_type = source.get('source_type', None)
@@ -50,6 +55,12 @@ def import_dataset(dataset_id: UUID) -> str:
             case (Dataset.Mode.SPARQL.value, 'sparql'):
                 dataset.sparql_endpoint = source.get('sparql', None)
                 logger.info(f'Using sparql endpoint {dataset.sparql_endpoint}')
+            case (Dataset.Mode.LOCAL.value, 'upload'):
+                if len(files) == 0:
+                    raise Exception("No files specified")
+
+                dataset.local_database = import_files(files)
+                logger.info(f'Using existing database {dataset.local_database}')
             case _:
                 raise Exception(f"Unsupported source type {source_type}")
 
@@ -72,6 +83,13 @@ def import_dataset(dataset_id: UUID) -> str:
     finally:
         logger.info(f"Cleaning up {tmp_dir}")
         shutil.rmtree(tmp_dir, ignore_errors=True)
+
+        for file in files:
+            logger.info(f"Cleaning up {file}")
+            try:
+                file.unlink()
+            except Exception as e:
+                logger.error(f"Error deleting {file}: {e}")
 
 
 @shared_task()

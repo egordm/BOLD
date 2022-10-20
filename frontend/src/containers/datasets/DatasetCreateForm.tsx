@@ -40,30 +40,45 @@ export const DatasetCreateForm = (props: {
       source: '' as string,
       sparql: '' as string,
       search_mode: 'LOCAL' as string,
+      files: [] as any,
     },
     validationSchema: validationSchema,
     onSubmit: async (values) => {
       setLoading(true);
 
       try {
-        const source = mode === 'existing' ? {
-          source_type: 'existing',
-          database: values.database,
-        } : mode === 'urls' ? {
-          source_type: 'urls',
-          urls: values.source.split(/\r|\n/),
-        } : {
-          source_type: 'sparql',
-          sparql: values.sparql,
-        };
+        let result;
+        if (mode === 'upload') {
+          const formData = new FormData();
+          formData.append('name', values.name);
+          formData.append('description', values.description);
+          formData.append('source', JSON.stringify({ source_type: mode }));
+          for (let i = 0; i < values.files.length; i++) {
+            formData.append('files', values.files[i]);
+          }
+          formData.append('search_mode', values.search_mode);
+          formData.append('mode', 'LOCAL');
+          result = await apiClient.post<Dataset>('/datasets/', formData);
+        } else {
+          const source = mode === 'existing' ? {
+            source_type: 'existing',
+            database: values.database,
+          } : mode === 'urls' ? {
+            source_type: 'urls',
+            urls: values.source.split(/\r|\n/),
+          } : {
+            source_type: 'sparql',
+            sparql: values.sparql,
+          };
 
-        const result = await apiClient.post<Dataset>('/datasets/', {
-          name: values.name,
-          description: values.description,
-          source,
-          search_mode: values.search_mode,
-          mode: mode === 'sparql' ? 'SPARQL' : 'LOCAL',
-        });
+          result = await apiClient.post<Dataset>('/datasets/', {
+            name: values.name,
+            description: values.description,
+            source,
+            search_mode: values.search_mode,
+            mode: mode === 'sparql' ? 'SPARQL' : 'LOCAL',
+          });
+        }
 
         if (result) {
           if (result.status === 201) {
@@ -115,6 +130,7 @@ export const DatasetCreateForm = (props: {
                 <Tab label="Existing" value="existing"/>
                 <Tab label="Import URL(s)" value="urls"/>
                 <Tab label="SPARQL Endpoint" value="sparql"/>
+                <Tab label="Import file" value="upload"/>
               </TabList>
             </Box>
             <TabPanel value="existing">
@@ -142,7 +158,6 @@ export const DatasetCreateForm = (props: {
                     {...fieldProps(formik, 'source')}
                   />
                 </Grid>
-
               </Grid>
             </TabPanel>
             <TabPanel value="sparql">
@@ -155,12 +170,26 @@ export const DatasetCreateForm = (props: {
                 />
               </Grid>
             </TabPanel>
+            <TabPanel value="upload">
+              <Grid item xs={12}>
+                <Button variant="contained" component="label">
+                  Upload RDF file(s)
+                  <input
+                    hidden
+                    accept=".rdf,.xml,.rdfxml,.owl,.ttl,.turtle,.trig,.trix,.nt,.nq,.json,.ld,.jsonld,.sms,.zip,.gz,.bz2"
+                    multiple
+                    type="file"
+                    onChange={(e) => formik.setFieldValue('files', e.target.files)}
+                  />
+                </Button>
+              </Grid>
+            </TabPanel>
           </TabContext>
         </Grid>
         <Grid item xs={12}>
           <FormControl fullWidth>
             <InputLabel id="search_mode_label">Search Mode</InputLabel>
-            <Select  labelId="search_mode_label" label="Search Mode"  {...fieldProps(formik, 'search_mode')} >
+            <Select labelId="search_mode_label" label="Search Mode"  {...fieldProps(formik, 'search_mode')} >
               <MenuItem value="LOCAL">Build Local Search Index</MenuItem>
               <MenuItem value='WIKIDATA'>Use WikiData API</MenuItem>
             </Select>
