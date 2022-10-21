@@ -75,11 +75,20 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
 
   const groupPredicates = (data.group_predicate ?? []).map(termToSparql);
 
-  const addPrimaryFilter = (query: WhereBuilder<any>) => {
-    return query.WHERE`
-      VALUES ?p { ${groupPredicates} } 
-      ?s ?p ?o
-     `;
+  const addPrimaryFilter = (query: WhereBuilder<any>, not_exists = false) => {
+    if (not_exists) {
+      return query.WHERE`
+        FILTER NOT EXISTS {
+          VALUES ?p { ${groupPredicates} } 
+          ?s ?p ?o
+        }
+       `;
+    } else {
+      return query.WHERE`
+        VALUES ?p { ${groupPredicates} } 
+        ?s ?p ?o
+       `;
+    }
   }
 
   const addSecondaryFilters = (query: WhereBuilder<any>) => {
@@ -194,12 +203,10 @@ const buildQuery = (data: ValueDistributionWidgetData, triple_count: number) => 
   exampleQuery = exampleQuery.build() as any;
 
   const completeQuery = addSecondaryFilters(addPrimaryFilter(SELECT`(COUNT(?s) AS ?complete_count)`))
-  const allQuery = data.filters?.length > 0
-    ? addSecondaryFilters(SELECT`(COUNT(?s) AS ?total_count)`.WHERE`?s ?p ?o`)
-    : SELECT`(${triple_count} AS ?total_count)`;
+  const missingQuery = addSecondaryFilters(addPrimaryFilter(SELECT`(COUNT(?s) AS ?missing_count)`, true));
   let completenessQuery = SELECT`*`.WHERE`
     { ${completeQuery} }
-    { ${allQuery} }
+    { ${missingQuery} }
   `.LIMIT(data.group_count === MAX_GROUP_COUNT ? 1000 : (data.group_count ?? 20)).build()
 
   return {
@@ -548,13 +555,12 @@ const ResultTab = ({
     if (output && output.output_type === 'execute_result' && 'application/sparql-results+json' in output.data) {
       const data: SPARQLResult = JSON.parse(output.data['application/sparql-results+json']);
       const completeCount = data.results.bindings.map((row) => parseInt(row['complete_count'].value))[0] ?? 0;
-      const totalCount = data.results.bindings.map((row) => parseInt(row['total_count'].value))[0] ?? 0;
-
+      const missingCount = data.results.bindings.map((row) => parseInt(row['missing_count'].value))[0] ?? 0;
 
       return (
         <PiePlot values={[
           { label: 'Complete', value: completeCount },
-          { label: 'Incomplete', value: totalCount - completeCount },
+          { label: 'Incomplete', value: missingCount },
         ]}/>
       )
     } else {
