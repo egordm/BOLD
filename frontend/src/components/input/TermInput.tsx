@@ -174,7 +174,18 @@ const TermChip = ({ term, prefixes, chipProps, ...rest }: {
   const primary = term.label ? term.label : extractIriLabel(term.value);
 
   return (
-    <Tooltip sx={{ maxWidth: 300 }} arrow title={
+    <Tooltip componentsProps={{
+      tooltip: {
+        sx: {
+          minWidth: 300,
+        }
+      },
+      popper: {
+        sx: {
+          minWidth: 300,
+        }
+      },
+    }} arrow title={
       <Stack>
         <PropsTable>
           <tbody>
