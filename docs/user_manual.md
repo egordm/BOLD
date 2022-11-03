@@ -126,7 +126,9 @@ The results are displayed in four tabs:
 * **Plot** - The generated histogram
 * **Table** - The data used to generate the histogram
 * **Examples** - List of examples of entities that match the filters
-* **Completeness Analysis** - Displays a ratio of entities that match the filters and have a defined property value versus the entities that dont have the property value.
+* **Completeness Analysis** - Displays a ratio of entities that match the filters and have a defined property value versus the entities that don't have the property value.
+
+> Note: Completeness analysis counts amount of entities, meaning that multiple triples corresponding to the same subject won't be counted twice.
 
 ### Query Builder
 
