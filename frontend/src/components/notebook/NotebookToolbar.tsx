@@ -11,6 +11,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { NamespaceEditForm } from "../../containers/datasets/NamespaceEditForm";
 import useNotification from "../../hooks/useNotification";
 import { useCellFocusContext } from "../../providers/CellFocusProvider";
+import { useClipboardContext } from "../../providers/ClipboardProvider";
 import { useNotebookContext } from "../../providers/NotebookProvider";
 import { useReportContext } from "../../providers/ReportProvider";
 import { useRunQueueContext } from "../../providers/RunQueueProvider";
@@ -23,6 +24,8 @@ import { IconButton } from "../input/IconButton";
 import { ModalContainer } from "../layout/ModalContainer";
 import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
+import ContentPasteIcon from '@mui/icons-material/ContentPaste';
 
 export const NotebookToolbar = (props: {}) => {
   const { report, refetch } = useReportContext();
@@ -31,6 +34,7 @@ export const NotebookToolbar = (props: {}) => {
   const { setNotebook } = useUndoHistoryContext();
   const { runCells } = useRunQueueContext();
   const { undo, redo } = useUndoHistoryContext();
+  const { copy, paste } = useClipboardContext();
 
   const { sendNotification } = useNotification();
 
@@ -71,7 +75,7 @@ export const NotebookToolbar = (props: {}) => {
       setCellOutputs(
         setCellContent(notebookRef.current, focusRef.current, newCell),
         focusRef.current,
-      []
+        []
       )
     );
     sendNotification({ variant: 'success', message: `Cell #${focusIdx + 1} type changed to ${newType}` });
@@ -120,13 +124,15 @@ export const NotebookToolbar = (props: {}) => {
       }}
     >
       <IconButton size="large" onClick={onAddCell} label="Add cell" icon={<Add fontSize="inherit"/>}/>
-      <IconButton size="large" onClick={onDeleteCell} label="Delete cell" icon={<DeleteIcon fontSize="inherit"/>} disabled={!focus}/>
-      {/*<Divider orientation="vertical" flexItem/>*/}
-      {/*<IconButton size="large" label="Cut cell" icon={<ContentCutIcon fontSize="inherit"/>}/>*/}
-      {/*<IconButton size="large" label="Copy cell" icon={<ContentCopyIcon fontSize="inherit"/>}/>*/}
-      {/*<IconButton size="large" label="Paste cell" icon={<ContentPasteIcon fontSize="inherit"/>}/>*/}
+      <IconButton size="large" onClick={onDeleteCell} label="Delete cell" icon={<DeleteIcon fontSize="inherit"/>}
+                  disabled={!focus}/>
       <Divider orientation="vertical" flexItem/>
-      <IconButton size="large" onClick={onRunCell} label="Run cell" icon={<PlayArrowIcon fontSize="inherit"/>} disabled={!focus}/>
+      {/*<IconButton size="large" label="Cut cell" icon={<ContentCutIcon fontSize="inherit"/>}/>*/}
+      <IconButton size="large" onClick={copy} label="Copy cell" icon={<ContentCopyIcon fontSize="inherit"/>}/>
+      <IconButton size="large" onClick={paste} label="Paste cell" icon={<ContentPasteIcon fontSize="inherit"/>}/>
+      <Divider orientation="vertical" flexItem/>
+      <IconButton size="large" onClick={onRunCell} label="Run cell" icon={<PlayArrowIcon fontSize="inherit"/>}
+                  disabled={!focus}/>
       <IconButton size="large" onClick={onRunAll} label="Run all" icon={<FastForwardIcon fontSize="inherit"/>}/>
       <IconButton size="large" label="Edit Namespaces" icon={<AbcIcon/>} onClick={() => setEditNamespaces(true)}/>
       <Divider orientation="vertical" flexItem/>

@@ -4,6 +4,7 @@ import { useMatch } from "react-router";
 import { Layout } from '../../components/layout/layout';
 import { Notebook } from "../../components/notebook/Notebook";
 import { CellFocusProvider } from "../../providers/CellFocusProvider";
+import { ClipboardProvider } from "../../providers/ClipboardProvider";
 import { DatasetProvider } from "../../providers/DatasetProvider";
 import { NotebookConnectionProvider } from "../../providers/NotebookConnectionProvider";
 import { NotebookProvider } from "../../providers/NotebookProvider";
@@ -34,9 +35,11 @@ const NotebookPage = (props) => {
                 <NotebookProvider>
                   <UndoHistoryProvider>
                     <CellFocusProvider>
-                      <RunQueueProvider>
-                        <Notebook/>
-                      </RunQueueProvider>
+                      <ClipboardProvider>
+                        <RunQueueProvider>
+                          <Notebook/>
+                        </RunQueueProvider>
+                      </ClipboardProvider>
                     </CellFocusProvider>
                   </UndoHistoryProvider>
                 </NotebookProvider>
