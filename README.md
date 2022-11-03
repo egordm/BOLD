@@ -95,6 +95,8 @@ networks:
 ```
 Then run `docker-compose up -d` to start the container. You can now access BOLD at `http://localhost:8000`.
 
-## Ack
+## Acknowledgements
+
+This work was supported by [SIDN Fonds](https://www.sidnfonds.nl/).
 
 This project is tested with BrowserStack
