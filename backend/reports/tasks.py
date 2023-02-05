@@ -45,6 +45,8 @@ def run_cell(report_id: UUID, cell_id: UUID) -> str:
         outputs: list = []
         cell_type = cell.get('cell_type', '')
         match cell_type:
+            case 'markdown':
+                pass
             case 'code':
                 outputs, error = run_sparql(dataset, cell.get('source', ''), timeout, limit)
             case _ if cell_type.startswith('widget_'):
