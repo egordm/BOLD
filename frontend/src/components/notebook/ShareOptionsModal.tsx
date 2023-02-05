@@ -84,7 +84,17 @@ export const ShareOptionsModal = ({
       variant: 'success',
       message: 'URL copied to clipboard',
     });
-  }, [])
+  }, []);
+
+  const downloadNotebook = useCallback(() => {
+    const url = window.URL.createObjectURL(new Blob([
+        JSON.stringify(reportRef.current, null, 2)
+    ], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${reportRef.current?.notebook?.metadata?.name ?? 'notebook'}.json`);
+    link.click();
+  }, [ reportRef.current ]);
 
   const Icon = mode === 'PRIVATE'
     ? LockOutlinedIcon
@@ -161,10 +171,17 @@ export const ShareOptionsModal = ({
         />
       </ListItem>
       <Stack direction={'row'} justifyContent={"space-between"} sx={{ mt: 3 }}>
-        <Button
-          disabled={mode === 'PRIVATE'}
-          variant="outlined" onClick={copyUrl}
-          startIcon={<LinkIcon/>}>Copy Url</Button>
+        <Stack direction={'row'}>
+          <Button
+              disabled={mode === 'PRIVATE'}
+              variant="outlined" onClick={copyUrl}
+              startIcon={<LinkIcon/>}>Copy Url</Button>
+          <Button
+              sx={{ ml: 1 }}
+              variant="outlined" onClick={downloadNotebook}
+              startIcon={<LinkIcon/>}>Download</Button>
+        </Stack>
+
         <Button variant="contained" onClick={submit}>Save</Button>
       </Stack>
     </ModalContainer>
