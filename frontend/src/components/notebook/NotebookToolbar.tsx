@@ -26,6 +26,7 @@ import UndoIcon from '@mui/icons-material/Undo';
 import RedoIcon from '@mui/icons-material/Redo';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import ContentPasteIcon from '@mui/icons-material/ContentPaste';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 export const NotebookToolbar = (props: {}) => {
   const { report, refetch } = useReportContext();
@@ -92,6 +93,22 @@ export const NotebookToolbar = (props: {}) => {
   const onRunAll = useCallback(() => {
     runCells(notebookRef.current.content.cell_order);
   }, []);
+
+  const hiddenFileInput = React.useRef(null);
+  const handleClick = event => {
+    hiddenFileInput.current.click();
+  };
+  const handleChange = event => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const data = JSON.parse(reader.result as any);
+      console.debug('Loading notebook', data);
+      if (data.notebook) {
+        setNotebook(data.notebook);
+      }
+    };
+    reader.readAsText(event.target.files[0]);
+  };
 
   const NamespaceModal = useMemo(() => (
     <ModalContainer
@@ -166,6 +183,14 @@ export const NotebookToolbar = (props: {}) => {
         disableClearable={true}
         value={focusCellTimeout / 1000}
         onChange={(event, newValue) => newValue && onChangeTimeout(newValue as number * 1000)}
+      />
+      <IconButton size="large" label="Upload notebook" icon={<UploadFileIcon/>} onClick={handleClick}/>
+      <input
+          type="file"
+          ref={hiddenFileInput}
+          onChange={handleChange}
+          style={{display: 'none'}}
+          accept="application/json"
       />
       <Box sx={{ flex: 1 }}/>
       <IconButton size="large" label="Undo" icon={<UndoIcon/>} onClick={undo}/>
