@@ -46,7 +46,8 @@ export interface CodeCellType extends CellBase {
 
 export interface MarkdownCellType extends CellBase {
   cell_type: 'markdown';
-  source: string[];
+  source: string;
+  preview: string;
 }
 
 
@@ -127,7 +128,8 @@ export const createCell = (cellType: CellType, metadata?: CellMetadata, prev_dat
     return {
       cell_type: 'markdown',
       metadata,
-      source: [ '# Markdown cell' ]
+      source: '# Markdown cell',
+      preview: 'live'
     }
   } else if (cellType === 'widget_plotbuilder' || 'widget_querybuilder') {
     return {

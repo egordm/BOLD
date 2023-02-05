@@ -146,7 +146,7 @@ export const NotebookToolbar = (props: {}) => {
           onChange={(e) => onChangeCellType(e.target.value)}
         >
           <MenuItem value={'code'}>Code</MenuItem>
-          {/*<MenuItem value={'markdown'}>Markdown</MenuItem>*/}
+          <MenuItem value={'markdown'}>Markdown</MenuItem>
           <MenuItem value={'widget_classbrowser'}>Class Browser</MenuItem>
           <MenuItem value={'widget_valuedistribution'}>Histogram Builder</MenuItem>
           <MenuItem value={'widget_plotbuilder'}>Plot Builder</MenuItem>

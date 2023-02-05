@@ -13,6 +13,7 @@ import { PropertiesWidget } from "./cells/PropertiesWidget";
 import { QueryBuilderWidget } from "./cells/QueryBuilderWidget";
 import { SubgraphWidget } from "./cells/SubgraphWidget";
 import { ValueDistributionWidget } from "./cells/ValueDistributionWidget";
+import {MarkdownWidget} from "./cells/MarkdownWidget";
 
 
 const useStyles = makeStyles((theme) => ({
@@ -24,6 +25,7 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export const CELL_TYPES = {
+  markdown: MarkdownWidget,
   code: CodeWidget,
   widget_valuedistribution: ValueDistributionWidget,
   widget_classtree: ClassTreeWidget,

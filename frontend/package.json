@@ -21,6 +21,7 @@
     "@triply/yasqe": "^4.2.23",
     "@triply/yasr": "^4.2.25",
     "@uiw/react-codemirror": "^4.7.0",
+    "@uiw/react-md-editor": "^3.20.2",
     "autosuggest-highlight": "^3.2.1",
     "axios": "^0.27.2",
     "buffer": "^6.0.3",
