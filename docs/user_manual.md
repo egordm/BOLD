@@ -97,6 +97,11 @@ To make it easier to write SPARQL queries, BOLD provides a utility to promt GPT 
 
 ![GPT Code Generation](resources/user_guide/widget_codegpt.gif)
 
+### Markdown Cell
+You can write down your thoughts and insights in markdown cells. Use the buttons in the toolbar on the right to show/hide the markdown source code.
+
+![Class Browser](resources/user_guide/markdown.png)
+
 ### Class Browser Widget
 
 Class browser counts the number of instances for each class and displays them in a hierarchical structure. Each type in the plot is sized proportionally to the number of instances it contains.
@@ -184,5 +189,13 @@ Various options are available to customize the class tree:
 
 ![Class Tree Cell](resources/user_guide/dataset_delete.gif)
 
+### Downloading and Importing Notebooks
+Notebooks can be downloaded as JSON files within the sharing dialog by clicking on the download button.
+
+![Download Notebook](resources/user_guide/download_notebook.png)
+
+You can import a notebook's content by opening an existing notebook and clicking on the import button.
+
+![Import Notebook](resources/user_guide/upload_notebook.png)
 
 
