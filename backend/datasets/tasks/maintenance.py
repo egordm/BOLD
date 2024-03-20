@@ -1,10 +1,13 @@
 from uuid import UUID
 
+import requests
 from celery import shared_task
 
 from datasets.models import Dataset
-from datasets.services.stardog_api import StardogApi
+from datasets.services.blazegraph import BLAZEGRAPH_ENDPOINT
 from shared.logging import get_logger
+import xml.etree.ElementTree as ET
+
 
 logger = get_logger()
 
@@ -19,15 +22,13 @@ def update_dataset_info(dataset_id: UUID):
                 raise Exception("Dataset has no database")
 
             database = dataset.local_database
-            with StardogApi.admin() as admin:
-                database_api = admin.database(database)
 
-                logger.info('Retrieving namespace info')
-                namespaces = database_api.namespaces()
+            response = requests.get(f'{BLAZEGRAPH_ENDPOINT}/blazegraph/namespace/{database}/sparql')
+            response.raise_for_status()
+            root = ET.fromstring(response.text)
 
-            with StardogApi.connection(database) as conn:
-                logger.info('Getting number of triples')
-                triple_count = conn.size(exact=False)
+            namespaces = []
+            triple_count = int(root[2][1].text)
         case Dataset.Mode.SPARQL.value:
             if dataset.sparql_endpoint is None:
                 raise Exception("Dataset has no database")

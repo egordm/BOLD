@@ -12,32 +12,8 @@ from fuzzywuzzy import fuzz
 import requests
 from simple_parsing import Serializable
 
-from datasets.services.bold_cli import BoldCli
-
-
-class TermPos(Enum):
-    SUBJECT = 'SUBJECT'
-    PREDICATE = 'PREDICATE'
-    OBJECT = 'OBJECT'
-
-    def to_int(self):
-        match self:
-            case TermPos.SUBJECT:
-                return 0
-            case TermPos.PREDICATE:
-                return 1
-            case TermPos.OBJECT:
-                return 2
-
-    @staticmethod
-    def from_int(value: int):
-        match value:
-            case 0:
-                return TermPos.SUBJECT
-            case 1:
-                return TermPos.PREDICATE
-            case 2:
-                return TermPos.OBJECT
+from datasets.services import meilisearch
+from datasets.services.meilisearch import TermPos, TermIndexDocument
 
 
 @dataclass
@@ -89,48 +65,62 @@ def parse_int_or_none(value: str) -> int:
 
 
 class LocalSearchService(SearchService):
-    index_path: Path
+    index_name: str
 
-    def __init__(self, index_path: Path):
-        self.index_path = index_path
+    def __init__(self, index_name: str):
+        self.index_name = index_name
 
-    def search(self, query, pos: TermPos, limit: int = 100, offset: int = 0, timeout=5000, **options) -> SearchResult:
-        url = parse_int_or_none(options.get('url', None))
-        min_count = parse_int_or_none(options.get('min_count', None))
-        max_count = parse_int_or_none(options.get('max_count', None))
-
-        result_data = BoldCli.search(self.index_path, query, limit, offset, pos.to_int(), url, min_count, max_count)
-        return SearchResult(
-            count=result_data['count'],
-            hits=[
-                SearchHit(
-                    score=hit['score'],
-                    document=self._parse_doc(hit['doc'])
-                )
-                for hit in result_data['hits']
-            ],
-            agg=result_data['agg']
+    def search(
+            self,
+            query, pos: TermPos,
+            limit: int = 100, offset: int = 0,
+            timeout=5000,
+            url: Optional[bool] = None,
+            min_count: Optional[int] = None,
+            max_count: Optional[int] = None,
+            **options
+    ) -> SearchResult:
+        results = meilisearch.search_terms(
+            index_name=self.index_name,
+            query=query,
+            pos=pos,
+            limit=limit,
+            offset=offset,
+            is_url=url,
+            min_count=min_count,
+            max_count=max_count,
         )
 
-    def _parse_doc(self, doc: dict) -> TermDocument:
-        doc = {k: v[0] for k, v in doc.items()}
+        return SearchResult(
+            count=results['estimatedTotalHits'],
+            hits=[
+                SearchHit(
+                    score=1.0,
+                    document=self._parse_doc(hit)
+                )
+                for hit in results['hits']
+            ],
+            agg={}
+        )
 
-        iri = doc['iri']
-        type = 'uri' if 'http' in iri else 'literal'
-        lang = None
-        if type == 'literal' and re.match(r'^.*@[a-z]*$', iri):
-            iri, lang = iri.rsplit('@', 1)
+    def _parse_doc(self, doc: TermIndexDocument) -> TermDocument:
+
+        type = 'uri' if 'http' in doc['iri'] else 'literal'
+
+        iri, lang = doc['iri'], None
+        if type == 'literal' and re.match(r'^.*@[a-z]*$', doc['iri']):
+            iri, lang = doc['iri'].rsplit('@', 1)
 
         return TermDocument(
             type=type,
-            value=iri.removeprefix('<').removesuffix('>'),
+            value=doc['iri'].removeprefix('<').removesuffix('>'),
             lang=lang,
-            pos=TermPos.from_int(doc.get('pos', 0)),
-            rdf_type=doc.get('ty', None),
+            pos=TermPos.from_int(doc['pos'] or 0),
+            rdf_type=doc.get('rdf_type', None),
             label=doc.get('label', None),
-            count=doc.get('count', None),
-            search_text=doc.get('iri_text', None),
-            description=doc.get('description', None),
+            count=doc.get('count', 0),
+            search_text=doc['iri_text'],
+            description=doc['description'],
         )
 
 

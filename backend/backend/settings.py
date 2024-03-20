@@ -19,7 +19,8 @@ env = environ.Env()
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
+if os.path.exists(BASE_DIR / '.env'):
+    environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.0/howto/deployment/checklist/
@@ -215,12 +216,8 @@ LOGGING = {
     },
 }
 
-STARDOG_HOST = env('STARDOG_HOST', default='localhost')
-STARDOG_PORT = env('STARDOG_PORT', default='5820')
-STARDOG_ENDPOINT = f'http://{STARDOG_HOST}:{STARDOG_PORT}'
-STARDOG_USER = env('STARDOG_USER', default='admin')
-STARDOG_PASS = env('STARDOG_PASS', default='admin')
-STARDOG_ENABLE = env.bool('STARDOG_ENABLE', default=True)
+BLAZEGRAPH_ENABLE = env.bool('BLAZEGRAPH_ENABLE', default=True)
+BLAZEGRAPH_ENDPOINT = env('BLAZEGRAPH_ENDPOINT', default='http://localhost:9999')
 
 ROOT_DIR = BASE_DIR.parent.absolute()
 

@@ -60,8 +60,8 @@ class Dataset(TaskMixin, TimeStampMixin, OwnableMixin):
     creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     """The user who created the dataset."""
 
-    local_database = models.CharField(max_length=255, null=True)
-    """The local stardog database identifier of the dataset."""
+    local_database: str = models.CharField(max_length=255, null=True)
+    """The local blazegraph database identifier of the dataset."""
     sparql_endpoint = models.CharField(max_length=255, null=True)
     """The SPARQL endpoint of the dataset."""
 
@@ -77,12 +77,12 @@ class Dataset(TaskMixin, TimeStampMixin, OwnableMixin):
     objects = models.Manager()
 
     @property
-    def search_index_path(self):
+    def search_index_name(self) -> str:
         """
         The path to the search index of the dataset.
         :return:
         """
-        return DATA_DIR / f'search_index_{self.local_database}' if self.local_database else None
+        return self.local_database if self.local_database else None
 
     def get_search_service(self) -> SearchService:
         """
@@ -90,9 +90,9 @@ class Dataset(TaskMixin, TimeStampMixin, OwnableMixin):
         """
         match self.search_mode:
             case self.SearchMode.LOCAL:
-                if not self.search_index_path.exists():
+                if not self.search_index_name:
                     raise Exception('Dataset search index has not been created yet')
-                return LocalSearchService(self.search_index_path)
+                return LocalSearchService(index_name=self.search_index_name)
             case self.SearchMode.WIKIDATA:
                 return WikidataSearchService()
             case self.SearchMode.TRIPLYDB:

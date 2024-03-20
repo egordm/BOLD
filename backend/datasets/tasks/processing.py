@@ -1,4 +1,3 @@
-import base64
 import shutil
 from pathlib import Path
 from uuid import UUID
@@ -7,12 +6,13 @@ import requests
 from celery import shared_task
 
 from backend import settings
+from backend.settings import DEBUG
 from datasets.models import Dataset
-from datasets.services.bold_cli import BoldCli
+from datasets.services import meilisearch
+from datasets.services.blazegraph import BLAZEGRAPH_ENDPOINT
 from shared.logging import get_logger
-from shared.paths import DATA_DIR, DOWNLOAD_DIR, DEFAULT_SEARCH_INDEX
+from shared.paths import DOWNLOAD_DIR, DEFAULT_SEARCH_INDEX_NAME
 from shared.random import random_string
-from shared.shell import consume_print
 
 logger = get_logger()
 
@@ -49,34 +49,39 @@ SELECT
 
 
 def query_to_file(database: str, query: str, file: Path, timeout=5000, **kwargs):
-    endpoint = settings.STARDOG_ENDPOINT.rstrip('/')
-    credentials = base64.b64encode(f'{settings.STARDOG_USER}:{settings.STARDOG_PASS}'.encode('utf-8')).decode(
-        'utf-8')
-
+    endpoint = f'{BLAZEGRAPH_ENDPOINT}/blazegraph/namespace/{database}/sparql'
     headers = {
-        'Content-Type': 'application/sparql-query',
-        'Accept': 'text/tsv',
-        'Authorization': f'Basic {credentials}',
+        'Accept': 'text/csv',
     }
 
-    response = requests.post(f'{endpoint}/{database}/query', headers=headers, data=query, params={
-        **kwargs,
+    data = {
+        'query': query,
         'timeout': timeout,
-    }, stream=True)
+    }
 
-    with response as r:
-        r.raw.decode_content = True
-        with file.open('wb') as f:
-            # https://stackoverflow.com/a/49684845
-            shutil.copyfileobj(r.raw, f)
+    response = requests.post(
+        endpoint,
+        headers=headers,
+        data=data,
+        stream=True,
+    )
+    response.raise_for_status()
+
+    logger.info(f"Saving query results to {file}")
+
+    with file.open('wb') as f:
+        for chunk in response.iter_content(chunk_size=4096):
+            f.write(chunk)
+
+    logger.info(f"Query results saved to {file}")
 
 
 @shared_task()
 def create_search_index(
-    dataset_id: UUID,
-    min_term_count: int = 3,
-    path: str = None,
-    force: bool = True,
+        dataset_id: UUID,
+        min_term_count: int = 3,
+        path: str = None,
+        force: bool = True,
 ):
     dataset = Dataset.objects.get(id=dataset_id)
     logger.info(f"Creating search index for {dataset.name}")
@@ -85,23 +90,20 @@ def create_search_index(
     if database is None:
         raise Exception("Dataset has no database")
 
-    search_index_dir = DATA_DIR / f'search_index_{database}'
-    if search_index_dir.exists():
+    if meilisearch.has_index(database):
         if force:
-            logger.info(f"Removing existing search index at {search_index_dir}")
-            shutil.rmtree(search_index_dir)
+            logger.info(f"Removing existing search index at {database}")
+            meilisearch.client.index(database).delete()
         else:
             logger.info(f"Search index already exists for {dataset.name}")
             return
-
-    search_index_dir.mkdir(parents=True, exist_ok=True)
 
     tmp_dir = (Path(path) if path else DOWNLOAD_DIR) / random_string(10)
     tmp_dir.mkdir(parents=True, exist_ok=True)
     try:
         terms_files = []
 
-        terms_s_file = tmp_dir / 'terms_s.tsv'
+        terms_s_file = tmp_dir / 'terms_s.csv'
         query = QUERY_EXPORT_SEARCH \
             .replace('{triple}', '{ ?t ?p ?v }') \
             .replace('{min_count}', str(min_term_count)) \
@@ -110,7 +112,7 @@ def create_search_index(
         query_to_file(database, query, terms_s_file, timeout=60 * 60 * 1000)
         terms_files.append(terms_s_file)
 
-        terms_p_file = tmp_dir / 'terms_p.tsv'
+        terms_p_file = tmp_dir / 'terms_p.csv'
         query = QUERY_EXPORT_SEARCH \
             .replace('{triple}', '{ ?s ?t ?v }') \
             .replace('{min_count}', str(min_term_count)) \
@@ -119,7 +121,7 @@ def create_search_index(
         query_to_file(database, query, terms_p_file, timeout=60 * 60 * 1000)
         terms_files.append(terms_p_file)
 
-        terms_o_file = tmp_dir / 'terms_o.tsv'
+        terms_o_file = tmp_dir / 'terms_o.csv'
         query = QUERY_EXPORT_SEARCH \
             .replace('{triple}', '{ ?s ?p ?t FILTER(?p != rdfs:label) }') \
             .replace('{min_count}', str(min_term_count)) \
@@ -129,51 +131,53 @@ def create_search_index(
         terms_files.append(terms_o_file)
 
         logger.info('Creating search index from documents')
-        consume_print(BoldCli.cmd(
-            ['build-index', '--force', *map(str, terms_files), '--index', str(search_index_dir)]
-        ))
+        meilisearch.create_terms_index(database)
 
-        logger.info('Search index created')
+        row_count = 0
+        for terms_file in terms_files:
+            row_count += meilisearch.index_terms_from_csv(
+                index_name=database,
+                csv_path=terms_file,
+                start_id=row_count
+            )
+
+        logger.info(f'Search index created with {row_count} terms')
     finally:
         logger.info(f"Cleaning up {tmp_dir}")
-        shutil.rmtree(tmp_dir, ignore_errors=True)
+        if not DEBUG:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
 
 @shared_task()
 def create_default_search_index(
-    path: str = None,
-    force: bool = True,
+        force: bool = False,
 ):
     logger.info(f"Creating default search index")
 
-    search_index_dir = DEFAULT_SEARCH_INDEX
-    if search_index_dir.exists():
+    if meilisearch.has_index(DEFAULT_SEARCH_INDEX_NAME):
         if force:
-            logger.info(f"Removing existing search index at {search_index_dir}")
-            shutil.rmtree(search_index_dir)
+            logger.info(f"Removing existing search index at {DEFAULT_SEARCH_INDEX_NAME}")
+            meilisearch.client.index(DEFAULT_SEARCH_INDEX_NAME).delete()
         else:
             logger.info(f"Default search index already exists")
             return
 
-    search_index_dir.mkdir(parents=True, exist_ok=True)
+    terms_files = [
+        settings.BASE_DIR.joinpath('data', 'rdf.csv'),
+        settings.BASE_DIR.joinpath('data', 'rdfs.csv'),
+        settings.BASE_DIR.joinpath('data', 'owl.csv'),
+        settings.BASE_DIR.joinpath('data', 'foaf.csv'),
+    ]
 
-    tmp_dir = (Path(path) if path else DOWNLOAD_DIR) / random_string(10)
-    tmp_dir.mkdir(parents=True, exist_ok=True)
+    logger.info('Creating search index from documents')
+    meilisearch.create_terms_index(DEFAULT_SEARCH_INDEX_NAME)
 
-    try:
-        terms_files = [
-            settings.BASE_DIR.joinpath('data', 'rdf.tsv'),
-            settings.BASE_DIR.joinpath('data', 'rdfs.tsv'),
-            settings.BASE_DIR.joinpath('data', 'owl.tsv'),
-            settings.BASE_DIR.joinpath('data', 'foaf.tsv'),
-        ]
+    row_count = 0
+    for terms_file in terms_files:
+        row_count += meilisearch.index_terms_from_csv(
+            index_name=DEFAULT_SEARCH_INDEX_NAME,
+            csv_path=terms_file,
+            start_id=row_count
+        )
 
-        logger.info('Creating search index from documents')
-        consume_print(BoldCli.cmd(
-            ['build-index', '--force', *map(str, terms_files), '--index', str(search_index_dir)]
-        ))
-
-        logger.info('Search index created')
-    finally:
-        logger.info(f"Cleaning up {tmp_dir}")
-        shutil.rmtree(tmp_dir, ignore_errors=True)
+    logger.info(f'Search index created with {row_count} terms')

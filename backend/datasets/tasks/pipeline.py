@@ -3,10 +3,12 @@ from pathlib import Path
 from typing import List
 from uuid import UUID
 
+import requests
 from celery import shared_task
 
+from backend.settings import DEBUG
 from datasets.models import Dataset, DatasetState
-from datasets.services.stardog_api import StardogApi
+from datasets.services.blazegraph import BLAZEGRAPH_ENDPOINT
 from datasets.tasks import download_url, import_files, update_dataset_info, create_search_index, \
     create_default_search_index
 from shared.logging import get_logger
@@ -69,7 +71,7 @@ def import_dataset(dataset_id: UUID, files: List[str] = None) -> str:
         logger.info(f"Updating dataset info")
         update_dataset_info(dataset_id)
 
-        create_default_search_index(path=str(tmp_dir), force=False)
+        create_default_search_index(force=False)
         if dataset.search_mode == Dataset.SearchMode.LOCAL.value:
             logger.info(f"Creating search index")
             create_search_index(dataset_id, path=str(tmp_dir))
@@ -79,15 +81,17 @@ def import_dataset(dataset_id: UUID, files: List[str] = None) -> str:
     except Exception as e:
         logger.error(f"Error importing dataset {dataset.name}: {e}")
         Dataset.objects.filter(id=dataset_id).update(state=DatasetState.FAILED.value)
-        raise e
+        raise e from e
     finally:
         logger.info(f"Cleaning up {tmp_dir}")
-        shutil.rmtree(tmp_dir, ignore_errors=True)
+        if not DEBUG:
+            shutil.rmtree(tmp_dir, ignore_errors=True)
 
         for file in files:
             logger.info(f"Cleaning up {file}")
             try:
-                file.unlink()
+                if not DEBUG:
+                    file.unlink()
             except Exception as e:
                 logger.error(f"Error deleting {file}: {e}")
 
@@ -104,7 +108,14 @@ def delete_dataset(dataset_id: UUID) -> str:
 
     if dataset.mode == Dataset.Mode.LOCAL.value and dataset.local_database:
         logger.info(f"Deleting database {dataset.local_database}")
-        with StardogApi.admin() as admin:
-            admin.database(dataset.local_database).drop()
+
+        response = requests.delete(
+            f'{BLAZEGRAPH_ENDPOINT}/blazegraph/namespace/{dataset.local_database}',
+            headers={
+                'Content-Type': 'text/plain',
+            },
+        )
+        response.raise_for_status()
+        logger.info(f"Deleted namespace {dataset.local_database}")
 
     dataset.delete()

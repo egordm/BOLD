@@ -13,36 +13,35 @@ services:
     networks:
       - bold-net
 
-  stardog:
-    image: stardog/stardog:7.9.1-java11-preview
-    userns_mode: host
+  blazegraph:
+    image: openkbs/blazegraph-docker
     ports:
-      - 5820:5820
+      - 9999:9999
     volumes:
-      - data-stardog:/var/opt/stardog
-      - ./dev/stardog/stardog-license-key.bin:/var/opt/stardog/stardog-license-key.bin
-      - ./storage/import:/var/data/import
-      - ./storage/downloads:/var/data/downloads
-      - ./storage/export:/var/data/export
-    environment:
-      STARDOG_SERVER_JAVA_ARGS: "-Xmx8g -Xms8g -XX:MaxDirectMemorySize=12g"
-    networks:
-      - bold-net
+      - data-blazegraph:/var/lib/blazegraph/data
+      - ./storage:/storage
+      - ./dev/blazegraph:/opt/blazegraph-custom
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9999" ]
+      interval: 3s
+      timeout: 5s
+      retries: 3
 
-  stardog-studio:
-    image: stardog/stardog-studio:current
+  meilisearch:
+    image: getmeili/meilisearch:v1.7.2
     ports:
-      - 8888:8080
-    networks:
-      - bold-net
-    links:
-      - stardog
-    depends_on:
-      - stardog
+      - 7700:7700
+    environment:
+      MEILI_NO_ANALYTICS: true
+      MEILI_MASTER_KEY: "masterKey"
+    volumes:
+      - data-meilisearch:/meili_data
+
 
 volumes:
-  data-stardog:
   data-postgres:
+  data-blazegraph:
+  data-meilisearch:
 
 networks:
   bold-net:

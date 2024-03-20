@@ -15,10 +15,6 @@ start_docs:
 	@echo "Starting docs"
 	PYTHONPATH=$$(pwd)/backend poetry run mkdocs serve --dev-addr localhost:8001
 
-release-tools:
-	cd tools && cargo build --release
-	cp tools/target/release/bold-cli backend/backend/bin/bold-cli
-
 release-frontend:
 	cd frontend && yarn build
 	rm -rf backend/frontend/static

@@ -1,0 +1,24 @@
+iri,label,count,pos,rdf_type,description
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#type>,type,0,1,,The subject is an instance of a class.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>,Property,0,0,,The class of RDF properties.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Property>,Property,0,2,,The class of RDF properties.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement>,Statement,0,2,,The class of RDF statements.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Statement>,Statement,0,0,,The class of RDF statements.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#subject>,subject,0,1,,The subject of the subject RDF statement.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#predicate>,predicate,0,1,,The predicate of the subject RDF statement.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#object>,object,0,1,,The object of the subject RDF statement.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag>,Bag,0,2,,The class of unordered containers.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Bag>,Bag,0,0,,The class of unordered containers.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq>,Seq,0,0,,The class of ordered containers.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Seq>,Seq,0,2,,The class of ordered containers.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Alt>,Alt,0,0,,The class of containers of alternatives.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#Alt>,Alt,0,2,,The class of containers of alternatives.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#value>,value,0,1,,Idiomatic property used for structured values.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#List>,List,0,2,,The class of RDF Lists.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#List>,List,0,0,,The class of RDF Lists.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#first>,first,0,1,,The first item in the subject RDF list.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#rest>,rest,0,1,,The rest of the subject RDF list after the first item.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#CompoundLiteral>,CompoundLiteral,0,2,,A class representing a compound literal.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#CompoundLiteral>,CompoundLiteral,0,0,,A class representing a compound literal.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#language>,language,0,1,,The language component of a CompoundLiteral.
+<http://www.w3.org/1999/02/22-rdf-syntax-ns#direction>,direction,0,1,,The base direction component of a CompoundLiteral.
