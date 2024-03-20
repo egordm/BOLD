@@ -1,7 +1,9 @@
 version: '3'
 services:
   bold:
-    image: egordm/ankc:latest
+#    image: egordm/ankc:latest
+    image: egordm/bold:latest
+    build: .
     environment:
       BLAZEGRAPH_ENABLE: on
       BLAZEGRAPH_ENDPOINT: http://blazegraph:9999
@@ -16,7 +18,8 @@ services:
       - bold-net
     links:
       - postgres
-      - stardog
+      - blazegraph
+      - meilisearch
     depends_on:
       - postgres
       - blazegraph
@@ -65,7 +68,7 @@ services:
 
 
 volumes:
-  data-stardog:
+  data-postgres:
   data-blazegraph:
   data-meilisearch:
 

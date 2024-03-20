@@ -1,6 +1,6 @@
-import os
+from backend.settings import BLAZEGRAPH_ENDPOINT
 
-BLAZEGRAPH_ENDPOINT = os.environ["BLAZEGRAPH_ENDPOINT"]
+BLAZEGRAPH_ENDPOINT = BLAZEGRAPH_ENDPOINT
 
 
 class BlasegraphClient:

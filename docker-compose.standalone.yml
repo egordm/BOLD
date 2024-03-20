@@ -10,12 +10,6 @@ services:
       - ./backend/.env:/app/.env
     networks:
       - bold-net
-    links:
-      - postgres
-      - stardog
-    depends_on:
-      - postgres
-      - stardog
 
 
 networks:

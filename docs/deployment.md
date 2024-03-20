@@ -1,17 +1,19 @@
 # Deployment
 It is advised to deploy BOLD using preconfigured docker containers.
 
-> Note: StarDog is free but requires a license. Request a free license at [stardog.com](https://www.stardog.com/download-free//).
-> Place the license at `dev/stardog/stardog-license-key.bin` in the project root.
-
 Create a `docker-compose.yml` file with the following contents:
 ```yaml
 version: '3'
 services:
   bold:
-    image: egordm/bold:latest
+    image: egordm/ankc:latest
+    environment:
+      BLAZEGRAPH_ENABLE: on
+      BLAZEGRAPH_ENDPOINT: http://blazegraph:9999
+      MEILISEARCH_ENDPOINT: http://meilisearch:7700
+      MEILISEARCH_MASTER_KEY: masterKey
     ports:
-      - 8000:8000
+      - 8001:8000
     volumes:
       - ./storage:/storage
       - ./backend/.env:/app/.env
@@ -19,13 +21,15 @@ services:
       - bold-net
     links:
       - postgres
-      - stardog
+      - blazegraph
+      - meilisearch
     depends_on:
       - postgres
-      - stardog
+      - blazegraph
+      - meilisearch
 
   postgres:
-    image: egordm/postgres-multidb:latest
+    build: ./dev/postgres
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: helloworld
@@ -37,25 +41,39 @@ services:
     networks:
       - bold-net
 
-  stardog:
-    image: stardog/stardog:7.9.1-java11-preview
-    userns_mode: host
+  blazegraph:
+    image: openkbs/blazegraph-docker
     ports:
-      - 5820:5820
+      - 9999:9999
     volumes:
-      - data-stardog:/var/opt/stardog
-      - ./dev/stardog/stardog-license-key.bin:/var/opt/stardog/stardog-license-key.bin
-      - ./storage/import:/var/data/import
-      - ./storage/downloads:/var/data/downloads
-      - ./storage/export:/var/data/export
-    environment:
-      STARDOG_SERVER_JAVA_ARGS: "-Xmx8g -Xms8g -XX:MaxDirectMemorySize=12g"
+      - data-blazegraph:/var/lib/blazegraph/data
+      - ./storage:/storage
+      - ./dev/blazegraph:/opt/blazegraph-custom
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9999" ]
+      interval: 3s
+      timeout: 5s
+      retries: 3
     networks:
       - bold-net
 
+  meilisearch:
+    image: getmeili/meilisearch:v1.7.2
+    ports:
+      - 7700:7700
+    environment:
+      MEILI_NO_ANALYTICS: true
+      MEILI_MASTER_KEY: "masterKey"
+    volumes:
+      - data-meilisearch:/meili_data
+    networks:
+      - bold-net
+
+
 volumes:
-  data-stardog:
   data-postgres:
+  data-blazegraph:
+  data-meilisearch:
 
 networks:
   bold-net:
@@ -68,16 +86,16 @@ DEBUG=off
 STARDOG_ENABLE=on
 ```
 
-Change `STARDOG_ENABLE` to `off` if you don't want to use stardog.
+Change `BLAZEGRAPH_ENABLE` to `off` if you don't want to use Blazegraph.
 
 Then run `docker-compose up -d` to start the container. You can now access BOLD at `http://localhost:8000`.
 
 
 ## System Requirements
-The server requirements are mostly bound by the Stardog database.
+The server requirements are mostly bound by the Blazegraph database.
 
-You can choose to not use the Stardog database, but you will not be able to import the full datasets (only external SPARQL endpoints are allowed).
-Moreover you can decide to run Stardog on a different machine.
+You can choose to not use the Blazegraph database, but you will not be able to import the full datasets (only external SPARQL endpoints are allowed).
+Moreover you can decide to run Blazegraph on a different machine.
 
 * You must have twice the amount of storage your datasets require. (YAGO is 60Gb thus 120Gb)
 * You must allocate at least 2 cores for the server.

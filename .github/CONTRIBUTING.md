@@ -7,7 +7,7 @@ If you are a first time contributor, start by reading [this fantastic guide](htt
 #### Backend:
 - [Django](https://docs.djangoproject.com/en/4.1/)
 - [Celery](https://github.com/celery/celery/)
-- [Stardog](https://docs.stardog.com/)
+- [Blazegraph](https://blazegraph.com/)
 
 #### Frontend:
 - [React](https://reactjs.org/)

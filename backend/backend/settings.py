@@ -218,6 +218,7 @@ LOGGING = {
 
 BLAZEGRAPH_ENABLE = env.bool('BLAZEGRAPH_ENABLE', default=True)
 BLAZEGRAPH_ENDPOINT = env('BLAZEGRAPH_ENDPOINT', default='http://localhost:9999')
+MEILISEARCH_ENDPOINT = env('MEILISEARCH_ENDPOINT', default='http://localhost:7700')
 
 ROOT_DIR = BASE_DIR.parent.absolute()
 

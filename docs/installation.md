@@ -2,16 +2,13 @@
 This document is describes how to install BOLD for typical usage.
 If you want to install BOLD for development purposes, we refer you to the [CONTRIBUTING](/CONTRIBUTING) section.
 
-The BOLD platform depends on [postgresql](https://www.postgresql.org/) and [stardog](https://www.stardog.com/) databases for knowledge graph and state storage.
+The BOLD platform depends on [postgresql](https://www.postgresql.org/) and [blazegraph](https://blazegraph.com/) databases for knowledge graph and state storage.
 In the following steps we discuss their setup as well as necessary steps to get BOLD up and running.
 
 
 ### Database Setup
-If you have already postgresql and stardog databases installed, you can skip this step.
+If you have already postgresql and blazegraph databases installed, you can skip this step.
 In this step we discuss their setup as docker containers.
-
-> Note: StarDog is free but requires a license. Request a free license at [stardog.com](https://www.stardog.com/download-free//).
-> Place the license as `dev/stardog/stardog-license-key.bin` in the project root.
 
 * Install [Docker](https://www.docker.com/community-edition) and [Docker Compose](https://docs.docker.com/compose/install/)
 * Build the Docker images: `docker-compose build`
@@ -45,7 +42,9 @@ OPENAPI_KEY=<your-key>
 You can configure your bold installation by creating `backend/.env` file and setting following variables:
 
 * `DEBUG`: Set to `False` to disable debug mode.
-* `STARDOG_ENABLE`: Set to `False` to disable local dataset downloads and search indexing. This is useful if you don't have a stardog instance running.
+* `BLAZEGRAPH_ENABLE`: Set to `False` to disable local dataset downloads and search indexing. This is useful if you don't have a blazegraph instance running.
+* `MEILISEARCH_ENDPOINT`: Set to the endpoint of your meilisearch instance. (default: `http://meilisearch:7700`)
+* `BLAZEGRAPH_ENDPOINT`: Set to the endpoint of your blazegraph instance. (default: `http://blazegraph:9999`)
 * `DJANGO_SUPERUSER_USERNAME`: Set to the username of the superuser. (default: `admin`)
 * `DJANGO_SUPERUSER_PASSWORD`: Set to the password of the superuser. (default: `admin`)
 * `DJANGO_SUPERUSER_EMAIL`: Set to the email of the superuser.

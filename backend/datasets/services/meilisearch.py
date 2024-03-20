@@ -8,7 +8,9 @@ import numpy as np
 import pandas as pd
 from meilisearch.errors import MeilisearchApiError
 
-client = meilisearch.Client(os.environ["MEILISEARCH_ENDPOINT"], 'masterKey')
+from backend.settings import MEILISEARCH_ENDPOINT
+
+client = meilisearch.Client(MEILISEARCH_ENDPOINT, 'masterKey')
 
 
 class TermPos(Enum):

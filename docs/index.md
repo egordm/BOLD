@@ -33,18 +33,22 @@ Log in with the following credentials:
 Visit [BOLD documentation](https://egordm.github.io/BOLD/) for more information.
 
 ## Quick Installation
-> Note: StarDog is free but requires a license. Request a free license at [stardog.com](https://www.stardog.com/download-free//).
-> Place the license at `dev/stardog/stardog-license-key.bin` in the project root.
-
 You can quickly spin up a BOLD instance using [Docker](https://www.docker.com/).
 Create a `docker-compose.yml` file with the following contents:
 ```yaml
 version: '3'
 services:
   bold:
+#    image: egordm/ankc:latest
     image: egordm/bold:latest
+    build: .
+    environment:
+      BLAZEGRAPH_ENABLE: on
+      BLAZEGRAPH_ENDPOINT: http://blazegraph:9999
+      MEILISEARCH_ENDPOINT: http://meilisearch:7700
+      MEILISEARCH_MASTER_KEY: masterKey
     ports:
-      - 8000:8000
+      - 8001:8000
     volumes:
       - ./storage:/storage
       - ./backend/.env:/app/.env
@@ -52,13 +56,15 @@ services:
       - bold-net
     links:
       - postgres
-      - stardog
+      - blazegraph
+      - meilisearch
     depends_on:
       - postgres
-      - stardog
+      - blazegraph
+      - meilisearch
 
   postgres:
-    image: egordm/postgres-multidb:latest
+    build: ./dev/postgres
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: helloworld
@@ -70,25 +76,39 @@ services:
     networks:
       - bold-net
 
-  stardog:
-    image: stardog/stardog:7.9.1-java11-preview
-    userns_mode: host
+  blazegraph:
+    image: openkbs/blazegraph-docker
     ports:
-      - 5820:5820
+      - 9999:9999
     volumes:
-      - data-stardog:/var/opt/stardog
-      - ./dev/stardog/stardog-license-key.bin:/var/opt/stardog/stardog-license-key.bin
-      - ./storage/import:/var/data/import
-      - ./storage/downloads:/var/data/downloads
-      - ./storage/export:/var/data/export
-    environment:
-      STARDOG_SERVER_JAVA_ARGS: "-Xmx8g -Xms8g -XX:MaxDirectMemorySize=12g"
+      - data-blazegraph:/var/lib/blazegraph/data
+      - ./storage:/storage
+      - ./dev/blazegraph:/opt/blazegraph-custom
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9999" ]
+      interval: 3s
+      timeout: 5s
+      retries: 3
     networks:
       - bold-net
 
+  meilisearch:
+    image: getmeili/meilisearch:v1.7.2
+    ports:
+      - 7700:7700
+    environment:
+      MEILI_NO_ANALYTICS: true
+      MEILI_MASTER_KEY: "masterKey"
+    volumes:
+      - data-meilisearch:/meili_data
+    networks:
+      - bold-net
+
+
 volumes:
-  data-stardog:
   data-postgres:
+  data-blazegraph:
+  data-meilisearch:
 
 networks:
   bold-net:
