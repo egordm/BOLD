@@ -8,6 +8,7 @@ from celery import shared_task
 
 from backend.settings import DEBUG
 from datasets.models import Dataset, DatasetState
+from datasets.services import meilisearch
 from datasets.services.blazegraph import BLAZEGRAPH_ENDPOINT
 from datasets.tasks import download_url, import_files, update_dataset_info, create_search_index, \
     create_default_search_index
@@ -102,9 +103,9 @@ def delete_dataset(dataset_id: UUID) -> str:
     logger.info(f"Deleting dataset {dataset.name}")
 
     if dataset.search_mode == Dataset.SearchMode.LOCAL.value:
-        if dataset.search_index_path and dataset.search_index_path.exists():
-            logger.info(f"Deleting search index {dataset.search_index_path}")
-            shutil.rmtree(dataset.search_index_path)
+        if dataset.search_index_name and meilisearch.has_index(dataset.search_index_name):
+            logger.info(f"Deleting search index {dataset.search_index_name}")
+            meilisearch.client.index(dataset.search_index_name).delete()
 
     if dataset.mode == Dataset.Mode.LOCAL.value and dataset.local_database:
         logger.info(f"Deleting database {dataset.local_database}")

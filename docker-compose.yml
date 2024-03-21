@@ -19,6 +19,7 @@ services:
       - 9999:9999
     volumes:
       - data-blazegraph:/var/lib/blazegraph/data
+      - ./dev/jetty.xml:/var/lib/blazegraph/conf/jetty.xml
       - ./storage:/storage
       - ./dev/blazegraph:/opt/blazegraph-custom
     healthcheck:
@@ -26,6 +27,8 @@ services:
       interval: 3s
       timeout: 5s
       retries: 3
+    networks:
+      - bold-net
 
   meilisearch:
     image: getmeili/meilisearch:v1.7.2
@@ -36,6 +39,8 @@ services:
       MEILI_MASTER_KEY: "masterKey"
     volumes:
       - data-meilisearch:/meili_data
+    networks:
+      - bold-net
 
 
 volumes:

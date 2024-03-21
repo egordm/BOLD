@@ -1,7 +1,6 @@
 version: '3'
 services:
   bold:
-#    image: egordm/ankc:latest
     image: egordm/bold:latest
     build: .
     environment:
@@ -44,6 +43,7 @@ services:
       - 9999:9999
     volumes:
       - data-blazegraph:/var/lib/blazegraph/data
+#      - ./dev/jetty.xml:/var/lib/blazegraph/conf/jetty.xml
       - ./storage:/storage
       - ./dev/blazegraph:/opt/blazegraph-custom
     healthcheck:

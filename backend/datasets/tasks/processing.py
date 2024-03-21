@@ -23,7 +23,7 @@ SELECT
     (STR(?labelRaw) AS ?label) 
     ?count 
     ?pos
-    ?type
+    ?rdf_type
     (STR(?descriptionRaw) AS ?description)  
 {
     {
@@ -40,7 +40,7 @@ SELECT
         ?iri rdfs:comment ?descriptionRaw.
         FILTER (STRSTARTS(lang(?descriptionRaw), 'en') || lang(?descriptionRaw)='')
     }
-    OPTIONAL { ?iri rdfs:type ?type }
+    OPTIONAL { ?iri rdfs:type ?rdf_type }
 }
 '''
 

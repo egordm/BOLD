@@ -55,7 +55,6 @@ export const ServerDataGrid = (props: {
   initialSorting: GridSortModel,
   initialFilter?: GridFilterModel,
   actions?: (params: GridRowParams, actions: React.ReactNode[]) => React.ReactNode[],
-
 } & Partial<React.ComponentProps<typeof DataGrid>>) => {
   const {
     endpoint, columns, initialState, initialSorting, initialFilter, actions, ...rest
@@ -104,8 +103,9 @@ export const ServerDataGrid = (props: {
   } = useMutation<any>(async (item) => {
     console.debug('Deleting item ', item);
     try {
-      await apiClient.delete(`${endpoint}${(item as any).id}`);
+      await apiClient.delete(`${endpoint}${(item as any).task_id ?? (item as any).id}/`);
       setDeleteItem(null);
+      window.location.reload();
     } catch (e) {
       sendNotification({
         variant: 'error',

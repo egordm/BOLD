@@ -109,13 +109,16 @@ def _prepare_data(data: pd.DataFrame):
     return data
 
 
+
 def index_terms_from_csv(
         index_name: str,
         csv_path: str,
         start_id: int = 0,
 ):
+    COLUMNS = ['iri', 'label', 'count', 'pos', 'rdf_type', 'description']
+
     row_count = 0
-    for chunk in pd.read_csv(csv_path, chunksize=10 ** 5):
+    for chunk in pd.read_csv(csv_path, chunksize=10 ** 5, names=COLUMNS, on_bad_lines='skip'):
         chunk['id'] = chunk.index + start_id
         chunk = chunk.replace({np.nan: None})
         chunk = _prepare_data(chunk)
