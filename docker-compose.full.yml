@@ -9,7 +9,7 @@ services:
       MEILISEARCH_ENDPOINT: http://meilisearch:7700
       MEILISEARCH_MASTER_KEY: masterKey
     ports:
-      - 8001:8000
+      - 8000:8000
     volumes:
       - ./storage:/storage
       - ./backend/.env:/app/.env
