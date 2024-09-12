@@ -1,6 +1,6 @@
 # Installation
 This document is describes how to install BOLD for typical usage.
-If you want to install BOLD for development purposes, we refer you to the [CONTRIBUTING](/CONTRIBUTING) section.
+If you want to install BOLD for development purposes, we refer you to the [CONTRIBUTING](/BOLD/CONTRIBUTING) section.
 
 The BOLD platform depends on [postgresql](https://www.postgresql.org/) and [blazegraph](https://blazegraph.com/) databases for knowledge graph and state storage.
 In the following steps we discuss their setup as well as necessary steps to get BOLD up and running.
@@ -15,7 +15,7 @@ In this step we discuss their setup as docker containers.
 * Start the database services: `docker-compose up`
 
 ### Pull docker image from docker hub (for demonstration)
-If you want to install BOLD for development purposes, we refer you to the [CONTRIBUTING](/CONTRIBUTING) section.
+If you want to install BOLD for development purposes, we refer you to the [CONTRIBUTING](/BOLD/CONTRIBUTING) section.
 This step will pull the latest deployed version from docker hub, which should be a working version of BOLD.
 
 * Build docker images: `docker-compose -f docker-compose.full.yml build`
