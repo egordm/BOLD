@@ -27,6 +27,6 @@ release-frontend:
 	cp -r frontend/build backend/frontend/static
 
 deploy:
-	docker-compose -f docker-compose.prod.yml down
+	docker compose -f docker-compose.prod.yml down
 	docker image rm egordm/ankc
-	docker-compose -f docker-compose.prod.yml up -d
+	docker compose -f docker-compose.prod.yml up -d

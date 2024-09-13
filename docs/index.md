@@ -113,4 +113,4 @@ volumes:
 networks:
   bold-net:
 ```
-Then run `docker-compose up -d` to start the container. You can now access BOLD at `http://localhost:8000`.
+Then run `docker compose up -d` to start the container. You can now access BOLD at `http://localhost:8000`.
