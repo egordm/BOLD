@@ -16,7 +16,7 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 
 const items = [
   {
-    href: '/', icon: (<WarehouseIcon fontSize="small"/>), title: 'Datasets'
+    href: '/datasets', icon: (<WarehouseIcon fontSize="small"/>), title: 'Datasets'
   },
   {
     href: '/reports', icon: (<ArticleIcon fontSize="small"/>), title: 'Reports'
@@ -30,10 +30,6 @@ const items = [
   {
     href: '/triplydb', icon: (<StorageIcon fontSize="small"/>), title: 'TriplyDB'
   },
-  // {
-  //   href: '/datasets', icon: (<UsersIcon fontSize="small"/>), title: 'Datasets'
-  // },
-
 ];
 
 const bottomItems = [
