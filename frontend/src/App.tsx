@@ -18,7 +18,7 @@ import { AuthProvider } from "./providers/AuthProvider";
 import { TasksProvider } from "./providers/TasksProvider";
 import { createEmotionCache } from './utils/create-emotion-cache';
 import { theme } from './theme';
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import LoginPage from "./pages/login";
 
 
@@ -41,7 +41,7 @@ export default function App(props) {
                   <SnackbarProvider maxSnack={3}>
                     <CssBaseline/>
                     <Routes>
-                      <Route path="/" element={DatasetsPage.getLayout(<DatasetsPage/>)}/>
+                      <Route path="/" element={<Navigate replace to="/datasets"/>}/>
                       <Route path="/datasets" element={DatasetsPage.getLayout(<DatasetsPage/>)}/>
                       <Route path="/reports" element={ReportsPage.getLayout(<ReportsPage/>)}/>
                       <Route path="/report/:rid" element={NotebookPage.getLayout(<NotebookPage/>)}/>
