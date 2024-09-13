@@ -8,7 +8,7 @@ import { SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { TasksWidget } from "./containers/tasks/TasksWidget";
 import DatasetsPage from "./pages/datasets";
-import Datasets from "./pages/datasets";
+import DataDiscoveryPage from "./pages/datadiscovery";
 import LODCPage from "./pages/lodc";
 import NotebookPage from "./pages/report/[rid]";
 import ReportsPage from "./pages/reports";
@@ -18,7 +18,7 @@ import { AuthProvider } from "./providers/AuthProvider";
 import { TasksProvider } from "./providers/TasksProvider";
 import { createEmotionCache } from './utils/create-emotion-cache';
 import { theme } from './theme';
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, Navigate } from "react-router-dom";
 import LoginPage from "./pages/login";
 
 
@@ -41,8 +41,9 @@ export default function App(props) {
                   <SnackbarProvider maxSnack={3}>
                     <CssBaseline/>
                     <Routes>
-                      <Route path="/" element={DatasetsPage.getLayout(<DatasetsPage/>)}/>
+                      <Route path="/" element={<Navigate replace to="/datasets"/>}/>
                       <Route path="/datasets" element={DatasetsPage.getLayout(<DatasetsPage/>)}/>
+                      <Route path="/discovery" element={DatasetsPage.getLayout(<DataDiscoveryPage/>)}/>
                       <Route path="/reports" element={ReportsPage.getLayout(<ReportsPage/>)}/>
                       <Route path="/report/:rid" element={NotebookPage.getLayout(<NotebookPage/>)}/>
                       <Route path="/tasks" element={TasksPage.getLayout(<TasksPage/>)}/>
