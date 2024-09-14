@@ -3,6 +3,7 @@ import { Theme } from "@mui/system";
 import PropTypes from 'prop-types';
 import { Avatar, Box, Divider, Drawer, IconButton, Link, Paper, Stack, Typography, useMediaQuery } from '@mui/material';
 import WarehouseIcon from '@mui/icons-material/Warehouse';
+import SearchIcon from '@mui/icons-material/Search';
 import ArticleIcon from '@mui/icons-material/Article';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
 import CloudIcon from '@mui/icons-material/Cloud';
@@ -17,6 +18,9 @@ import GitHubIcon from '@mui/icons-material/GitHub';
 const items = [
   {
     href: '/datasets', icon: (<WarehouseIcon fontSize="small"/>), title: 'Datasets'
+  },
+  {
+    href: '/discovery', icon: (<SearchIcon fontSize="small"/>), title: 'Discovery'
   },
   {
     href: '/reports', icon: (<ArticleIcon fontSize="small"/>), title: 'Reports'

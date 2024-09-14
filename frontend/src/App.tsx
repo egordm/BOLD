@@ -8,7 +8,7 @@ import { SnackbarProvider } from "notistack";
 import { QueryClient, QueryClientProvider } from "react-query";
 import { TasksWidget } from "./containers/tasks/TasksWidget";
 import DatasetsPage from "./pages/datasets";
-import Datasets from "./pages/datasets";
+import DataDiscoveryPage from "./pages/datadiscovery";
 import LODCPage from "./pages/lodc";
 import NotebookPage from "./pages/report/[rid]";
 import ReportsPage from "./pages/reports";
@@ -43,6 +43,7 @@ export default function App(props) {
                     <Routes>
                       <Route path="/" element={<Navigate replace to="/datasets"/>}/>
                       <Route path="/datasets" element={DatasetsPage.getLayout(<DatasetsPage/>)}/>
+                      <Route path="/discovery" element={DatasetsPage.getLayout(<DataDiscoveryPage/>)}/>
                       <Route path="/reports" element={ReportsPage.getLayout(<ReportsPage/>)}/>
                       <Route path="/report/:rid" element={NotebookPage.getLayout(<NotebookPage/>)}/>
                       <Route path="/tasks" element={TasksPage.getLayout(<TasksPage/>)}/>
