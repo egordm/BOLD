@@ -1,6 +1,6 @@
 # Installation
 This document is describes how to install BOLD for typical usage.
-If you want to install BOLD for development purposes, we refer you to the [CONTRIBUTING](/CONTRIBUTING) section.
+If you want to install BOLD for development purposes, we refer you to the [CONTRIBUTING](/BOLD/CONTRIBUTING) section.
 
 The BOLD platform depends on [postgresql](https://www.postgresql.org/) and [blazegraph](https://blazegraph.com/) databases for knowledge graph and state storage.
 In the following steps we discuss their setup as well as necessary steps to get BOLD up and running.
@@ -11,23 +11,23 @@ If you have already postgresql and blazegraph databases installed, you can skip 
 In this step we discuss their setup as docker containers.
 
 * Install [Docker](https://www.docker.com/community-edition) and [Docker Compose](https://docs.docker.com/compose/install/)
-* Build the Docker images: `docker-compose build`
-* Start the database services: `docker-compose up`
+* Build the Docker images: `docker compose build`
+* Start the database services: `docker compose up`
 
-### Docker setup
-If you want to install BOLD for development purposes, we refer you to the [CONTRIBUTING](/CONTRIBUTING) section.
-In this step we describe steps on how to run BOLD as a docker container.'
+### Pull docker image from docker hub (for demonstration)
+If you want to install BOLD for development purposes, we refer you to the [CONTRIBUTING](/BOLD/CONTRIBUTING) section.
+This step will pull the latest deployed version from docker hub, which should be a working version of BOLD.
 
-* Build docker images: `docker-compose -f docker-compose.full.yml build`
-* Start BOLD and the relevant services: `docker-compose -f docker-compose.full.yml up`
+* Build docker images: `docker compose -f docker-compose.full.yml build`
+* Start BOLD and the relevant services: `docker compose -f docker-compose.full.yml up`
 * Open the BOLD web interface: [http://127.0.0.1:8000/](http://localhost:8000/)
 
-### Build docker image from source (optional)
+### Build docker image from source (for development)
 Build docker image from source if you want to run newest or modified version of BOLD.
-In this step we describe steps on how to run BOLD as a docker container.'
+In this step we describe steps on how to run BOLD as a docker container.
 
-* Build docker images: `docker-compose -f docker-compose.yml -f docker-compose.standalone.yml build`
-* Start BOLD and the relevant services: `docker-compose -f docker-compose.yml -f docker-compose.standalone.yml up`
+* Build docker images: `docker compose -f docker-compose.services.yml -f docker-compose.standalone.yml build`
+* Start BOLD and the relevant services: `docker compose -f docker-compose.standalone.yml -f docker-compose.services.yml up`
 * Open the BOLD web interface: [http://127.0.0.1:8000/](http://localhost:8000/)
 
 ### Enabling GPT code completion
